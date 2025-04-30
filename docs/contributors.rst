@@ -1,7 +1,7 @@
 Contributors
 ============
 
-The following individuals have contributed to the development of the ICSpy package:
+The following individuals have contributed to the development of the pyICS package:
 
 Original R Package Authors
 ---------------------------

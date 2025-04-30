@@ -13,7 +13,7 @@ def main():
         requirements = f.read().splitlines()
 
     setup(
-        name='icspy',
+        name='pyics',
         version='0.1.0',
         author='Colombe Becquart, Abdallah Abdelsameia',
         author_email='colombe.becquart@tse-fr.eu, aabdelsameia1@gmail.com',
@@ -22,7 +22,7 @@ def main():
         description='Invariant Coordinate Selection (ICS) for multivariate data analysis.',
         long_description=README,
         long_description_content_type='text/markdown',
-        url='https://github.com/cbecquart/ICSpy',
+        url='https://github.com/cbecquart/pyICS',
         packages=find_packages(),
         install_requires=requirements,
         classifiers=[

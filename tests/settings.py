@@ -3,7 +3,7 @@ This file contains configuration settings and parameters used in the tests.
 """
 
 from sklearn.datasets import load_iris, load_wine, load_digits, load_diabetes, load_breast_cancer
-from icspy import cov, covW, cov4, covAxis
+from pyics import cov, covW, cov4, covAxis
 import numpy as np
 
 # Define datasets to be tested

@@ -4,7 +4,7 @@ Testing
 Comparison with R
 -----------------
 
-This section explains the logic behind testing the ICSpy package to ensure it matches the functionality
+This section explains the logic behind testing the pyICS package to ensure it matches the functionality
 of the original R package.
 
 The testing approach involves the following steps:

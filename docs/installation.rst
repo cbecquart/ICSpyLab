@@ -5,7 +5,7 @@ To install the package, use pip:
 
 .. code-block:: bash
 
-    pip install icspy
+    pip install pyics
 
 Also, make sure that requirements are satisfied with:
 

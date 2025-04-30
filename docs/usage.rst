@@ -1,7 +1,7 @@
 Usage
 =====
 
-This section provides examples of how to use the ICSpy package. The core of the package is the ICS class.
+This section provides examples of how to use the pyICS package. The core of the package is the ICS class.
 The implementation is similar to the sklearn framework, including a fit-transform logic. For more information about the
 arguments and methods, check out the Module page. 
 
@@ -10,7 +10,7 @@ Example 1: Fitting the ICS model
 .. code-block:: python
 
     import pandas as pd
-    from icspy import ICS, cov, covW
+    from pyics import ICS, cov, covW
     from sklearn.datasets import load_iris
 
     # Load dataset

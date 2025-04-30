@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to ICSpy documentation!
+Welcome to pyICS documentation!
 ==========================================================
 
 Overview
@@ -21,7 +21,7 @@ It includes various covariance estimators, transformation settings,
 and plotting utilities. Our extensive testing ensures results consistent with the R package, making it easy for users to
 transition from R to Python or start fresh with ICS.
 
-.. _GitHub Repository: https://github.com/cbecquart/ICSpy
+.. _GitHub Repository: https://github.com/cbecquart/pyICS
 
 You can find the source code for this project on our `GitHub Repository`_.
 
@@ -42,7 +42,7 @@ For examples and usage, see the :doc:`usage` page.
 
 API Documentation
 -----------------
-The ICSpy package provides several modules to work with invariant coordinate selection. For detailed information on each module, including available functions and their usage, see the following sections:
+The pyICS package provides several modules to work with invariant coordinate selection. For detailed information on each module, including available functions and their usage, see the following sections:
 
 - :doc:`ics`: Core functions and classes for performing invariant coordinate selection.
 - :doc:`plot`: Functions for visualizing the results of ICS analysis.

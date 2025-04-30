@@ -1,7 +1,7 @@
 Plot
 ====
 
-.. automodule:: icspy.plot
+.. automodule:: pyics.plot
    :members:
    :undoc-members:
    :show-inheritance:

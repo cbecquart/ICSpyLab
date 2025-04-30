@@ -1,5 +1,5 @@
 """
-Unit tests for the plot functionalities in the ICSpy package.
+Unit tests for the plot functionalities in the pyICS package.
 """
 from . import *
 logger = logging.getLogger(__name__)

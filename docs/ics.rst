@@ -1,7 +1,7 @@
 ICS
 ===
 
-.. automodule:: icspy.ics
+.. automodule:: pyics.ics
    :members:
    :undoc-members:
    :show-inheritance:

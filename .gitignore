@@ -164,3 +164,4 @@ cython_debug/
 # Logs
 tests/logs
 tests/.DS_Store
+/examples.py

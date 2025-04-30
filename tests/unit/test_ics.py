@@ -1,5 +1,5 @@
 """
-Unit tests for the ICS class in the ICSpy package.
+Unit tests for the ICS class in the pyICS package.
 """
 import numpy as np
 

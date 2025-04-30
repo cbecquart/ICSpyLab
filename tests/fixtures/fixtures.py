@@ -10,7 +10,7 @@ import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.packages import importr, PackageNotInstalledError
 from rpy2.robjects.vectors import ListVector, StrVector
-from icspy.ics import ICS, cov, covW, cov4, covAxis
+from pyics.ics import ICS, cov, covW, cov4, covAxis
 from tests.utils import load_dataset
 from rpy2.robjects.conversion import localconverter, get_conversion
 import rpy2.robjects.packages as rpackages

@@ -1,7 +1,7 @@
 Utils
 =====
 
-.. automodule:: icspy.utils
+.. automodule:: pyics.utils
    :members:
    :undoc-members:
    :show-inheritance:
