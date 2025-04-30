@@ -15,6 +15,8 @@ It includes various covariance estimators, transformation settings,
 and plotting utilities. Our extensive testing ensures results consistent with the R package, making it easy for users to
 transition from R to Python or start fresh with ICS.
 
+Check out the [documentation](https://icspydoc.readthedocs.io/en/latest/) for more details.
+
 ## Installation
 
 ```bash
