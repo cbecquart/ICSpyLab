@@ -38,20 +38,20 @@ class ICS:
         S1 (function returning a scatter object): (default: cov) Function to compute the first scatter matrix.
         S2 (function returning a scatter object): (default: covW) Function to compute the second scatter matrix.
         algorithm (str): (default: 'whiten') The algorithm used for transformation ('standard', 'whiten', 'QR').
-        center (bool): (default: False): a logical indicating whether the invariant coordinates should be centered with respect to the first locattion or not. Centering is only applicable if the first scatter object contains a location component, otherwise this is set to False. Note that this only affects the scores of the invariant components (output scores), but not the generalized kurtosis values (output kurtosis).
-        fix_signs(str): (default: 'scores') How to fix the signs of the invariant coordinates. Possible values are "scores" to fix the signs based on (generalized) skewness values of the coordinates, or "w" to fix the signs based on the coefficient matrix of the linear transformation.
+        center (bool): (default: False): a logical indicating whether the invariant coordinates should be centered with respect to the first locattion or not. Centering is only applicable if the first scatter object contains a location component, otherwise this is set to False. Note that this only affects the scores of the invariant components (attribute scores_), but not the generalized kurtosis values (attribute kurtosis_).
+        fix_signs(str): (default: 'scores') How to fix the signs of the invariant coordinates. Possible values are 'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs based on the coefficient matrix of the linear transformation.
         S1_args (dict): Additional arguments for S1.
         S2_args (dict): Additional arguments for S2.
 
     Attributes:
-        W (np.ndarray): Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
-        scores (np.ndarray): Transformed matrix in which each column contains the scores of the corresponding invariant coordinate.
-        kurtosis (np.ndarray): Generalized kurtosis values.
-        skewness (np.ndarray): Skewness values.
+        W_ (np.ndarray): Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
+        scores_ (np.ndarray): Transformed matrix in which each column contains the scores of the corresponding invariant coordinate.
+        kurtosis_ (np.ndarray): Generalized kurtosis values.
+        skewness_ (np.ndarray): Skewness values.
         feature_names_in_ (np.ndarray): Names of features seen during fit. Defined only when X has feature names that are all strings.
         S1_X_ (np.ndarray): Fitted scatter S1. Defined only when center=True.
 
-    Supported Algorithms:
+    Supported algorithms:
         1. standard: performs the spectral decomposition of the symmetric matrix :math:`S_1(X)^{-1/2}S_2(X)S_1(X)^{-1/2}`
         2. whiten: whitens the data with respect to the first scatter matrix before computing the second scatter matrix.
         3. QR: numerically stable algorithm based on the QR algorithm for a common family of scatter pairs: if S1 is cov(), and if S2 is one of cov4, covW, or covAxis. See Archimbaud et al. (2023) for details.
@@ -76,9 +76,9 @@ class ICS:
             center (bool): (default: False): a logical indicating whether the invariant coordinates should be centered with
             respect to the first locattion or not. Centering is only applicable if the first scatter object contains a
             location component, otherwise this is set to False. Note that this only affects the scores of the invariant
-            components (output scores), but not the generalized kurtosis values (output kurtosis).
+            components (attribute scores_), but not the generalized kurtosis values (attribute kurtosis_).
             fix_signs(str): (default: 'scores') How to fix the signs of the invariant coordinates. Possible values are
-            "scores" to fix the signs based on (generalized) skewness values of the coordinates, or "w" to fix the signs
+            'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs
             based on the coefficient matrix of the linear transformation.
             S1_args (dict): Additional arguments for S1.
             S2_args (dict): Additional arguments for S2.
@@ -118,10 +118,10 @@ class ICS:
         self.fix_signs = fix_signs
         self.S1_args = S1_args
         self.S2_args = S2_args
-        self.W = None
-        self.scores = None
-        self.kurtosis = None
-        self.skewness = None
+        self.W_ = None
+        self.scores_ = None
+        self.kurtosis_ = None
+        self.skewness_ = None
         self.feature_names_in_ = None
         self.S1_X_ = None
 
@@ -170,9 +170,9 @@ class ICS:
         if self.center:
             self.S1_X_ = S1_X
 
-        self.W = W_final
-        self.kurtosis = gen_kurtosis
-        self.skewness = gen_skewness
+        self.W_ = W_final
+        self.kurtosis_ = gen_kurtosis
+        self.skewness_ = gen_skewness
 
         return self
 
@@ -187,22 +187,22 @@ class ICS:
             np.ndarray: Transformed matrix in which each column contains the scores of the corresponding invariant
             coordinate.
         """
-        if self.W is None:
+        if self.W_ is None:
             raise ValueError("The ICS model must be fitted before transforming data.")
 
         if isinstance(X, pd.DataFrame):
             X = X.values
         X = np.asarray(X)
 
-        assert self.W.shape[0] == X.shape[1], f"The fitted model expects {self.W.shape[0]} features in X."
+        assert self.W_.shape[0] == X.shape[1], f"The fitted model expects {self.W_.shape[0]} features in X."
 
         if self.center:
             # Center the data if required
             X = self._center_data(X, self.S1_X_)
 
         # Compute the final transformed data
-        Z_final = X @ self.W.T
-        self.scores = Z_final
+        Z_final = X @ self.W_.T
+        self.scores_ = Z_final
 
         return Z_final
 
@@ -222,16 +222,16 @@ class ICS:
 
     def plot(self, **kwargs):
         """Plot the transformed data using the fitted ICS model."""
-        if self.scores is None:
+        if self.scores_ is None:
             raise ValueError("No transformed data available. Fit the model first.")
-        plot_scores(self.scores, **kwargs)
+        plot_scores(self.scores_, **kwargs)
 
 
     def plot_kurtosis(self, **kwargs):
         """Plot the generated kurtosis."""
-        if self.kurtosis is None:
+        if self.kurtosis_ is None:
             raise ValueError("No generated kurtosis available. Fit the model first.")
-        _plot_kurtosis(self.kurtosis, **kwargs)
+        _plot_kurtosis(self.kurtosis_, **kwargs)
 
 
     def describe(self):
@@ -257,18 +257,18 @@ class ICS:
 
         # Print the kurtosis values
         print("\nThe generalized kurtosis measures of the components are:")
-        if self.kurtosis is not None:
-            for idx, val in enumerate(self.kurtosis):
+        if self.kurtosis_ is not None:
+            for idx, val in enumerate(self.kurtosis_):
                 print(f"IC_{idx + 1}: {val:.4f}")
         else:
             print("None")
 
         # Print the coefficient matrix
         print("\nThe coefficient matrix of the linear transformation is:")
-        if self.W is not None:
+        if self.W_ is not None:
             header = "     " + " ".join(f"{name:>12}" for name in feature_names)
             print(header)
-            for idx, row in enumerate(self.W, start=1):
+            for idx, row in enumerate(self.W_, start=1):
                 row_str = " ".join(f"{val:>12.5f}" for val in row)
                 print(f"IC_{idx:<3} {row_str}")
         else:

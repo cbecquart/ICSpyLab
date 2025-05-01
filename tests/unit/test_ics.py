@@ -24,10 +24,10 @@ def test_initialization():
     assert ics.fix_signs == 'scores'
     assert ics.S1_args == {}
     assert ics.S2_args == {}
-    assert ics.W is None
-    assert ics.scores is None
-    assert ics.kurtosis is None
-    assert ics.skewness is None
+    assert ics.W_ is None
+    assert ics.scores_ is None
+    assert ics.kurtosis_ is None
+    assert ics.skewness_ is None
     assert ics.feature_names_in_ is None
     assert ics.S1_X_ is None
 
@@ -123,15 +123,15 @@ def test_fit_method():
     Test the fit method of the ICS class.
 
     This test verifies that the fit method processes the input data correctly,
-    and sets the transformation matrix (W), and kurtosis attributes, but not the scores.
+    and sets the transformation matrix W, and kurtosis attributes, but not the scores.
     """
     ics = ICS()
     X = np.random.randn(100, 5)
     ics.fit(X)
     assert isinstance(ics, ICS)
-    assert ics.W is not None
-    assert ics.kurtosis is not None
-    assert ics.scores is None
+    assert ics.W_ is not None
+    assert ics.kurtosis_ is not None
+    assert ics.scores_ is None
 
 
 # Section: Transform Method Tests
@@ -185,7 +185,7 @@ def test_fit_transform_method():
 #     assert "ICS Summary" in captured.out
 #     assert "Algorithm" in captured.out
 #     assert "Generalized Kurtosis" in captured.out
-#     assert "Transformation Matrix (W)" in captured.out
+#     assert "Transformation Matrix (W_)" in captured.out
 #     assert "Transformed Data (Scores)" in captured.out
 
 
@@ -211,9 +211,9 @@ def test_large_dataset():
     ics = ICS()
     X = np.random.randn(10000, 10)
     ics.fit_transform(X)
-    assert ics.W is not None
-    assert ics.scores is not None
-    assert ics.kurtosis is not None
+    assert ics.W_ is not None
+    assert ics.scores_ is not None
+    assert ics.kurtosis_ is not None
 
 
 # Section: Error Handling Tests

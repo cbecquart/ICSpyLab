@@ -155,9 +155,9 @@ def run_py_ics():
         ics = ICS(S1=S1, S2=S2, algorithm=algorithm, center=center, fix_signs=fix_signs, S1_args=S1_args, S2_args=S2_args)
         ics.fit_transform(X)
         return {
-            'transformation_matrix': ics.W,
-            'kurtosis': ics.kurtosis,
-            'skewness': ics.skewness,
-            'transformed_data': ics.scores,
+            'transformation_matrix': ics.W_,
+            'kurtosis': ics.kurtosis_,
+            'skewness': ics.skewness_,
+            'transformed_data': ics.scores_,
         }
     return _run_py_ics
