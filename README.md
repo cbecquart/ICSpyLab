@@ -1,4 +1,4 @@
-# pyICS
+# ICSpyLab
 
 ## Overview
 
@@ -15,7 +15,7 @@ It includes various covariance estimators, transformation settings,
 and plotting utilities. Our extensive testing ensures results consistent with the R package, making it easy for users to
 transition from R to Python or start fresh with ICS.
 
-Check out the [documentation](https://pyics.readthedocs.io/en/latest/) for more details.
+Check out the [documentation](https://icspylab.readthedocs.io/en/latest/) for more details.
 
 ## Installation
 
@@ -27,7 +27,7 @@ pip install ics
 ### Usage
 
 ```python
-from pyics import ICS, cov, covW
+from icspylab import ICS, cov, covW
 from sklearn.datasets import load_iris
 
 # Load dataset

@@ -1,7 +1,7 @@
 References
 ==========
 
-The following references were used in the development of the pyICS package:
+The following references were used in the development of the ICSpyLab package:
 
 - Alfons, A., Archimbaud, A., Nordhausen, K., & Ruiz-Gazen, A. (2024), Tandem clustering with invariant coordinate selection. Econometrics and Statistics. <https://doi.org/10.1016/j.ecosta.2024.03.002>.
 - Archimbaud, A., Drmac, Z., Nordhausen, K., Radojicic, U., and Ruiz-Gazen, A. (2023), Numerical considerations and a new implementation for ICS, SIAM Journal on Mathematics of Data Science, 5, 97-121. <https://doi.org/10.1137/22M1498759>.

@@ -58,7 +58,7 @@ class ICS:
 
     Examples:
         >>> from sklearn.datasets import load_iris
-        >>> from pyics import ICS
+        >>> from icspylab import ICS
         >>> iris = load_iris()
         >>> X = iris.data
         >>> ICS = ICS()

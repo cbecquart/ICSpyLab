@@ -1,3 +1,3 @@
 """
-Initialization file for the tests modul of pyICS
+Initialization file for the tests modul of ICSpyLab
 """

@@ -4,7 +4,7 @@ import numpy as np
 import random
 import logging
 import string
-from pyics import ICS, Scatter, cov, covW, covAxis, cov4
+from icspylab import ICS, Scatter, cov, covW, covAxis, cov4
 from tests.fixtures import load_data, run_r_ics, run_py_ics
 from tests.settings import datasets, params_sets, decimal_precisions, algorithm, center, fix_signs
 

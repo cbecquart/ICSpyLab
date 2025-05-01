@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'pyICS'
+project = 'ICSpyLab'
 copyright = '2025, Colombe Becquart, Abdallah Abdelsameia'
 author = 'Colombe Becquart, Abdallah Abdelsameia'
 release = '0.1.0'

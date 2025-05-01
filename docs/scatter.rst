@@ -1,7 +1,7 @@
 Scatter
 =======
 
-.. automodule:: pyics.scatter
+.. automodule:: icspylab.scatter
    :members:
    :undoc-members:
    :show-inheritance:

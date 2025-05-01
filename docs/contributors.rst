@@ -1,7 +1,7 @@
 Contributors
 ============
 
-The following individuals have contributed to the development of the pyICS package:
+The following individuals have contributed to the development of the ICSpyLab package:
 
 Python Package Authors
 ---------------------------

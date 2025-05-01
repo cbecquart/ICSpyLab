@@ -1,5 +1,5 @@
 """
-Comparison tests for running pyICS multiple times on the same dataset to make sure we get consistent results.
+Comparison tests for running ICSpyLab multiple times on the same dataset to make sure we get consistent results.
 """
 
 from . import *

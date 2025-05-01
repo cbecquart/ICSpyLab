@@ -7,7 +7,7 @@ import logging
 import pytest
 import numpy as np
 from tests.utils import calculate_similarity_percentage
-from pyics import ICS
+from icspylab import ICS
 from sklearn.datasets import load_iris
 from tests.fixtures import load_data, run_r_ics, run_py_ics
 from tests.settings import datasets, params_sets, params_sets2, decimal_precisions_for_r, decimal_precisions, algorithm, center, fix_signs

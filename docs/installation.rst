@@ -5,7 +5,7 @@ To install the package, use pip:
 
 .. code-block:: bash
 
-    pip install pyics
+    pip install icspylab
 
 Also, make sure that requirements are satisfied with:
 

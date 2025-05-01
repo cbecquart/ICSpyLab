@@ -1,7 +1,7 @@
 Utils
 =====
 
-.. automodule:: pyics.utils
+.. automodule:: icspylab.utils
    :members:
    :undoc-members:
    :show-inheritance:
