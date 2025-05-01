@@ -21,7 +21,7 @@ Check out the [documentation](https://icspylab.readthedocs.io/en/latest/) for mo
 
 ```bash
 pip install numpy pandas scipy scikit-learn seaborn matplotlib 
-pip install ics
+pip install icspylab
 ```
 
 ### Usage
