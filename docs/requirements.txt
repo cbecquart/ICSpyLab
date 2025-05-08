@@ -3,3 +3,9 @@ wheel
 sphinx
 sphinx-autodoc-typehints
 sphinx_rtd_theme
+numpy
+pandas
+scikit-learn
+scipy
+seaborn
+matplotlib
