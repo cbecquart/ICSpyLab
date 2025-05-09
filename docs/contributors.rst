@@ -16,7 +16,7 @@ Python Package Contributors
 
 Python Package Maintainer
 ---------------------------
-- Colombe Becquart [aut]
+- Colombe Becquart
 
 Original R Package Authors
 ---------------------------
@@ -30,4 +30,4 @@ Original R Package Authors
 Contact Information
 ===================
 
-For questions or feedback, please contact Colombe Becquart.
+For questions or feedback, please contact Colombe Becquart or open an issue on `Github <https://github.com/cbecquart/ICSpyLab>`_.
