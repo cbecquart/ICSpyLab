@@ -15,6 +15,8 @@ import numpy as np
 import pandas as pd
 from scipy.spatial.distance import mahalanobis
 from numpy.linalg import multi_dot
+from sklearn.covariance import MinCovDet
+from tcov import tcov_module
 
 
 class Scatter:
@@ -147,3 +149,27 @@ def cov4(X, location=True):
     cov4_scatter = covW(X, location, alpha=1, cf=(1 / (p + 2)))
     cov4_scatter.label = "Cov4"
     return cov4_scatter
+
+
+def mcd(X, **kwargs):
+    """
+    Wrapper function around scikit learn's implementation of the MCD (Minimum Covariance Determinant) scatter. MCD is a
+    robust estimator of covariance. The idea is to find a given proportion of non-outlying observations and compute
+    their empirical covariance matrix. It is then rescaled to account for the selection of observations ("consistency
+    step"). Once the MCD estimator is computed, the observations can be weighted by their Mahalanobis distance. The
+    resulting estimator is called the reweighted MCD. The "reweighting step" is performed by default. To access the
+    raw estimators of the MCD, call the raw_location_ and raw_covariance_ attributes of a MinCovDet object. For more
+    information, check out scikit learn's `documentation <https://scikit-learn.org/stable/modules/generated/sklearn.covariance.MinCovDet.html>`_.
+
+    Parameters:
+        X (numpy.ndarray): The data matrix.
+
+    Returns:
+        Scatter: An object containing the location and custom weighted scatter matrix.
+    """
+    mcd_fit = MinCovDet(**kwargs).fit(X)
+    mcd_loc = mcd_fit.location_
+    mcd_cov = mcd_fit.covariance_
+
+    return Scatter(location=mcd_loc, scatter=mcd_cov, label="MCD")
+
