@@ -1,12 +1,13 @@
 # Steps to create the tcov module with **Pybind11** 🐍
 
-## 1. Install Armadillo
+## 1. Install Armadillo, Lapack and Blas
 
 It is possible to use Conda for this step. Conda simplifies the library installation process, allowing you to install 
-Armadillo without having to compile the library yourself.
+Armadillo without having to compile the library yourself. Openblas is an open-source implementation of BLAS and  LAPACK.
 
 ````bash
 conda install -c conda-forge armadillo
+conda install -c conda-forge openblas
 ````
 
 > **♩** The ``math.h`` file is part of the standard C library, and is automatically included in almost 
@@ -20,9 +21,11 @@ The command:
 ````c++
 #include <RcppArmadillo.h>
 ````
-is replaced by the command:
+is replaced by the commands:
 
 ````c++
+#define ARMA_USE_BLAS
+#define ARMA_USE_LAPACK
 #include <armadillo>
 ````
 
@@ -49,8 +52,8 @@ std::cout << "Armadillo Matrix (First row): " << x_mat.row(0) << std::endl;
 ## 4. Create a ``setup.py`` file
 Set up your compilation to include Armadillo.
 
-> **♩** In ``setup.py``, don't forget to update the **include_dirs** and **library_dirs** include paths.
-> These are in the project's conda environment.
+> **♩** In ``setup.py``, don't forget to update the **include_dirs** and **library_dirs** include paths if
+> you are not using the active Conda environment. 
 
 ## 5. Compile the module
 
