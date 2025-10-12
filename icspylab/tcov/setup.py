@@ -13,7 +13,7 @@ ext_modules = [
         ["tcov_wrapper.cpp", "scatters.cpp"],  # C++ files
         include_dirs=[include_dir],  # Path to Armadillo headers
         library_dirs=[lib_dir],  # Path to Armadillo libraries
-        libraries=["lapack", "blas", "armadillo"],  # Armadillo libraries
+        libraries=["openblas", "armadillo"],   # Armadillo libraries
         language="c++",
     )
 ]

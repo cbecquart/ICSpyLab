@@ -4,6 +4,8 @@
  */
 
 // #include <RcppArmadillo.h>  // for covariance matrix and inverse
+#define ARMA_USE_BLAS
+#define ARMA_USE_LAPACK
 #include <armadillo>
 #include <math.h>           // for exponential function
 

@@ -1,5 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
+#define ARMA_USE_BLAS
+#define ARMA_USE_LAPACK
 #include <armadillo>
 
 namespace py = pybind11;
