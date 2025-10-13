@@ -27,5 +27,5 @@ py::array_t<double> tcov_py(py::array_t<double, py::array::c_style | py::array::
 }
 
 PYBIND11_MODULE(tcov_module, m) {
-    m.def("tcov", &tcov_py, "Compute TCOV scatter matrix");
+    m.def("tcov_cpp", &tcov_py, "Compute TCOV scatter matrix");
 }

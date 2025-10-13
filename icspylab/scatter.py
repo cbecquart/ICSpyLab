@@ -55,11 +55,12 @@ def cov(X, location=True):
         Scatter: An object containing the location and scatter matrix.
     """
     # Compute the covariance matrix
-    scatter_ = np.cov(X.T)
+    cov_cov = np.cov(X.T)
 
     # Compute hte mean location if required
-    location_ = X.mean(0) if location else None
-    return Scatter(location_, scatter_, "Covariance")
+    cov_loc = X.mean(0) if location else None
+
+    return Scatter(cov_loc, cov_cov, "Covariance")
 
 
 def covW(X, location=True, alpha=1, cf=1):
@@ -165,7 +166,7 @@ def mcd(X, **kwargs):
         X (numpy.ndarray): The data matrix.
 
     Returns:
-        Scatter: An object containing the location and custom weighted scatter matrix.
+        Scatter: An object containing the location and scatter matrix.
     """
     mcd_fit = MinCovDet(**kwargs).fit(X)
     mcd_loc = mcd_fit.location_
@@ -173,3 +174,25 @@ def mcd(X, **kwargs):
 
     return Scatter(location=mcd_loc, scatter=mcd_cov, label="MCD")
 
+
+def tcov(X, beta=2):
+    """
+    Compute TCOV.
+    Parameters:
+        X (numpy.ndarray):  data
+        beta (int or float, default=2): parameter to adjust tcov calculation
+    Returns:
+        Scatter: An object containing the location and scatter matrix.
+    """
+
+    # Check types
+    X = np.asarray(X, dtype=np.float64)
+    X = np.ascontiguousarray(X)
+    if X.ndim == 1:
+        X = X.reshape(-1, 1)
+    beta = float(beta)
+
+    # Directly call tcov_cpp with given parameters
+    tcov_X = tcov_module.tcov_cpp(X, beta)
+
+    return Scatter(location=None, scatter=tcov_X, label="TCOV")
