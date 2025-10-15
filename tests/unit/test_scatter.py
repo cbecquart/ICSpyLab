@@ -103,9 +103,9 @@ def test_cov4():
     assert scatter.location.shape == (5,)
     assert isinstance(scatter, Scatter)
 
-def test_mcd():
+def test_mcd_reweighted():
     """
-    Test the mcd function for calculating the MCD.
+    Test the mcd function for calculating the MCD, with reweighted=True.
 
     This test verifies that the mcd function correctly implements the MCD scatter of the given data matrix. It asserts
     that the scatter matrix has the correct shape and that the location vector has the correct length.
@@ -115,6 +115,24 @@ def test_mcd():
     """
     X = np.random.randn(100, 5)
     scatter = mcd(X)
+
+    assert scatter.label == "MCD"
+    assert scatter.scatter.shape == (5, 5)
+    assert scatter.location.shape == (5,)
+    assert isinstance(scatter, Scatter)
+
+def test_mcd_raw():
+    """
+    Test the mcd function for calculating the MCD, with reweighted=False.
+
+    This test verifies that the mcd function correctly implements the MCD scatter of the given data matrix. It asserts
+    that the scatter matrix has the correct shape and that the location vector has the correct length.
+
+    Attributes:
+        data_matrix (np.ndarray): The data matrix to be used for fourth-order covariance calculation.
+    """
+    X = np.random.randn(100, 5)
+    scatter = mcd(X, reweighted=False)
 
     assert scatter.label == "MCD"
     assert scatter.scatter.shape == (5, 5)

@@ -156,7 +156,7 @@ def cov4(X, location=True):
     return cov4_scatter
 
 
-def mcd(X, **kwargs):
+def mcd(X, reweighted=True, **kwargs):
     """
     Wrapper function around scikit learn's implementation of the MCD (Minimum Covariance Determinant) scatter, using
     the FastMCD algorithm. MCD is a robust estimator of covariance. The idea is to find a given proportion of
@@ -173,8 +173,12 @@ def mcd(X, **kwargs):
         Scatter: An object containing the location and scatter matrix.
     """
     mcd_fit = MinCovDet(**kwargs).fit(X)
-    mcd_loc = mcd_fit.location_
-    mcd_cov = mcd_fit.covariance_
+    if reweighted:
+        mcd_loc = mcd_fit.location_
+        mcd_cov = mcd_fit.covariance_
+    else:
+        mcd_loc = mcd_fit.raw_location_
+        mcd_cov = mcd_fit.raw_covariance_
 
     return Scatter(location=mcd_loc, scatter=mcd_cov, label="MCD")
 
