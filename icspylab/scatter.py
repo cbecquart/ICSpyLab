@@ -221,11 +221,11 @@ def tcov(X, beta=2, use_cpp=True):
         X = X.reshape(-1, 1)
     beta = float(beta)
 
-    # Directly call tcov_cpp with given parameters
+    # If use_cpp=True, tcov_module can't be None. Otherwise, proceed with use_cpp=False.
     if use_cpp and (tcov_module is not None):
         tcov_X = tcov_module.tcov_cpp(X, beta)
     else:
-        if tcov_module is None:
+        if use_cpp:
             warnings.warn('tcov_module not available. For help building the module, see tcov/README.md.'
                           'Proceeding with use_cpp=False')
         tcov_X = _tcov_py(X, beta)         

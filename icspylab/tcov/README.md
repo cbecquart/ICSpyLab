@@ -12,7 +12,7 @@ conda install -c conda-forge openblas
 
 > **♩** The ``math.h`` file is part of the standard C library, and is automatically included in almost 
 > all C/C++ environments. If you get an error saying that math.h is not found, this probably means that 
-> your C++ development environment is not configured properly. 
+> your C++ development environment is not configured properly.
 
 ## 2. Write C++ code
 
@@ -42,6 +42,11 @@ Special attention must be paid to how the C++ code reads input data in **Numpy a
 auto buf = x.request();
 arma::mat x_mat(reinterpret_cast<double*>(buf.ptr), buf.shape[1], buf.shape[0], false);
 x_mat = x_mat.t();
+````
+
+To install **Pybind11**:
+````bash
+pip install pybind11
 ````
 
 To ensure conversion, the line of code below displays the first line of the Armadillo matrix.
