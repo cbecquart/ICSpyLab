@@ -1,4 +1,7 @@
-from . import *
+import pytest
+import numpy as np
+from icspylab import Scatter, cov, covW, covAxis, cov4, mcd, tcov, tM
+import logging
 
 logger = logging.getLogger(__name__)
 def test_scatter_class():
@@ -156,4 +159,22 @@ def test_tcov():
     assert scatter.label == "TCOV"
     assert scatter.scatter.shape == (5, 5)
     assert scatter.location == None
+    assert isinstance(scatter, Scatter)
+def test_tM():
+    """
+    Test the tM function for calculating the tM scatter.
+
+    This test verifies that the tM function correctly implements the tM scatter of the given data matrix.
+    It asserts that the scatter matrix has the correct shape
+    and that the location vector has the correct length.
+
+    Attributes:
+        data_matrix (np.ndarray): The data matrix to be used for fourth-order covariance calculation.
+    """
+    X = np.random.randn(100, 5)
+    scatter = tM(X)
+
+    assert scatter.label == "tM"
+    assert scatter.scatter.shape == (5, 5)
+    assert scatter.location.shape == (5,)
     assert isinstance(scatter, Scatter)
