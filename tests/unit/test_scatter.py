@@ -142,24 +142,44 @@ def test_mcd_raw():
     assert scatter.location.shape == (5,)
     assert isinstance(scatter, Scatter)
 
-def test_tcov():
+def test_tcov_cpp():
     """
-    Test the tcov function for calculating TCOV.
+    Test the tcov function for calculating TCOV, with use_cpp=True (default).
 
     This test verifies that the cov4 function correctly implements the TCOV scatter of the given data matrix.
     It asserts that the scatter matrix has the correct shape
-    and that the location vector has the correct length.
+    and that the location vector is None.
 
     Attributes:
         data_matrix (np.ndarray): The data matrix to be used for fourth-order covariance calculation.
     """
     X = np.random.randn(100, 5)
-    scatter = tcov(X)
+    scatter = tcov(X, use_cpp=True)
 
     assert scatter.label == "TCOV"
     assert scatter.scatter.shape == (5, 5)
     assert scatter.location == None
     assert isinstance(scatter, Scatter)
+
+def test_tcov_py():
+    """
+    Test the tcov function for calculating TCOV, with use_cpp=False.
+
+    This test verifies that the cov4 function correctly implements the TCOV scatter of the given data matrix.
+    It asserts that the scatter matrix has the correct shape
+    and that the location vector is None.
+
+    Attributes:
+        data_matrix (np.ndarray): The data matrix to be used for fourth-order covariance calculation.
+    """
+    X = np.random.randn(100, 5)
+    scatter = tcov(X, use_cpp=False)
+
+    assert scatter.label == "TCOV"
+    assert scatter.scatter.shape == (5, 5)
+    assert scatter.location == None
+    assert isinstance(scatter, Scatter)
+
 def test_tM():
     """
     Test the tM function for calculating the tM scatter.

@@ -21,6 +21,7 @@ try:
     from icspylab.tcov import tcov_module
 except ImportError:
     warnings.warn('tcov_module not available. For help building the module, see tcov/README.md.')
+    tcov_module = None
 
 
 class Scatter:
@@ -165,7 +166,7 @@ def mcd(X, reweighted=True, **kwargs):
     by their Mahalanobis distance. The resulting estimator is called the reweighted MCD. The "reweighting step" is
     performed by default. To access the raw estimators of the MCD, call the raw_location_ and raw_covariance_ attributes
     of a MinCovDet object. information, check out scikit learn's `documentation <https://scikit-learn.org/stable/modules/generated/sklearn.covariance.MinCovDet.html>`_.
-
+    #todo: add references
     Parameters:
         X (numpy.ndarray): The data matrix.
 
@@ -183,7 +184,25 @@ def mcd(X, reweighted=True, **kwargs):
     return Scatter(location=mcd_loc, scatter=mcd_cov, label="MCD")
 
 
-def tcov(X, beta=2):
+def _tcov_py(X, beta):
+    n, p = X.shape
+    b = -beta / 2.0
+    cov_inv = np.linalg.inv(np.cov(X, rowvar=False))
+    V = np.zeros((p, p))
+    denominator = 0.0
+
+    for i in range(1, n):
+        for j in range(i):
+            diff = X[i, :] - X[j, :]
+            r_sq = diff @ cov_inv @ diff
+            w = np.exp(b * r_sq)
+            V += w * np.outer(diff, diff)
+            denominator += w
+
+    return V / denominator
+
+
+def tcov(X, beta=2, use_cpp=True):
     """
     Computes a pairwise one-step M-estimate of scatter with weights based on pairwise Mahalanobis distances. Note that
     it is based on pairwise differences and therefore does not require a location estimate.
@@ -203,7 +222,13 @@ def tcov(X, beta=2):
     beta = float(beta)
 
     # Directly call tcov_cpp with given parameters
-    tcov_X = tcov_module.tcov_cpp(X, beta)
+    if use_cpp and (tcov_module is not None):
+        tcov_X = tcov_module.tcov_cpp(X, beta)
+    else:
+        if tcov_module is None:
+            warnings.warn('tcov_module not available. For help building the module, see tcov/README.md.'
+                          'Proceeding with use_cpp=False')
+        tcov_X = _tcov_py(X, beta)         
 
     return Scatter(location=None, scatter=tcov_X, label="TCOV")
 
