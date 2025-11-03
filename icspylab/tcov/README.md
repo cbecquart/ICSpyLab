@@ -14,7 +14,7 @@ conda install -c conda-forge openblas
 > all C/C++ environments. If you get an error saying that math.h is not found, this probably means that 
 > your C++ development environment is not configured properly.
 
-## 2. Write C++ code
+## 2. Write C++ code (Done)
 
 This is the file ``scatters.cpp`` coded by Andreas Alfons in [ICS](https://github.com/AuroreAA/ICSClust/blob/main/src/scatters.cpp).
 The command:
@@ -29,7 +29,7 @@ is replaced by the commands:
 #include <armadillo>
 ````
 
-## 3. Create a wrapper 
+## 3. Create a wrapper (Done except pybind11 installation)
 To use ``scatters.cpp`` with **Pybind11** and Python, you need to adapt the file so that it can be correctly exposed 
 as a Python module. This means adding special declarations to **Pybind11** to expose your C++ functions to Python.
 This is what we do in ``tcov_wrapper.cpp`` to leave ``scatters.cpp`` unchanged and keep a clear separation between 
@@ -54,7 +54,7 @@ To ensure conversion, the line of code below displays the first line of the Arma
 std::cout << "Armadillo Matrix (First row): " << x_mat.row(0) << std::endl;
 ````
 
-## 4. Create a ``setup.py`` file
+## 4. Create a ``setup.py`` file (Done)
 Set up your compilation to include Armadillo.
 
 > **♩** In ``setup.py``, don't forget to update the **include_dirs** and **library_dirs** include paths if
@@ -68,6 +68,10 @@ To compile the C++ wrapper and generate the shared module file:
 python setup.py build_ext --inplace
 ````
 For this step, Python calls a C++ compiler, by default [Microsoft Visual C++](https://visualstudio.microsoft.com/visual-cpp-build-tools/). 
+
+## 6. Check that the module is successfully compiled
+
+Execute the script ``check_tcov.py``. 
 
 ---
 
