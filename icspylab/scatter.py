@@ -166,12 +166,15 @@ def mcd(X, reweighted=True, **kwargs):
     by their Mahalanobis distance. The resulting estimator is called the reweighted MCD. The "reweighting step" is
     performed by default. To access the raw estimators of the MCD, call the raw_location_ and raw_covariance_ attributes
     of a MinCovDet object. information, check out scikit learn's `documentation <https://scikit-learn.org/stable/modules/generated/sklearn.covariance.MinCovDet.html>`_.
-    #todo: add references
     Parameters:
         X (numpy.ndarray): The data matrix.
 
     Returns:
         Scatter: An object containing the location and scatter matrix.
+
+    References
+    - P. J. Rousseeuw. Least median of squares regression. J. Am Stat Ass, 79:871, 1984.
+    - A Fast Algorithm for the Minimum Covariance Determinant Estimator, 1999, American Statistical Association and the American Society for Quality, TECHNOMETRICS.
     """
     mcd_fit = MinCovDet(**kwargs).fit(X)
     if reweighted:
@@ -187,7 +190,7 @@ def mcd(X, reweighted=True, **kwargs):
 @njit
 def _tcov_numba(X, cov_inv, b):
     """Loop over pairs of observations and add their weighted contribution."""
-    
+
     n, p = X.shape
     V = np.zeros((p, p))
     denominator = 0.0
@@ -230,13 +233,20 @@ def tcov(X, beta=2, use_cpp=True):
     Parameters:
         X (numpy.ndarray):  data
         beta (int or float > 0, default=2): positive numeric value specifying the tuning parameter of the tcov estimator
-        use_cpp (bool, default=True): whether to use the C++ implementation. If use_cpp=True (default), the code calls
-        Andreas Alfons' C++ implementation. It is faster but requires a Python module compiled from the C++ code.
-        Precompiled modules are already in ICSpyLab for Windows and Python version 3.10 to 3.14. If the module is not
-        available, the code sends a warning but continues with use_cpp=False which calls a Python routine. For help
-        building the module, see icspylab/tcov/README.md.
+        use_cpp (bool, default=True): whether to use the C++ implementation. If `use_cpp=True` (default), the code calls
+        Andreas Alfons' C++ implementation. It is faster but requires a Python module compiled from the C++ source.
+        Precompiled modules are included in ICSpyLab for Windows and Python versions 3.10–3.14. If the module is not
+        available, the code issues a warning and continues with `use_cpp=False`, which calls a Numba routine instead.
+        For help building the module, see `icspylab/tcov/README.md`.
     Returns:
         Scatter: An object containing the location(=None) and scatter matrix.
+
+    References
+    - Caussinus, H. and Ruiz-Gazen, A. (1993) Projection Pursuit and Generalized Principal Component Analysis. In
+    Morgenthaler, S., Ronchetti, E., Stahel, W.A. (eds.) New Directions in Statistical Data Analysis and Robustness,
+    35-46. Monte Verita, Proceedings of the Centro Stefano Franciscini Ascona Series. Springer-Verlag.
+    - Caussinus, H. and Ruiz-Gazen, A. (1995) Metrics for Finding Typical Structures by Means of Principal Component
+    Analysis. In Data Science and its Applications, 177-192. Academic Press.
     """
 
     # Check types
@@ -252,8 +262,8 @@ def tcov(X, beta=2, use_cpp=True):
     else:
         if use_cpp:
             raise ImportError('Requires tcov_module which is not available. For help building the module, see '
-                              'icspylab/tcov/README.md. Proceeding with use_cpp=False.')
-        warnings.warn('Use the C++ implementation for faster computations (use_cpp=True).')
+                              '`icspylab/tcov/README.md`. Proceeding with `use_cpp=False`.')
+        warnings.warn('Use the C++ implementation for faster computations (`use_cpp=True`).')
         tcov_X = _tcov_py(X, beta)         
 
     return Scatter(location=None, scatter=tcov_X, label="TCOV")
@@ -261,7 +271,7 @@ def tcov(X, beta=2, use_cpp=True):
 
 def _norm_mu_V(a, B, A):
     """
-    Function for joint norm of a location and matrix (used in tM to decide about convergence).
+    Computes the norm used to define convergence as in Arslan et al. (1995).
     """
 
     A_inv = np.linalg.inv(A)
@@ -317,7 +327,9 @@ def _alg3(X, df, mu_init, V_init, eps, maxiter):
 
 def tM(X, df=1, mu_init=None, V_init=None, eps=1e-6, maxiter=100):
     """
-    Computes the location and scatter for a multivariate t-distribution for a given degree of freedom
+    Computes the location and scatter for a multivariate t-distribution for a given degree of freedom.
+    This function implements the third EM algorithm described in Kent et al. (1994). The norm used to define convergence
+    is as in Arslan et al. (1995).
     :param X: array (n,p): data
     :param df: integer >= 1: assumed degrees of freedom of the t-distribution. Default is 1 which corresponds
     to the Cauchy distribution.
