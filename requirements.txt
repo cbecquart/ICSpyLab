@@ -2,5 +2,6 @@ numpy
 pandas
 scikit-learn
 scipy
+numba
 seaborn
 matplotlib

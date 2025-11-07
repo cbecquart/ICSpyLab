@@ -146,7 +146,7 @@ def test_tcov_cpp():
     """
     Test the tcov function for calculating TCOV, with use_cpp=True (default).
 
-    This test verifies that the cov4 function correctly implements the TCOV scatter of the given data matrix.
+    This test verifies that the tcov function correctly implements the TCOV scatter of the given data matrix.
     It asserts that the scatter matrix has the correct shape
     and that the location vector is None.
 
@@ -165,7 +165,7 @@ def test_tcov_py():
     """
     Test the tcov function for calculating TCOV, with use_cpp=False.
 
-    This test verifies that the cov4 function correctly implements the TCOV scatter of the given data matrix.
+    This test verifies that the tcov function correctly implements the TCOV scatter of the given data matrix.
     It asserts that the scatter matrix has the correct shape
     and that the location vector is None.
 

@@ -16,11 +16,11 @@ import pandas as pd
 from scipy.spatial.distance import mahalanobis
 from numpy.linalg import multi_dot
 from sklearn.covariance import MinCovDet
+from numba import njit
 import warnings
 try:
     from icspylab.tcov import tcov_module
 except ImportError:
-    warnings.warn('tcov_module not available. For help building the module, see tcov/README.md.')
     tcov_module = None
 
 
@@ -184,34 +184,59 @@ def mcd(X, reweighted=True, **kwargs):
     return Scatter(location=mcd_loc, scatter=mcd_cov, label="MCD")
 
 
-def _tcov_py(X, beta):
+@njit
+def _tcov_numba(X, cov_inv, b):
+    """Loop over pairs of observations and add their weighted contribution."""
+    
     n, p = X.shape
-    b = -beta / 2.0
-    cov_inv = np.linalg.inv(np.cov(X, rowvar=False))
     V = np.zeros((p, p))
     denominator = 0.0
 
     for i in range(1, n):
+        xi = X[i]
         for j in range(i):
-            diff = X[i, :] - X[j, :]
-            r_sq = diff @ cov_inv @ diff
+            # Compute difference of current pair of observations
+            diff = xi - X[j]
+            # Compute squared pairwise Mahalanobis distance r_sq = diff^T @ cov_inv @ diff
+            tmp = cov_inv @ diff
+            r_sq = np.dot(diff, tmp)
+            # Compute weight for current pair of observations
             w = np.exp(b * r_sq)
-            V += w * np.outer(diff, diff)
+            # Add weighted contribution of current pair of observations
+            for k in range(p):
+                for l in range(p):
+                    V[k, l] += w * diff[k] * diff[l]
             denominator += w
 
     return V / denominator
 
 
+def _tcov_py(X, beta):
+    """Python implementation of tcov, optimized with Numba. In the paper, we have w(x) = exp(-x/2). But since we always
+    call w(beta * r^2), we instead set b = -beta/2 and use w(x) = exp(x)."""
+
+    # Initialize b and the inverse covariance
+    b = -beta / 2.0
+    cov_inv = np.linalg.inv(np.cov(X, rowvar=False))
+
+    return _tcov_numba(X, cov_inv, b)
+
+
 def tcov(X, beta=2, use_cpp=True):
     """
     Computes a pairwise one-step M-estimate of scatter with weights based on pairwise Mahalanobis distances. Note that
-    it is based on pairwise differences and therefore does not require a location estimate.
+    this estimator is based on pairwise differences and therefore no location estimate is returned.
 
     Parameters:
         X (numpy.ndarray):  data
-        beta (int or float, default=2): parameter to adjust tcov calculation
+        beta (int or float > 0, default=2): positive numeric value specifying the tuning parameter of the tcov estimator
+        use_cpp (bool, default=True): whether to use the C++ implementation. If use_cpp=True (default), the code calls
+        Andreas Alfons' C++ implementation. It is faster but requires a Python module compiled from the C++ code.
+        Precompiled modules are already in ICSpyLab for Windows and Python version 3.10 to 3.14. If the module is not
+        available, the code sends a warning but continues with use_cpp=False which calls a Python routine. For help
+        building the module, see icspylab/tcov/README.md.
     Returns:
-        Scatter: An object containing the location and scatter matrix.
+        Scatter: An object containing the location(=None) and scatter matrix.
     """
 
     # Check types
@@ -226,8 +251,9 @@ def tcov(X, beta=2, use_cpp=True):
         tcov_X = tcov_module.tcov_cpp(X, beta)
     else:
         if use_cpp:
-            warnings.warn('tcov_module not available. For help building the module, see tcov/README.md.'
-                          'Proceeding with use_cpp=False')
+            raise ImportError('Requires tcov_module which is not available. For help building the module, see '
+                              'icspylab/tcov/README.md. Proceeding with use_cpp=False.')
+        warnings.warn('Use the C++ implementation for faster computations (use_cpp=True).')
         tcov_X = _tcov_py(X, beta)         
 
     return Scatter(location=None, scatter=tcov_X, label="TCOV")
@@ -236,10 +262,6 @@ def tcov(X, beta=2, use_cpp=True):
 def _norm_mu_V(a, B, A):
     """
     Function for joint norm of a location and matrix (used in tM to decide about convergence).
-    :param a:
-    :param B:
-    :param A:
-    :return:
     """
 
     A_inv = np.linalg.inv(A)
@@ -259,13 +281,6 @@ def _alg3(X, df, mu_init, V_init, eps, maxiter):
     :param eps: float: convergence tolerance
     :param maxiter: integer: maximum number of iterations
     :return: tuple: location mu, scatter V, and number of iterations iter
-
-    References:
-    - Kent, J.T., Tyler, D.E. and Vardi, Y. (1994), A curious likelihood identity for the multivariate tdistribution,
-    Communications in Statistics, Simulation and Computation, 23, 441–453. <doi:10.1080/03610919408813180>.
-    - Arslan, O., Constable, P.D.L. and Kent, J.T. (1995), Convergence behaviour of the EM algorithm for
-    the multivariate t-distribution, Communications in Statistics, Theory and Methods, 24, 2981–3000.
-    <doi:10.1080/03610929508831664>.
     """
 
     n, p = X.shape
@@ -279,17 +294,19 @@ def _alg3(X, df, mu_init, V_init, eps, maxiter):
 
     while differ > eps:
         iter_count += 1
+
+        # Update weights
         d = np.apply_along_axis(mahalanobis, 1, X, mu_i, np.linalg.inv(V_i))
         w = (df + p) / (df - 1 + (1 / gamma) + (1 / gamma) * (d ** 2))
-
+        # Update estimate mu
         gamma_new = np.mean(w)
         mu_new = np.average(X, axis=0, weights=w) / gamma_new
-
+        # Update estimate V
         X_centered = X - mu_new
         V_new = ((X_centered.T * w) @ X_centered / n) / gamma_new
 
+        # Compute difference
         differ = _norm_mu_V(a=mu_new - mu_i, B=V_new - V_i, A=V_new)
-
         mu_i, V_i = mu_new, V_new
 
         if iter_count >= maxiter:
@@ -309,6 +326,13 @@ def tM(X, df=1, mu_init=None, V_init=None, eps=1e-6, maxiter=100):
     :param eps: float: convergence tolerance
     :param maxiter: integer: maximum number of iterations
     :return: tuple: _alg3 output
+
+    References:
+    - Kent, J.T., Tyler, D.E. and Vardi, Y. (1994), A curious likelihood identity for the multivariate tdistribution,
+    Communications in Statistics, Simulation and Computation, 23, 441–453. <doi:10.1080/03610919408813180>.
+    - Arslan, O., Constable, P.D.L. and Kent, J.T. (1995), Convergence behaviour of the EM algorithm for
+    the multivariate t-distribution, Communications in Statistics, Theory and Methods, 24, 2981–3000.
+    <doi:10.1080/03610929508831664>.
     """
 
     X = np.asarray(X)
