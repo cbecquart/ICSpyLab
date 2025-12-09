@@ -95,3 +95,5 @@ def normal_crit(X, level=0.05,
     })
 
     return out
+
+#todo: to be tested
