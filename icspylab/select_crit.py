@@ -40,15 +40,6 @@ def normal_crit(X, level=0.05,
 
     # Apply marginal normality tests to all components and select on p-values
     test_pvals = np.array([test_fun(X[:, j])["p_value"] for j in range(X.shape[1])])
-
-    out = {
-        "crit": "normal",
-        "level": level,
-        "max_select": max_select,
-        "test": test,
-        "pvalues": test_pvals.copy()
-    }
-
     comp_signif = test_pvals <= level
 
     # If none of them are significative
@@ -89,10 +80,41 @@ def normal_crit(X, level=0.05,
             pvals = pvals * temp / (temp - 1)
             adjusted_levels.append(level / temp)
 
-    out.update({
+    out = {
+        "crit": "normal",
+        "level": level,
+        "max_select": max_select,
+        "test": test,
+        "pvalues": test_pvals.copy(),
         "adjusted_levels": adjusted_levels,
         "select": select
-    })
+    }
+
+    return out
+
+
+def med_crit(object_vals, nb_select=None):
+
+    # Initialization
+    if nb_select is None:
+        nb_select = len(object_vals) - 1
+
+    # Components associated with the furthest eigenvalues from the median
+    med_gen_kurtosis = np.median(object_vals)
+    gen_kurtosis_diff = np.abs(object_vals - med_gen_kurtosis)
+
+    sorted_indices = np.argsort(-gen_kurtosis_diff)
+
+    select = sorted_indices[:nb_select + 1]
+
+    out = {
+        "crit": "med",
+        "nb_select": nb_select,
+        "gen_kurtosis": object_vals,
+        "med_gen_kurtosis": med_gen_kurtosis,
+        "gen_kurtosis_diff_med": gen_kurtosis_diff,
+        "select": select
+    }
 
     return out
 
