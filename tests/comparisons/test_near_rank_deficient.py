@@ -2,7 +2,15 @@
 Comparison tests for using the QR algorithm with near rank-deficient datasets to ensure
 numerical stability between the QR implementations in R and Pyhon
 """
-from . import *
+
+import logging
+import pytest
+import numpy as np
+from tests.utils import calculate_similarity_percentage
+from sklearn.datasets import load_iris
+from tests.fixtures import load_data, run_r_ics, run_py_ics
+from tests.settings import params_sets2, center, fix_signs
+
 
 logger = logging.getLogger(__name__)
 @pytest.mark.parametrize("r_params, py_params", params_sets2)

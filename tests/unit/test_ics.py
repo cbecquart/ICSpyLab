@@ -1,9 +1,16 @@
 """
 Unit tests for the ICS class in the ICSpyLab package.
 """
-import numpy as np
 
-from . import *
+import logging
+import pytest
+import numpy as np
+import random
+import string
+from icspylab import ICS, cov, covW, covAxis, cov4
+from tests.fixtures import run_py_ics
+from tests.settings import algorithm, center, fix_signs
+
 logger = logging.getLogger(__name__)
 
 

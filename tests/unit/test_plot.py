@@ -1,7 +1,12 @@
 """
 Unit tests for the plot functionalities in the ICSpyLab package.
 """
-from . import *
+
+import logging
+import pytest
+import numpy as np
+from icspylab import ICS, cov, covW
+
 logger = logging.getLogger(__name__)
 
 

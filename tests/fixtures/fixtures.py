@@ -1,7 +1,7 @@
 """
 This file contains fixture functions used in the tests.
 """
-import rpy2
+
 import pytest
 import pandas as pd
 import numpy as np
@@ -13,8 +13,8 @@ from rpy2.robjects.vectors import ListVector, StrVector
 from icspylab.ics import ICS, cov, covW, cov4, covAxis
 from tests.utils import load_dataset
 from rpy2.robjects.conversion import localconverter, get_conversion
-import rpy2.robjects.packages as rpackages
-import os
+# import rpy2.robjects.packages as rpackages
+# import os
 
 
 # lib_path = os.path.expanduser('~/R/library')

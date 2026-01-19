@@ -4,6 +4,7 @@ from icspylab import Scatter, cov, covW, covAxis, cov4, mcd, tcov, tM
 import logging
 
 logger = logging.getLogger(__name__)
+
 def test_scatter_class():
 
 
