@@ -48,6 +48,7 @@ class ICS:
         scores_ (np.ndarray): Transformed matrix in which each column contains the scores of the corresponding invariant coordinate.
         kurtosis_ (np.ndarray): Generalized kurtosis values.
         skewness_ (np.ndarray): Skewness values.
+        n_features_in_ (int): Number of features seen during fit.
         feature_names_in_ (np.ndarray): Names of features seen during fit. Defined only when X has feature names that are all strings.
         S1_X_ (np.ndarray): Fitted scatter S1. Defined only when center=True.
 
@@ -93,17 +94,23 @@ class ICS:
             >>>           S2_args = {})
             >>>
         """
-        assert callable(S1), "S1 must be a function returning a Scatter object."
-        assert callable(S2), "S2 must be a function returning a Scatter object."
-        assert isinstance(center, bool), "center must be boolean."
+
+        if not callable(S1):
+            raise TypeError("S1 must be a function returning a Scatter object.")
+        if not callable(S2):
+            raise TypeError("S2 must be a function returning a Scatter object.")
+        if not isinstance(center, bool):
+            raise TypeError("center must be boolean.")
 
         # Check for valid algorithm string
         valid_algo = ['whiten', 'standard', 'QR']
-        assert algorithm in valid_algo, f"algorithm must be one of {valid_algo}"
+        if algorithm not in valid_algo:
+            raise ValueError(f"algorithm must be one of {valid_algo}")
 
         # Check for valid fix_signs string
         valid_fix_signs = ['scores', 'W']
-        assert fix_signs in valid_fix_signs, f"fix_signs must be one of {valid_fix_signs}"
+        if fix_signs not in valid_fix_signs:
+            raise ValueError(f"fix_signs must be one of {valid_fix_signs}")
 
         # Check if the QR algorithm is applicable
         if algorithm == "QR":
@@ -122,6 +129,7 @@ class ICS:
         self.scores_ = None
         self.kurtosis_ = None
         self.skewness_ = None
+        self.n_features_in_ = None
         self.feature_names_in_ = None
         self.S1_X_ = None
 
@@ -129,10 +137,10 @@ class ICS:
         """
         Fit the ICS model to the data.
 
-        This function relies on several helper methods to perform the ICS transformation:
+        This function relies on several helper methods to perform the ICS fit:
         _validate_input, _compute_first_scatter, _compute_second_scatter,
         _transform_second_scatter, _compute_transformation, _compute_transformation_qr,
-        _center_data, _fix_component_signs.
+        _fix_component_signs.
 
         Parameters:
             X (array-like): Data to fit the ICS model, where rows are samples and columns are features.
@@ -146,6 +154,7 @@ class ICS:
         else:
             column_names = [f'Feature_{i}' for i in range(X.shape[1])]
         self.feature_names_in_ = column_names
+        self.n_features_in_ = len(column_names)
 
         X = np.asarray(X)
         self._validate_input(X)
@@ -188,7 +197,7 @@ class ICS:
             coordinate.
         """
         if self.W_ is None:
-            raise ValueError("The ICS model must be fitted before transforming data.")
+            raise TypeError("The ICS model must be fitted before transforming data.")
 
         if isinstance(X, pd.DataFrame):
             X = X.values

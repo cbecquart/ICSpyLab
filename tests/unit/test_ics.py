@@ -43,12 +43,12 @@ def test_S1_as_matrix():
     """
     Test the type of S1 argument.
 
-    The test verifies that an error is raised if S1 a numpy array.
+    The test verifies that a TypeError is raised if S1 a numpy array.
 
     """
     X = np.random.randn(100, 5)
     cov_matrix = np.cov(X.T)
-    with pytest.raises(AssertionError, match="S1 must be a function returning a Scatter object."):
+    with pytest.raises(TypeError, match="S1 must be a function returning a Scatter object."):
         ICS(S1=cov_matrix)
 
 
@@ -56,10 +56,10 @@ def test_S1_as_string():
     """
     Test the type of S1 argument.
 
-    The test verifies that an error is raised if S1 a character string.
+    The test verifies that a TypeError is raised if S1 a character string.
 
     """
-    with pytest.raises(AssertionError, match="S1 must be a function returning a Scatter object."):
+    with pytest.raises(TypeError, match="S1 must be a function returning a Scatter object."):
         ICS(S1="cov")
 
 
@@ -67,12 +67,12 @@ def test_S2_as_matrix():
     """
     Test the type of S2 argument.
 
-    The test verifies that an error is raised if S2 a numpy array.
+    The test verifies that a TypeError is raised if S2 a numpy array.
 
     """
     X = np.random.randn(100, 5)
     cov_matrix = np.cov(X.T)
-    with pytest.raises(AssertionError, match="S2 must be a function returning a Scatter object."):
+    with pytest.raises(TypeError, match="S2 must be a function returning a Scatter object."):
         ICS(S2=cov_matrix)
 
 
@@ -80,10 +80,10 @@ def test_S2_as_string():
     """
     Test the type of S2 argument.
 
-    The test verifies that an error is raised if S2 a character string.
+    The test verifies that a TypeError is raised if S2 a character string.
 
     """
-    with pytest.raises(AssertionError, match="S2 must be a function returning a Scatter object."):
+    with pytest.raises(TypeError, match="S2 must be a function returning a Scatter object."):
         ICS(S2="cov")
 
 
@@ -107,7 +107,7 @@ def test_invalid_algorithm_error():
     invalid_algorithm = ''.join(random.choices(string.ascii_letters + string.digits, k=np.random.randint(1, 10)))
     while invalid_algorithm in ['whiten', 'standard', 'QR']:  # ensure the random string is not a valid algorithm name
         invalid_algorithm = ''.join(random.choices(string.ascii_letters + string.digits, k=np.random.randint(1, 10)))
-    with pytest.raises(AssertionError, match="algorithm must be one of \['whiten', 'standard', 'QR'\]"):
+    with pytest.raises(ValueError, match="algorithm must be one of \['whiten', 'standard', 'QR'\]"):
         ICS(algorithm=invalid_algorithm)
 
 
@@ -120,7 +120,7 @@ def test_invalid_fix_signs_error():
     invalid_fix_signs = ''.join(random.choices(string.ascii_letters + string.digits, k=np.random.randint(1, 5)))
     while invalid_fix_signs in ['scores', 'W']:  # ensure the random string is not a valid fix_signs name
         invalid_fix_signs = ''.join(random.choices(string.ascii_letters + string.digits, k=np.random.randint(1, 10)))
-    with pytest.raises(AssertionError, match="fix_signs must be one of \['scores', 'W'\]"):
+    with pytest.raises(ValueError, match="fix_signs must be one of \['scores', 'W'\]"):
         ICS(fix_signs=invalid_fix_signs)
 
 
@@ -155,7 +155,7 @@ def test_transform_method():
     transformed_data = ics.transform(X)
     assert isinstance(ics, ICS)
     assert transformed_data.shape == X.shape
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         ics_unfitted = ICS()
         ics_unfitted.transform(X)
 
