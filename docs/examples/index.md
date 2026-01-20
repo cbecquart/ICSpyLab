@@ -7,3 +7,4 @@ for dimensionality reduction, clustering, and anomaly detection.
 :maxdepth: 1
 
 randu
+circle
