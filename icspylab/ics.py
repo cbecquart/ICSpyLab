@@ -21,6 +21,7 @@ from scipy.linalg import qr
 from numpy.linalg import multi_dot
 
 from .scatter import Scatter, cov, covW, covAxis, cov4
+from .comp_select import normal_crit, med_crit
 from .utils import sort_eigenvalues_eigenvectors, sqrt_symmetric_matrix, _sign_max, _check_gen_kurtosis
 from .plot import plot_scores, _plot_kurtosis
 
@@ -66,7 +67,8 @@ class ICS:
         >>> ICS.fit(X)
     """
 
-    def __init__(self, S1=cov, S2=covW, algorithm='whiten', center=False, fix_signs='scores', S1_args={}, S2_args={}):
+    def __init__(self, S1=cov, S2=covW, algorithm='whiten', center=False, fix_signs='scores', S1_args={}, S2_args={},
+                 criteria_select=None, criteria_args={}):
         """
         Initialize the ICS object with specified parameters.
 
@@ -83,6 +85,9 @@ class ICS:
             based on the coefficient matrix of the linear transformation.
             S1_args (dict): Additional arguments for S1.
             S2_args (dict): Additional arguments for S2.
+            criteria_select (str or None, default=None): The criteria to select the invariant components. If None
+            (default), all components are kept.
+            criteria_args (dict): Additional arguments for criteria_select.
 
         Examples:
             >>> ICS = ICS(S1 = cov,
@@ -118,6 +123,11 @@ class ICS:
                 warnings.warn("QR algorithm is not applicable; proceeding with the standard algorithm")
                 algorithm = "standard"
 
+        # Check for valid criteria_select
+        valid_criteria = [None, 'normal_crit', 'med_crit']
+        if criteria_select not in valid_criteria:
+            raise ValueError(f"criteria_select must be one of {valid_criteria}")
+
         self.S1 = S1
         self.S2 = S2
         self.algorithm = algorithm
@@ -125,6 +135,8 @@ class ICS:
         self.fix_signs = fix_signs
         self.S1_args = S1_args
         self.S2_args = S2_args
+        self.criteria_select = criteria_select
+        self.criteria_args = criteria_args
         self.W_ = None
         self.scores_ = None
         self.kurtosis_ = None
@@ -189,6 +201,9 @@ class ICS:
         """
         Transform the data using the fitted ICS model.
 
+        This function relies on several helper methods to perform the ICS transformation:
+        _center_data, _component_selection.
+
         Parameters:
             X (array-like): Data to transform.
 
@@ -213,7 +228,13 @@ class ICS:
         Z_final = X @ self.W_.T
         self.scores_ = Z_final
 
-        return Z_final
+        # Select components
+        if self.criteria_select is None:
+            X_new = Z_final
+        else:
+            X_new = self._component_selection(Z_final)
+
+        return X_new
 
     def fit_transform(self, X):
         """
@@ -513,3 +534,19 @@ class ICS:
             gen_skewness = None
 
         return W_final, gen_skewness
+
+    def _component_selection(self, X):
+
+        if self.criteria_select == 'normal_crit':
+            selection_res = normal_crit(X, **self.criteria_args)
+        else:
+            assert self.criteria_select == 'med_crit'
+            selection_res = med_crit(X, **self.criteria_args)
+
+        comp_names = [f"IC_{i + 1}" for i in range(X.shape[1])]
+        name_to_idx = {name: i for i, name in enumerate(comp_names)}
+        idx = [name_to_idx[name] for name in selection_res["select"]]
+        X_new = X[:, idx]
+
+        return X_new
+

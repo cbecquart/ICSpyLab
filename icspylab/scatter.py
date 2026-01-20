@@ -53,7 +53,7 @@ def cov(X, location=True):
     Compute the covariance matrix.
 
     Parameters:
-        X (numpy.ndarray): The data matrix.
+        X (array-like): The data matrix.
         location (bool): (default: True) Whether to include the mean location.
 
     Returns:
@@ -74,7 +74,7 @@ def covW(X, location=True, alpha=1, cf=1):
     For more details, check the R documentation of the package ICS (function covW).
 
     Parameters:
-        X (numpy.ndarray): The data matrix.
+        X (array-like): The data matrix.
         location (bool): (default: True) Whether to include the mean location.
         alpha (float): (default: 1) Parameter of the one-step M-estimator.
         cf (float): (default: 1) Consistency factor of the one-step M-estimator.
@@ -84,6 +84,7 @@ def covW(X, location=True, alpha=1, cf=1):
 
     Details:
         It is given for a :math:`n` x :math:`p` matrix :math:`X` by:
+
         :math:`CovW(X) = (1/n) cf \sum_{i=1}^{n} w(D^2(x_i)) (x_i - \overline{x})^T (x_i - \overline{x})`
     where:
         - :math:`n` is the number of observations,
@@ -121,7 +122,7 @@ def covAxis(X, location=True):
     Compute the one-step Tyler shape matrix which internally uses covW with alpha=-1 and cf=p.
 
     Parameters:
-        X (numpy.ndarray): The data matrix.
+        X (array-like): The data matrix.
         location (bool): (default: True) Whether to include the mean location.
 
     Returns:
@@ -141,7 +142,7 @@ def cov4(X, location=True):
     Compute a custom weighted covariance matrix (cov4) which internally uses covW with alpha=1 and cf=(1 / (p + 2)).
 
     Parameters:
-        X (numpy.ndarray): The data matrix.
+        X (array-like): The data matrix.
         location (bool): (default: True) Whether to include the mean location.
 
     Returns:
@@ -166,8 +167,10 @@ def mcd(X, reweighted=True, **kwargs):
     by their Mahalanobis distance. The resulting estimator is called the reweighted MCD. The "reweighting step" is
     performed by default. To access the raw estimators of the MCD, call the raw_location_ and raw_covariance_ attributes
     of a MinCovDet object. information, check out scikit learn's `documentation <https://scikit-learn.org/stable/modules/generated/sklearn.covariance.MinCovDet.html>`_.
+
     Parameters:
-        X (numpy.ndarray): The data matrix.
+        X (array-like): The data matrix.
+        reweighted (bool): (default=True) If True, use the reweighted version of the MCD estimator.
 
     Returns:
         Scatter: An object containing the location and scatter matrix.
@@ -231,7 +234,7 @@ def tcov(X, beta=2, use_cpp=True):
     this estimator is based on pairwise differences and therefore no location estimate is returned.
 
     Parameters:
-        X (numpy.ndarray):  data
+        X (array-like):  data
         beta (int or float > 0, default=2): positive numeric value specifying the tuning parameter of the tcov estimator
         use_cpp (bool, default=True): whether to use the C++ implementation. If `use_cpp=True` (default), the code calls
         Andreas Alfons' C++ implementation. It is faster but requires a Python module compiled from the C++ source.
@@ -283,14 +286,18 @@ def _norm_mu_V(a, B, A):
 def _alg3(X, df, mu_init, V_init, eps, maxiter):
     """
     Computes tM location and scatter according to Algorithm 3 in Kent and Tyler
-    :param X: array (n,p): data
-    :param df: integer >= 1: assumed degrees of freedom of the t-distribution. Default is 1 which corresponds
-    to the Cauchy distribution.
-    :param mu_init: array(p): initial value of the location mu
-    :param V_init: array(p,p): initial value of the scatter V
-    :param eps: float: convergence tolerance
-    :param maxiter: integer: maximum number of iterations
-    :return: tuple: location mu, scatter V, and number of iterations iter
+
+    Parameters:
+        X (np.ndarray(n,p)): data
+        df (int >= 1): assumed degrees of freedom of the t-distribution. Default is 1 which corresponds
+        to the Cauchy distribution.
+        mu_init (np.ndarray(p)): initial value of the location mu
+        V_init (np.ndarray(p,p)): initial value of the scatter V
+        eps (float): convergence tolerance
+        maxiter (int): maximum number of iterations
+
+    Returns:
+        tuple: location mu, scatter V, and number of iterations iter
     """
 
     n, p = X.shape
@@ -330,14 +337,18 @@ def tM(X, df=1, mu_init=None, V_init=None, eps=1e-6, maxiter=100):
     Computes the location and scatter for a multivariate t-distribution for a given degree of freedom.
     This function implements the third EM algorithm described in Kent et al. (1994). The norm used to define convergence
     is as in Arslan et al. (1995).
-    :param X: array (n,p): data
-    :param df: integer >= 1: assumed degrees of freedom of the t-distribution. Default is 1 which corresponds
-    to the Cauchy distribution.
-    :param mu_init: array(p): initial value of the location mu
-    :param V_init: array(p,p): initial value of the scatter V
-    :param eps: float: convergence tolerance
-    :param maxiter: integer: maximum number of iterations
-    :return: tuple: _alg3 output
+
+    Parameters:
+        X (array-like): data
+        df (int >= 1): (default: 1) assumed degrees of freedom of the t-distribution. Default is 1 which corresponds
+        to the Cauchy distribution.
+        mu_init (np.ndarray(p) or None): (default: None) initial value of the location mu
+        V_init (np.ndarray(p,p) or None): (default: None) initial value of the scatter V
+        eps (float): (default: 1e-6) convergence tolerance
+        maxiter (int): (default: 100) maximum number of iterations
+
+    Returns:
+        tuple: _alg3 output
 
     References:
     - Kent, J.T., Tyler, D.E. and Vardi, Y. (1994), A curious likelihood identity for the multivariate tdistribution,

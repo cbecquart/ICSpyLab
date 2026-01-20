@@ -47,7 +47,8 @@ The ICSpyLab package provides several modules to work with invariant coordinate 
 
 - :doc:`ics`: Core functions and classes for performing invariant coordinate selection.
 - :doc:`plot`: Functions for visualizing the results of ICS analysis.
-- :doc:`scatter`: Tools for generating scatter plots and other visualizations.
+- :doc:`scatter`: Module containing scatter matrix calculations and the Scatter class.
+- :doc:`comp_select`: Module for the component selection step.
 - :doc:`utils`: Utility functions to support the main functionalities.
 
 Each section includes detailed descriptions, parameter information, return types, and usage examples to help you effectively use the package.
@@ -74,6 +75,7 @@ For references, see the :doc:`references` page.
    ics
    plot
    scatter
+   comp_select
    utils
    test
    contributors

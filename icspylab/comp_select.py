@@ -1,29 +1,59 @@
 import numpy as np
-from scipy.stats import shapiro, normaltest, jarque_bera
+from scipy.stats import shapiro, normaltest, jarque_bera, kurtosistest, skewtest
 
-def _agostino_test(x):
-    """D’Agostino K² test."""
+
+def _normaltest(x):
+    """D’Agostino and Pearson’s test."""
     stat, p = normaltest(x)
     return {"statistic": stat, "p_value": p}
 
+def _agostino_test(x):
+    """D'Agostino test of skewness in normally distributed data."""
+    stat, p = skewtest(x)
+    return {"statistic": stat, "p_value": p}
+
+def _anscombe_test(x):
+    """Anscombe-Glynn test of kurtosis in normally distributed data."""
+    stat, p = kurtosistest(x)
+    return {"statistic": stat, "p_value": p}
+
 def _jarque_test(x):
-    """Jarque–Bera test."""
+    """Jarque-Bera normality test."""
     stat, p = jarque_bera(x)
     return {"statistic": stat, "p_value": p}
 
 def _shapiro_test(x):
-    """Shapiro test."""
+    """Shapiro-Wilk normality test."""
     stat, p = shapiro(x)
     return {"statistic": stat, "p_value": p}
 
-def normal_crit(X, level=0.05,
-                test="agostino_test",
-                max_select=None):
+def normal_crit(X, level=0.05, test="agostino_test", max_select=None):
+    """
+    Identifies invariant coordinates that deviate from normality using univariate normality tests. Only the first and
+    last components are investigated.
+
+    SciPy implementations are used. The available tests are:
+    `normaltest <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.normaltest.html>`_,
+    `agostino_test <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.skewtest.html>`_,
+    `jarque_test <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.jarque_bera.html>`_,
+    `anscombe_test <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kurtosistest.html>`_, and
+    `shapiro_test <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.shapiro.html>`_.
+
+    Parameters:
+        X:
+        level (float, default=0.05) The initial level used to make a decision based on the test p-values.
+        test (str, default='agostino_test') Name of the normality test to be used ('normaltest', 'agostino_test', 'jarque_test', 'anscombe_test', 'shapiro_test'). Refer to the SciPy documentation for more information about the tests.
+        max_select (int or None, default=None)
+
+    Returns:
+
+    """
 
     # Choix du test
     tests = {
         "agostino_test": _agostino_test,
         "jarque_test": _jarque_test,
+        "anscombe_test": _anscombe_test,
         "shapiro_test": _shapiro_test
     }
 
@@ -109,7 +139,7 @@ def med_crit(object_vals, nb_select=None):
 
     out = {
         "crit": "med",
-        "nb_select": nb_select,
+        "n_components": nb_select,
         "gen_kurtosis": object_vals,
         "med_gen_kurtosis": med_gen_kurtosis,
         "gen_kurtosis_diff_med": gen_kurtosis_diff,
