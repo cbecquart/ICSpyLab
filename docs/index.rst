@@ -36,9 +36,10 @@ Installation
 ------------
 For installation instructions, see the :doc:`installation` page.
 
-Usage
------
-For examples and usage, see the :doc:`usage` page.
+Usage and examples
+------------------
+For a quick-start guide, see the :doc:`usage` page.
+For more detailed examples, refer to the :doc:`examples/index` section.
 
 API Documentation
 -----------------
@@ -69,6 +70,7 @@ For references, see the :doc:`references` page.
 
    installation
    usage
+   examples/index
    ics
    plot
    scatter

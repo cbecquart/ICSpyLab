@@ -19,13 +19,36 @@ def generate_randu_dataset(n_points=400, seed=1.0):
     return x
 
 
+def generate_randu(n_points=1000, seed=1):
+    m = 2**31
+    a = 65539
+
+    x = np.empty(n_points * 3, dtype=np.int64)
+    x[0] = seed
+
+    for i in range(1, len(x)):
+        x[i] = (a * x[i - 1]) % m
+
+    # Regroupement en triplets
+    data = x.reshape(-1, 3).astype(float)
+
+    # Normalisation dans [0, 1]
+    data /= m
+
+    return data
+
+# X = generate_randu(n_points=400)
+
+
 # Generate and plot the RANDU dataset
+
 X = generate_randu_dataset()
 
 fig = plt.figure()
 ax = fig.add_subplot(projection="3d")
 ax.scatter(X[:, 0], X[:, 1], X[:, 2], s=2)
-#plt.show()
+plt.savefig("../docs/_static/randu_3d.png", dpi=200, bbox_inches="tight")
+plt.close(fig)
 
 # Compute and plot the invariant components
 # ics = ICS(S1=cov, S2=covW, algorithm='standard', S2_args={'alpha': 1, 'cf': 2})

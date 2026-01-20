@@ -62,7 +62,7 @@ def cov(X, location=True):
     # Compute the covariance matrix
     cov_cov = np.cov(X.T)
 
-    # Compute hte mean location if required
+    # Compute the mean location if required
     cov_loc = X.mean(0) if location else None
 
     return Scatter(cov_loc, cov_cov, "Covariance")
@@ -358,3 +358,39 @@ def tM(X, df=1, mu_init=None, V_init=None, eps=1e-6, maxiter=100):
     mu, V, iter = _alg3(X, df, mu_init, V_init, eps, maxiter)
 
     return Scatter(location=mu, scatter=V, label="tM")
+
+
+@njit
+def _tcov2_numba(X, cov_inv):
+    """Loop over pairs of observations and add their weighted contribution."""
+
+    n, p = X.shape
+    V = np.zeros((p, p))
+
+    for i in range(1, n):
+        xi = X[i]
+        for j in range(i):
+            # Compute difference of current pair of observations
+            diff = xi - X[j]
+            # Compute squared pairwise Mahalanobis distance r_sq = diff^T @ cov_inv @ diff
+            tmp = cov_inv @ diff
+            r_sq = np.dot(diff, tmp)
+
+            V += np.outer(diff, diff) / r_sq ** 2
+
+    return 2 / (n * (n-1)) * V
+
+def tcov2(X):
+    """Python implementation of tcov, optimized with Numba. In the paper, we have w(x) = exp(-x/2). But since we always
+    call w(beta * r^2), we instead set b = -beta/2 and use w(x) = exp(x)."""
+
+    # Check types
+    X = np.asarray(X, dtype=np.float64)
+    X = np.ascontiguousarray(X)
+    if X.ndim == 1:
+        X = X.reshape(-1, 1)
+
+    cov_inv = np.linalg.inv(np.cov(X, rowvar=False))
+    tcov_X = _tcov2_numba(X, cov_inv)
+
+    return Scatter(location=None, scatter=tcov_X, label="TCOV2")
