@@ -36,24 +36,24 @@ class ICS:
     It supports various scatter matrix calculations and offers multiple algorithms for applying ICS.
 
     Parameters:
-        S1 (function returning a scatter object): (default: cov) Function to compute the first scatter matrix.
-        S2 (function returning a scatter object): (default: covW) Function to compute the second scatter matrix.
-        algorithm (str): (default: 'whiten') The algorithm used for transformation ('standard', 'whiten', 'QR').
-        center (bool): (default: False): a logical indicating whether the invariant coordinates should be centered with respect to the first locattion or not. Centering is only applicable if the first scatter object contains a location component, otherwise this is set to False. Note that this only affects the scores of the invariant components (attribute scores_), but not the generalized kurtosis values (attribute kurtosis_).
-        fix_signs(str): (default: 'scores') How to fix the signs of the invariant coordinates. Possible values are 'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs based on the coefficient matrix of the linear transformation.
-        S1_args (dict): Additional arguments for S1.
-        S2_args (dict): Additional arguments for S2.
-        criteria_select (str or None, default=None): The criteria to select the invariant components.
-        criteria_args (dict): Additional arguments for criteria_select.
+        S1 (function returning a scatter object, default=cov): Function to compute the first scatter matrix.
+        S2 (function returning a scatter object, default=covW): Function to compute the second scatter matrix.
+        algorithm ({'standard', 'whiten', 'QR'}, default='whiten'): The algorithm used for transformation.
+        center (bool, default=False): A logical indicating whether the invariant coordinates should be centered with respect to the first locattion or not. Centering is only applicable if the first scatter object contains a location component, otherwise this is set to False. Note that this only affects the scores of the invariant components (attribute scores_), but not the generalized kurtosis values (attribute kurtosis_).
+        fix_signs({'scores', 'W'}, default='scores') How to fix the signs of the invariant coordinates. Possible values are 'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs based on the coefficient matrix of the linear transformation.
+        S1_args (dict, default={}): Additional arguments for S1.
+        S2_args (dict, default={}): Additional arguments for S2.
+        criteria_select (str or None, default=None): The criteria to select the invariant components. If None (default), all components are kept.
+        criteria_args (dict, default={}): Additional arguments for criteria_select.
 
     Attributes:
-        W_ (np.ndarray): Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
-        scores_ (np.ndarray): Transformed matrix in which each column contains the scores of the corresponding invariant coordinate.
-        kurtosis_ (np.ndarray): Generalized kurtosis values.
-        skewness_ (np.ndarray): Skewness values.
+        W_ (ndarray): Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
+        scores_ (ndarray): Transformed matrix in which each column contains the scores of the corresponding invariant coordinate.
+        kurtosis_ (ndarray): Generalized kurtosis values.
+        skewness_ (ndarray): Skewness values.
         n_features_in_ (int): Number of features seen during fit.
-        feature_names_in_ (np.ndarray): Names of features seen during fit. Defined only when X has feature names that are all strings.
-        S1_X_ (np.ndarray): Fitted scatter S1. Defined only when center=True.
+        feature_names_in_ (ndarray): Names of features seen during fit. Defined only when X has feature names that are all strings.
+        S1_X_ (ndarray): Fitted scatter S1. Defined only when center=True.
         criteria_out_ (dict): Summary of the component selection step. Defined only when criteria_select is not None.
 
     Supported algorithms:
@@ -76,21 +76,21 @@ class ICS:
         Initialize the ICS object with specified parameters.
 
         Parameters:
-            S1 (function returning a scatter object): (default: cov) Function to compute the first scatter matrix.
-            S2 (function returning a scatter object): (default: covW) Function to compute the second scatter matrix.
-            algorithm (str): (default: 'whiten') The algorithm used for transformation ('standard', 'whiten', 'QR').
-            center (bool): (default: False): a logical indicating whether the invariant coordinates should be centered with
+            S1 (function returning a scatter object, default=cov): Function to compute the first scatter matrix.
+            S2 (function returning a scatter object, default=covW): Function to compute the second scatter matrix.
+            algorithm ({'standard', 'whiten', 'QR'}, default='whiten'): The algorithm used for transformation.
+            center (bool, default=False): A logical indicating whether the invariant coordinates should be centered with
             respect to the first locattion or not. Centering is only applicable if the first scatter object contains a
             location component, otherwise this is set to False. Note that this only affects the scores of the invariant
             components (attribute scores_), but not the generalized kurtosis values (attribute kurtosis_).
-            fix_signs(str): (default: 'scores') How to fix the signs of the invariant coordinates. Possible values are
-            'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs
-            based on the coefficient matrix of the linear transformation.
-            S1_args (dict): Additional arguments for S1.
-            S2_args (dict): Additional arguments for S2.
+            fix_signs({'scores', 'W'}, default='scores') How to fix the signs of the invariant coordinates. Possible
+            values are 'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to
+            fix the signs based on the coefficient matrix of the linear transformation.
+            S1_args (dict, default={}): Additional arguments for S1.
+            S2_args (dict, default={}): Additional arguments for S2.
             criteria_select (str or None, default=None): The criteria to select the invariant components. If None
             (default), all components are kept.
-            criteria_args (dict): Additional arguments for criteria_select.
+            criteria_args (dict, default={}): Additional arguments for criteria_select.
 
         Examples:
             >>> ICS = ICS(S1 = cov,
@@ -212,8 +212,7 @@ class ICS:
             X (array-like): Data to transform.
 
         Returns:
-            np.ndarray: Transformed matrix in which each column contains the scores of the corresponding invariant
-            coordinate.
+            ndarray: Transformed matrix in which columns contain the scores of the selected invariant coordinates.
         """
         if self.W_ is None:
             raise TypeError("The ICS model must be fitted before transforming data.")
@@ -248,8 +247,7 @@ class ICS:
             X (array-like): Data to fit and transform.
 
         Returns:
-            np.ndarray: Transformed matrix in which each column contains the scores of the corresponding invariant
-            coordinate.
+            ndarray: Transformed matrix in which columns contain the scores of the selected invariant coordinates.
         """
         self.fit(X)
         return self.transform(X)
@@ -317,7 +315,7 @@ class ICS:
         is chosen, it also verifies the applicability of the specified scatter matrices.
 
         Parameters:
-            X (np.ndarray): Data to validate.
+            X (ndarray): Data to validate.
 
         Raises:
             ValueError: If the input data doesn't meet any of the requirements.
@@ -339,7 +337,7 @@ class ICS:
         This step is the first step of computing ICS and is common across all 3 algorithms.
 
         Parameters:
-            X (np.ndarray): The data matrix
+            X (ndarray): The data matrix
 
         Returns:
             tuple: The first scatter matrix applied to the data, and its inverse square root
@@ -360,7 +358,7 @@ class ICS:
         (whiten algorithm).
 
         Parameters:
-            X (np.ndarray): The data matrix or whitened data.
+            X (ndarray): The data matrix or whitened data.
 
         Returns:
             Scatter: The second scatter matrix applied to the passed data.
@@ -378,7 +376,7 @@ class ICS:
         Transform the second scatter matrix using the inverse square root of the first scatter matrix
 
         Parameters:
-            S1_X_inv_sqrt (np.ndarray): The inverse square root of the first scatter matrix
+            S1_X_inv_sqrt (ndarray): The inverse square root of the first scatter matrix
             S2_X (Scatter): The second scatter matrix
 
         Returns:
@@ -403,7 +401,7 @@ class ICS:
         the transpose of the eigenvector matrix with the inverse square root of the first scatter matrix (S1_X_inv_sqrt).
 
         Parameters:
-            S1_X_inv_sqrt (np.ndarray): The inverse square root of the first scatter matrix.
+            S1_X_inv_sqrt (ndarray): The inverse square root of the first scatter matrix.
             S2_Y (Scatter): The second scatter matrix transformed (standard algorithm) or applied to the whitened data.
 
         Returns:
@@ -433,7 +431,7 @@ class ICS:
         8. Reorder W according to the original pivoting order.
 
         Parameters:
-            X (np.ndarray): The data matrix.
+            X (ndarray): The data matrix.
             S1_X (Scatter): The first scatter matrix.
 
         Algorithm:
@@ -493,11 +491,11 @@ class ICS:
         Center the data matrix using the location component of the first scatter matrix.
 
         Parameters:
-            X (np.ndarray): The data matrix
+            X (ndarray): The data matrix
             S1_X (Scatter): The first scatter matrix
 
         Returns:
-            np.ndarray: The centered data matrix
+            ndarray: The centered data matrix
 
         Algorithm:
             standard, whiten, QR
@@ -515,8 +513,8 @@ class ICS:
         Fix the signs of the components based on the specified method.
 
         Parameters:
-            X (np.ndarray): The data matrix.
-            W (np.ndarray): The transformation matrix.
+            X (ndarray): The data matrix.
+            W (ndarray): The transformation matrix.
 
         Returns:
             tuple: The final transformation matrix and skewness values.
@@ -540,6 +538,19 @@ class ICS:
         return W_final, gen_skewness
 
     def _component_selection(self, X):
+        """
+        Implement the component selection step based on the specified method.
+
+        Parameters:
+            X (ndarray): Transformed matrix in which each column contains the scores of the corresponding invariant
+            coordinate.
+
+        Returns:
+            ndarray: Transformed matrix in which columns contain the scores of the selected invariant coordinates.
+
+        Algorithm:
+            standard, whiten, QR
+        """
 
         if self.criteria_select == 'normal_crit':
             selection_res = normal_crit(X, **self.criteria_args)
@@ -548,7 +559,7 @@ class ICS:
             selection_res = med_crit(self.kurtosis_, **self.criteria_args)
 
         self.criteria_out_ = selection_res
-        
+
         comp_names = [f"IC_{i + 1}" for i in range(X.shape[1])]
         name_to_idx = {name: i for i, name in enumerate(comp_names)}
         idx = [name_to_idx[name] for name in selection_res["select"]]

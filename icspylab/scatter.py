@@ -29,8 +29,8 @@ class Scatter:
     A class to represent the scatter matrix and its related data.
 
     Attributes:
-        location (np.ndarray): The mean location of the data.
-        scatter (np.ndarray): The scatter matrix.
+        location (ndarray): The mean location of the data.
+        scatter (ndarray): The scatter matrix.
         label (str): A label describing the scatter matrix.
     """
 
@@ -39,8 +39,8 @@ class Scatter:
         Initialize the Scatter object with specified parameters.
 
         Parameters:
-            location (np.ndarray or None): The mean location of the data.
-            scatter (np.ndarray): The scatter matrix.
+            location (ndarray or None): The mean location of the data.
+            scatter (ndarray): The scatter matrix.
             label (str): A label describing the scatter matrix.
         """
         self.location = location
@@ -54,7 +54,7 @@ def cov(X, location=True):
 
     Parameters:
         X (array-like): The data matrix.
-        location (bool): (default: True) Whether to include the mean location.
+        location (bool, default=True) Whether to include the mean location.
 
     Returns:
         Scatter: An object containing the location and scatter matrix.
@@ -75,9 +75,9 @@ def covW(X, location=True, alpha=1, cf=1):
 
     Parameters:
         X (array-like): The data matrix.
-        location (bool): (default: True) Whether to include the mean location.
-        alpha (float): (default: 1) Parameter of the one-step M-estimator.
-        cf (float): (default: 1) Consistency factor of the one-step M-estimator.
+        location (bool, default=True) Whether to include the mean location.
+        alpha (float, default=1) Parameter of the one-step M-estimator.
+        cf (float, default=1) Consistency factor of the one-step M-estimator.
 
     Returns:
         Scatter: An object containing the location and weighted scatter matrix.
@@ -85,7 +85,8 @@ def covW(X, location=True, alpha=1, cf=1):
     Details:
         It is given for a :math:`n` x :math:`p` matrix :math:`X` by:
 
-        :math:`CovW(X) = (1/n) cf \sum_{i=1}^{n} w(D^2(x_i)) (x_i - \overline{x})^T (x_i - \overline{x})`
+    :math:`CovW(X) = (1/n) cf \sum_{i=1}^{n} w(D^2(x_i)) (x_i - \overline{x})^T (x_i - \overline{x})`
+
     where:
         - :math:`n` is the number of observations,
         - :math:`x_i` is the i-th observation vector,
@@ -123,7 +124,7 @@ def covAxis(X, location=True):
 
     Parameters:
         X (array-like): The data matrix.
-        location (bool): (default: True) Whether to include the mean location.
+        location (bool, default=True) Whether to include the mean location.
 
     Returns:
         Scatter: An object containing the location and scatter matrix.
@@ -143,7 +144,7 @@ def cov4(X, location=True):
 
     Parameters:
         X (array-like): The data matrix.
-        location (bool): (default: True) Whether to include the mean location.
+        location (bool, default=True) Whether to include the mean location.
 
     Returns:
         Scatter: An object containing the location and custom weighted scatter matrix.
@@ -170,14 +171,14 @@ def mcd(X, reweighted=True, **kwargs):
 
     Parameters:
         X (array-like): The data matrix.
-        reweighted (bool): (default=True) If True, use the reweighted version of the MCD estimator.
+        reweighted (bool, default=True) If True, use the reweighted version of the MCD estimator.
 
     Returns:
         Scatter: An object containing the location and scatter matrix.
 
-    References
-    - P. J. Rousseeuw. Least median of squares regression. J. Am Stat Ass, 79:871, 1984.
-    - A Fast Algorithm for the Minimum Covariance Determinant Estimator, 1999, American Statistical Association and the American Society for Quality, TECHNOMETRICS.
+    References:
+        - Rousseeuw, P.J. (1984) Least median of squares regression. J. Am Stat Ass, 79:871.
+        - A Fast Algorithm for the Minimum Covariance Determinant Estimator, 1999, American Statistical Association and the American Society for Quality, TECHNOMETRICS.
     """
     mcd_fit = MinCovDet(**kwargs).fit(X)
     if reweighted:
@@ -230,26 +231,60 @@ def _tcov_py(X, beta):
 
 def tcov(X, beta=2, use_cpp=True):
     """
-    Computes a pairwise one-step M-estimate of scatter with weights based on pairwise Mahalanobis distances. Note that
-    this estimator is based on pairwise differences and therefore no location estimate is returned.
+    Computes a pairwise one-step M-estimate of scatter with weights based on pairwise Mahalanobis distances.
+    It can be interpreted as a `local` covariance matrix. Without the exponential term (or when beta=0), :math:`T_n` is
+    proportional to the classical covariance matrix. The weighting scheme increases the importance of close sample pairs
+    and decreases the contribution of pairs that are far apart.
+    Note that this estimator is based on pairwise differences and therefore no location estimate is returned.
 
     Parameters:
         X (array-like):  data
-        beta (int or float > 0, default=2): positive numeric value specifying the tuning parameter of the tcov estimator
-        use_cpp (bool, default=True): whether to use the C++ implementation. If `use_cpp=True` (default), the code calls
-        Andreas Alfons' C++ implementation. It is faster but requires a Python module compiled from the C++ source.
-        Precompiled modules are included in ICSpyLab for Windows and Python versions 3.10–3.14. If the module is not
-        available, the code issues a warning and continues with `use_cpp=False`, which calls a Numba routine instead.
-        For help building the module, see `icspylab/tcov/README.md`.
+        beta (int or float > 0, default=2): positive numeric value specifying the tuning parameter of the tcov estimator. The optimal value depends on the data but it usually is between 1.5 and 2.5.
+        use_cpp (bool, default=True): whether to use the C++ implementation. If `use_cpp=True` (default), the code calls Andreas Alfons' C++ implementation. It is faster but requires a Python module compiled from the C++ source. Precompiled modules are included in ICSpyLab for Windows and Python versions 3.10–3.14. If the module is not available, the code issues a warning and continues with `use_cpp=False`, which calls a Numba routine instead. For help building the module, see `icspylab/tcov/README.md`.
+
     Returns:
         Scatter: An object containing the location(=None) and scatter matrix.
 
-    References
-    - Caussinus, H. and Ruiz-Gazen, A. (1993) Projection Pursuit and Generalized Principal Component Analysis. In
-    Morgenthaler, S., Ronchetti, E., Stahel, W.A. (eds.) New Directions in Statistical Data Analysis and Robustness,
-    35-46. Monte Verita, Proceedings of the Centro Stefano Franciscini Ascona Series. Springer-Verlag.
-    - Caussinus, H. and Ruiz-Gazen, A. (1995) Metrics for Finding Typical Structures by Means of Principal Component
-    Analysis. In Data Science and its Applications, 177-192. Academic Press.
+    Details:
+        It is given for a :math:`n` x :math:`p` matrix :math:`X` by:
+
+    .. math::
+
+        T_n(\\beta) =
+        \\frac{
+            \\sum_{i=1}^{n} \\sum_{j=i+1}^{n}
+            \\exp\\left(
+                -\\frac{\\beta}{2}
+                \\lVert X_i - X_j \\rVert_{V_n^{-1}}^2
+            \\right)
+            (X_i - X_j)(X_i - X_j)^\\top
+        }{
+            \\sum_{i=1}^{n} \\sum_{j=i+1}^{n}
+            \\exp\\left(
+                -\\frac{\\beta}{2}
+                \\lVert X_i - X_j \\rVert_{V_n^{-1}}^2
+            \\right)
+        }
+
+    where
+
+    .. math::
+
+        V_n = \\frac{1}{n}
+        \\sum_{i=1}^{n}
+        (X_i - \\bar X_n)(X_i - \\bar X_n)^\\top
+
+    .. math::
+
+        \\bar X_n = \\frac{1}{n} \\sum_{i=1}^{n} X_i
+
+    .. math::
+
+        \\lVert x \\rVert_M^2 = x^\\top M x
+
+    References:
+        - Caussinus, H. and Ruiz-Gazen, A. (1993) Projection Pursuit and Generalized Principal Component Analysis. In Morgenthaler, S., Ronchetti, E., Stahel, W.A. (eds.) New Directions in Statistical Data Analysis and Robustness, 35-46. Monte Verita, Proceedings of the Centro Stefano Franciscini Ascona Series. Springer-Verlag.
+        - Caussinus, H. and Ruiz-Gazen, A. (1995) Metrics for Finding Typical Structures by Means of Principal Component Analysis. In Data Science and its Applications, 177-192. Academic Press.
     """
 
     # Check types
@@ -340,22 +375,19 @@ def tM(X, df=1, mu_init=None, V_init=None, eps=1e-6, maxiter=100):
 
     Parameters:
         X (array-like): data
-        df (int >= 1): (default: 1) assumed degrees of freedom of the t-distribution. Default is 1 which corresponds
+        df (int >= 1, default=1) assumed degrees of freedom of the t-distribution. Default is 1 which corresponds
         to the Cauchy distribution.
-        mu_init (np.ndarray(p) or None): (default: None) initial value of the location mu
-        V_init (np.ndarray(p,p) or None): (default: None) initial value of the scatter V
-        eps (float): (default: 1e-6) convergence tolerance
-        maxiter (int): (default: 100) maximum number of iterations
+        mu_init (ndarray(p) or None, default=None) initial value of the location mu
+        V_init (ndarray(p,p) or None, default=None) initial value of the scatter V
+        eps (float, default=1e-6) convergence tolerance
+        maxiter (int, default=100) maximum number of iterations
 
     Returns:
         tuple: _alg3 output
 
     References:
-    - Kent, J.T., Tyler, D.E. and Vardi, Y. (1994), A curious likelihood identity for the multivariate tdistribution,
-    Communications in Statistics, Simulation and Computation, 23, 441–453. <doi:10.1080/03610919408813180>.
-    - Arslan, O., Constable, P.D.L. and Kent, J.T. (1995), Convergence behaviour of the EM algorithm for
-    the multivariate t-distribution, Communications in Statistics, Theory and Methods, 24, 2981–3000.
-    <doi:10.1080/03610929508831664>.
+        - Kent, J.T., Tyler, D.E. and Vardi, Y. (1994), A curious likelihood identity for the multivariate tdistribution, Communications in Statistics, Simulation and Computation, 23, 441–453. <doi:10.1080/03610919408813180>.
+        - Arslan, O., Constable, P.D.L. and Kent, J.T. (1995), Convergence behaviour of the EM algorithm for the multivariate t-distribution, Communications in Statistics, Theory and Methods, 24, 2981–3000. <doi:10.1080/03610929508831664>.
     """
 
     X = np.asarray(X)
@@ -392,8 +424,31 @@ def _tcov2_numba(X, cov_inv):
     return 2 / (n * (n-1)) * V
 
 def tcov2(X):
-    """Python implementation of tcov, optimized with Numba. In the paper, we have w(x) = exp(-x/2). But since we always
-    call w(beta * r^2), we instead set b = -beta/2 and use w(x) = exp(x)."""
+    """
+    Computes a pairwise one-step M-estimate of scatter.
+
+    Parameters:
+        X (array-like):  data
+
+    Returns:
+        Scatter: An object containing the location(=None) and scatter matrix.
+
+    Details:
+        It is given for a :math:`n` x :math:`p` matrix :math:`X` by:
+
+    .. math::
+
+        T_n =
+        \\frac{2}{n(n-1)}
+        \\sum_{i=1}^{n-1} \\sum_{j=i+1}^{n}
+        \\frac{
+            (y_i - y_j)(y_i - y_j)^\\top
+        }{
+            \\left(
+                (y_i - y_j)^\\top S_n^{-1} (y_i - y_j)
+            \\right)^2
+        }
+    """
 
     # Check types
     X = np.asarray(X, dtype=np.float64)

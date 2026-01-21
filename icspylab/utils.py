@@ -17,13 +17,13 @@ def sort_eigenvalues_eigenvectors(eigenvalues, eigenvectors):
     Sort eigenvalues and eigenvectors in descending order of eigenvalues.
 
     Parameters:
-        eigenvalues (np.ndarray): Array of eigenvalues.
-        eigenvectors (np.ndarray): Corresponding eigenvectors.
+        eigenvalues (ndarray): Array of eigenvalues.
+        eigenvectors (ndarray): Corresponding eigenvectors.
 
     Returns:
         tuple: A tuple containing:
-            - eigenvalues (numpy.ndarray): 1D array of eigenvalues sorted in descending order.
-            - eigenvectors (numpy.ndarray): 2D array of eigenvectors sorted to match the order of sorted_eigenvalues.
+            - eigenvalues (ndarray): 1D array of eigenvalues sorted in descending order.
+            - eigenvectors (ndarray): 2D array of eigenvectors sorted to match the order of sorted_eigenvalues.
     """
     # Get the indices that would sort the eigenvalues in descending order
     idx = eigenvalues.argsort()[::-1]
@@ -38,11 +38,11 @@ def sqrt_symmetric_matrix(A, inverse=False):
     Compute the square root or inverse square root of a symmetric matrix.
 
     Parameters:
-        A (np.ndarray): Symmetric matrix to compute the square root or inverse square root of.
-        inverse (bool): (default: False) If True, compute the inverse square root. Otherwise, compute the square root.
+        A (ndarray): Symmetric matrix to compute the square root or inverse square root of.
+        inverse (bool, default=False) If True, compute the inverse square root. Otherwise, compute the square root.
 
     Returns:
-        np.ndarray: The (inverse) square root of the matrix.
+        ndarray: The (inverse) square root of the matrix.
     """
     # Compute the eigenvalues and eigenvectors of the matrix
     A_eigenval, A_eigenvect = np.linalg.eig(A)
@@ -60,7 +60,7 @@ def _check_gen_kurtosis(gen_kurtosis):
     Check the gen_kurtosis array for NA, infinite, and complex values.
 
     Parameters:
-        gen_kurtosis (np.ndarray): Array of kurtosis values.
+        gen_kurtosis (ndarray): Array of kurtosis values.
     """
     if not np.all(np.isfinite(gen_kurtosis)):
         warnings.warn("Some generalized kurtosis values are infinite")
@@ -80,15 +80,11 @@ def _sign_max(row):
     If it is, the function returns 1, indicating that the maximum value is positive.
     Otherwise, it returns -1, indicating that the maximum absolute value is negative.
 
-    Parameters
-    ----------
-    row : array-like
-        The input row of numerical values.
+    Parameters:
+        row(array-like): The input row of numerical values.
 
-    Returns
-    -------
-    int
-        1 if the maximum value is positive, -1 if the maximum absolute value is negative.
+    Returns:
+        int: 1 if the maximum value is positive, -1 if the maximum absolute value is negative.
 
     Examples
     --------

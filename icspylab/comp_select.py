@@ -33,28 +33,29 @@ def normal_crit(X, level=0.05, test="agostino_test", max_select=None):
     last components are investigated.
 
     SciPy implementations are used. The available tests are:
-    `normaltest <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.normaltest.html>`_,
-    `agostino_test <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.skewtest.html>`_,
-    `jarque_test <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.jarque_bera.html>`_,
-    `anscombe_test <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kurtosistest.html>`_, and
-    `shapiro_test <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.shapiro.html>`_.
+    `normal <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.normaltest.html>`_,
+    `agostino <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.skewtest.html>`_,
+    `jarque <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.jarque_bera.html>`_,
+    `anscombe <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kurtosistest.html>`_, and
+    `shapiro <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.shapiro.html>`_.
 
     Parameters:
-        X:
+        X (ndarray): Transformed matrix in which each column contains the scores of the corresponding invariant coordinate.
         level (float, default=0.05) The initial level used to make a decision based on the test p-values.
-        test (str, default='agostino_test') Name of the normality test to be used ('normaltest', 'agostino_test', 'jarque_test', 'anscombe_test', 'shapiro_test'). Refer to the SciPy documentation for more information about the tests.
-        max_select (int or None, default=None)
+        test ({'normal', 'agostino', 'jarque', 'anscombe', 'shapiro'}, default='agostino') Name of the normality test to be used. Refer to the SciPy documentation for more information about the tests.
+        max_select (int or None, default=None): Maximum number of components to select.
 
     Returns:
-
+        dict: Summary of the component selection step
     """
 
     # Choix du test
     tests = {
-        "agostino_test": _agostino_test,
-        "jarque_test": _jarque_test,
-        "anscombe_test": _anscombe_test,
-        "shapiro_test": _shapiro_test
+        "normal": _normaltest,
+        "agostino": _agostino_test,
+        "jarque": _jarque_test,
+        "anscombe": _anscombe_test,
+        "shapiro": _shapiro_test
     }
 
     if test not in tests:
@@ -124,6 +125,17 @@ def normal_crit(X, level=0.05, test="agostino_test", max_select=None):
 
 
 def med_crit(gen_kurtosis, nb_select=None):
+    """
+    Identifies as interesting the invariant coordinates whose generalized eigenvalues (kurtosis) are the furthermost
+    away from the median of all generalized eigenvalues (kurtosis).
+
+    Parameters:
+        gen_kurtosis (ndarray): Array of kurtosis values.
+        nb_select (int or None, default=None): Exact number of components to select. If None (default), number of components to select is the number of variables minus one.
+
+    Returns:
+        dict: Summary of the component selection step
+    """
 
     # Initialization
     if nb_select is None:

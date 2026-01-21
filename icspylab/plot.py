@@ -20,7 +20,7 @@ def plot_scores(scores, **kwargs):
     most interesting ones.
 
     Parameters:
-        scores (np.ndarray): results from an ICS transformation.
+        scores (ndarray): results from an ICS transformation.
     """
 
     if isinstance(scores, (np.ndarray, pd.DataFrame, list)):
