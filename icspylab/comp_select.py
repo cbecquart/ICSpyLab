@@ -123,24 +123,24 @@ def normal_crit(X, level=0.05, test="agostino_test", max_select=None):
     return out
 
 
-def med_crit(object_vals, nb_select=None):
+def med_crit(gen_kurtosis, nb_select=None):
 
     # Initialization
     if nb_select is None:
-        nb_select = len(object_vals) - 1
+        nb_select = len(gen_kurtosis) - 1
+    comp_select = [f"IC_{i + 1}" for i in range(len(gen_kurtosis))]
 
     # Components associated with the furthest eigenvalues from the median
-    med_gen_kurtosis = np.median(object_vals)
-    gen_kurtosis_diff = np.abs(object_vals - med_gen_kurtosis)
+    med_gen_kurtosis = np.median(gen_kurtosis)
+    gen_kurtosis_diff = np.abs(gen_kurtosis - med_gen_kurtosis)
 
-    sorted_indices = np.argsort(-gen_kurtosis_diff)
-
-    select = sorted_indices[:nb_select + 1]
+    idx_sel = np.argsort(gen_kurtosis_diff)[::-1][: nb_select]
+    select = [comp_select[i] for i in idx_sel]
 
     out = {
         "crit": "med",
         "n_components": nb_select,
-        "gen_kurtosis": object_vals,
+        "gen_kurtosis": gen_kurtosis,
         "med_gen_kurtosis": med_gen_kurtosis,
         "gen_kurtosis_diff_med": gen_kurtosis_diff,
         "select": select
@@ -148,4 +148,3 @@ def med_crit(object_vals, nb_select=None):
 
     return out
 
-#todo: to be tested

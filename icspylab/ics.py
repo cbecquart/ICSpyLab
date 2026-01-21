@@ -43,6 +43,8 @@ class ICS:
         fix_signs(str): (default: 'scores') How to fix the signs of the invariant coordinates. Possible values are 'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs based on the coefficient matrix of the linear transformation.
         S1_args (dict): Additional arguments for S1.
         S2_args (dict): Additional arguments for S2.
+        criteria_select (str or None, default=None): The criteria to select the invariant components.
+        criteria_args (dict): Additional arguments for criteria_select.
 
     Attributes:
         W_ (np.ndarray): Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
@@ -52,6 +54,7 @@ class ICS:
         n_features_in_ (int): Number of features seen during fit.
         feature_names_in_ (np.ndarray): Names of features seen during fit. Defined only when X has feature names that are all strings.
         S1_X_ (np.ndarray): Fitted scatter S1. Defined only when center=True.
+        criteria_out_ (dict): Summary of the component selection step. Defined only when criteria_select is not None.
 
     Supported algorithms:
         1. standard: performs the spectral decomposition of the symmetric matrix :math:`S_1(X)^{-1/2}S_2(X)S_1(X)^{-1/2}`
@@ -144,6 +147,7 @@ class ICS:
         self.n_features_in_ = None
         self.feature_names_in_ = None
         self.S1_X_ = None
+        self.criteria_out_ = None
 
     def fit(self, X):
         """
@@ -541,8 +545,10 @@ class ICS:
             selection_res = normal_crit(X, **self.criteria_args)
         else:
             assert self.criteria_select == 'med_crit'
-            selection_res = med_crit(X, **self.criteria_args)
+            selection_res = med_crit(self.kurtosis_, **self.criteria_args)
 
+        self.criteria_out_ = selection_res
+        
         comp_names = [f"IC_{i + 1}" for i in range(X.shape[1])]
         name_to_idx = {name: i for i, name in enumerate(comp_names)}
         idx = [name_to_idx[name] for name in selection_res["select"]]
