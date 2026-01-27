@@ -22,7 +22,7 @@ def plot_scores(scores, **kwargs):
     Parameters:
         scores (ndarray): results from an ICS transformation.
     """
-
+    #todo:
     if isinstance(scores, (np.ndarray, pd.DataFrame, list)):
         scores_df = pd.DataFrame(scores, columns=[f"IC_{i+1}" for i in range(scores.shape[1])])
     else:

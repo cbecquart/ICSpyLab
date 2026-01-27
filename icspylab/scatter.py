@@ -59,8 +59,14 @@ def cov(X, location=True):
     Returns:
         Scatter: An object containing the location and scatter matrix.
     """
+
+    # Check inputs
+    X = np.asarray(X)
+    if X.ndim > 2:
+        raise ValueError("X has more than 2 dimensions")
+
     # Compute the covariance matrix
-    cov_cov = np.cov(X.T)
+    cov_cov = np.cov(X, rowvar=False)
 
     # Compute the mean location if required
     cov_loc = X.mean(0) if location else None
@@ -95,6 +101,11 @@ def covW(X, location=True, alpha=1, cf=1):
         - :math:`cf` is a consistency factor
 
     """
+
+    # Check inputs
+    X = np.asarray(X)
+    if X.ndim > 2:
+        raise ValueError("X has more than 2 dimensions")
     n, p = X.shape
     if pd.isnull(X).any():
         raise ValueError("Missing values are not allowed in X")
@@ -181,6 +192,7 @@ def mcd(X, reweighted=True, **kwargs):
         - A Fast Algorithm for the Minimum Covariance Determinant Estimator, 1999, American Statistical Association and the American Society for Quality, TECHNOMETRICS.
     """
     mcd_fit = MinCovDet(**kwargs).fit(X)
+
     if reweighted:
         mcd_loc = mcd_fit.location_
         mcd_cov = mcd_fit.covariance_

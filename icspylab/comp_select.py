@@ -1,5 +1,7 @@
 import numpy as np
 from scipy.stats import shapiro, normaltest, jarque_bera, kurtosistest, skewtest
+from sklearn.utils.validation import check_array
+import numbers
 
 
 def _normaltest(x):
@@ -49,7 +51,7 @@ def normal_crit(X, level=0.05, test="agostino_test", max_select=None):
         dict: Summary of the component selection step
     """
 
-    # Choix du test
+    # test validation
     tests = {
         "normal": _normaltest,
         "agostino": _agostino_test,
@@ -64,10 +66,17 @@ def normal_crit(X, level=0.05, test="agostino_test", max_select=None):
 
     test_fun = tests[test]
 
-    # Initialization
+    # level validation
+    if not isinstance(level, numbers.Real):
+        raise TypeError("level must be a real number.")
+
+    if not (0.0 < float(level) < 1.0):
+        raise ValueError("level must be between 0 and 1.")
+
+    # max_select validation
     comp_select = [f"IC_{i+1}" for i in range(X.shape[1])]
-    if max_select is None:
-        max_select = X.shape[1] - 1
+    p = X.shape[1]
+    max_select = _validate_nb_select(max_select, p)
 
     # Apply marginal normality tests to all components and select on p-values
     test_pvals = np.array([test_fun(X[:, j])["p_value"] for j in range(X.shape[1])])
@@ -137,10 +146,22 @@ def med_crit(gen_kurtosis, nb_select=None):
         dict: Summary of the component selection step
     """
 
-    # Initialization
-    if nb_select is None:
-        nb_select = len(gen_kurtosis) - 1
-    comp_select = [f"IC_{i + 1}" for i in range(len(gen_kurtosis))]
+    # gen_kurtosis validation
+    gen_kurtosis = check_array(
+        gen_kurtosis,
+        ensure_2d=False,
+        dtype=float,
+        force_all_finite=True,
+    )
+
+    if gen_kurtosis.ndim != 1:
+        raise ValueError("gen_kurtosis must be 1D.")
+
+    # nb_select validation
+    p = len(gen_kurtosis)
+    nb_select = _validate_nb_select(nb_select, p)
+
+    comp_select = [f"IC_{i + 1}" for i in range(p)]
 
     # Components associated with the furthest eigenvalues from the median
     med_gen_kurtosis = np.median(gen_kurtosis)
@@ -160,3 +181,17 @@ def med_crit(gen_kurtosis, nb_select=None):
 
     return out
 
+
+def _validate_nb_select(nb_select, p):
+    if nb_select is None:
+        nb_select = p - 1
+    else:
+        if not isinstance(nb_select, (int, np.integer)):
+            raise TypeError("nb_select must be an integer or None.")
+
+        if nb_select <= 0:
+            raise ValueError("nb_select must be strictly positive.")
+
+        if nb_select >= p:
+            raise ValueError("nb_select must be smaller than the number of kurtosis values.")
+    return nb_select

@@ -25,11 +25,16 @@ def sort_eigenvalues_eigenvectors(eigenvalues, eigenvectors):
             - eigenvalues (ndarray): 1D array of eigenvalues sorted in descending order.
             - eigenvectors (ndarray): 2D array of eigenvectors sorted to match the order of sorted_eigenvalues.
     """
+
+    eigenvalues = np.asarray(eigenvalues)
+    eigenvectors = np.asarray(eigenvectors)
+
     # Get the indices that would sort the eigenvalues in descending order
     idx = eigenvalues.argsort()[::-1]
     # Sort the eigenvalues and eigenvectors
     eigenvalues = eigenvalues[idx]
     eigenvectors = eigenvectors[:, idx]
+    
     return eigenvalues, eigenvectors
 
 
@@ -44,14 +49,31 @@ def sqrt_symmetric_matrix(A, inverse=False):
     Returns:
         ndarray: The (inverse) square root of the matrix.
     """
+
+    # Inputs validation
+    A = np.asarray(A)
+
+    if A.ndim != 2 or A.shape[0] != A.shape[1]:
+        raise ValueError("A must be a square 2D matrix.")
+
+    if not isinstance(inverse, bool):
+        raise TypeError("inverse must be a boolean.")
+
     # Compute the eigenvalues and eigenvectors of the matrix
     A_eigenval, A_eigenvect = np.linalg.eig(A)
+    # Checks
+    if np.any(A_eigenval < -1e-12):
+        raise ValueError("A must be positive semi-definite to compute a real square root.")
+    if inverse and np.any(A_eigenval < 1e-12):
+        raise np.linalg.LinAlgError("A is singular; cannot compute inverse square root.")
     # Sort the eigenvalues and eigenvectors
     A_eigenval, A_eigenvect = sort_eigenvalues_eigenvectors(A_eigenval, A_eigenvect)
+
     # Compute the power for the eigenvalues (inverse square root if inverse is True, otherwise square root)
     power = -0.5 if inverse else 0.5
     # Compute the (inverse) square root matrix
     A_sqrt = multi_dot([A_eigenvect, np.diag(A_eigenval ** power), A_eigenvect.T])
+
     return A_sqrt
 
 
