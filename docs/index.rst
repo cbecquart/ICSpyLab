@@ -28,9 +28,9 @@ You can find the source code for this project on our `GitHub Repository`_.
 Key Features
 ------------
 - Implementation of the ICS model
-- Detailed summary of the results
-- Plotting capabilities for transformed data (coming soon)
-- Scatter Matrices
+- Large catalogue of scatter matrices
+- Methods for component selection
+- Plotting capabilities for transformed data
 
 Installation
 ------------

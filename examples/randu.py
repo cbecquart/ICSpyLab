@@ -58,3 +58,5 @@ ics.plot()
 
 print(tcov2(X).scatter)
 print(tcov(X).scatter)
+
+ics.describe()

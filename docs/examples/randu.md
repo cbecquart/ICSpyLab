@@ -40,6 +40,8 @@ def generate_randu_dataset(n_points=400, seed=1.0):
 The plot below illustrates the generated RANDU dataset in three dimensions.
 
 ```python
+X = generate_randu_dataset()
+
 fig = plt.figure()
 ax = fig.add_subplot(projection="3d")
 ax.scatter(X[:, 0], X[:, 1], X[:, 2], s=2)
