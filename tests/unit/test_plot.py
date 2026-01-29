@@ -6,6 +6,7 @@ import logging
 import pytest
 import numpy as np
 from icspylab import ICS, cov, covW
+from sklearn.exceptions import NotFittedError
 
 logger = logging.getLogger(__name__)
 
@@ -21,10 +22,10 @@ def test_plot_method():
     X = np.random.randn(100, 8)
     ics.fit_transform(X)
     # ics.plot()  # Uncomment to visually inspect the plot
-    with pytest.raises(ValueError):
+    with pytest.raises(NotFittedError):
         ics_unfitted = ICS()
         ics_unfitted.plot()
-    with pytest.raises(ValueError):
+    with pytest.raises(NotFittedError):
         ics_unfitted = ICS()
         ics_unfitted.fit(X)
         ics_unfitted.plot()

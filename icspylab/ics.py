@@ -14,7 +14,6 @@ For more details about the supported algorithms and 'fix_signs' argument, see th
 """
 
 import numpy as np
-import pandas as pd
 import warnings
 from scipy.linalg import qr
 from numpy.linalg import multi_dot
@@ -24,12 +23,14 @@ from .comp_select import normal_crit, med_crit
 from .utils import sort_eigenvalues_eigenvectors, sqrt_symmetric_matrix, _sign_max, _check_gen_kurtosis
 from .plot import plot_scores, _plot_kurtosis
 
-from sklearn.base import BaseEstimator
-from sklearn.utils.validation import check_array, check_is_fitted
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.utils.validation import check_array, check_is_fitted, validate_data
+from sklearn.utils import get_tags
 from sklearn.utils._param_validation import StrOptions
+from sklearn.exceptions import NotFittedError
 
 
-class ICS(BaseEstimator):
+class ICS(BaseEstimator, TransformerMixin):
     """
     Invariant Coordinate Selection (ICS) Class and associated methods.
 
@@ -107,17 +108,21 @@ class ICS(BaseEstimator):
         self.criteria_args = {} if criteria_args is None else criteria_args
 
 
-    def fit(self, X):
+    # def _more_tags(self):
+    #     return {"X_types": ["2darray"], "requires_y": False, "stateless": False}
+
+
+    def fit(self, X, y=None):
         """
         Fit the ICS model to the data.
 
         This function relies on several helper methods to perform the ICS fit:
-        _validate_input, _compute_first_scatter, _compute_second_scatter,
-        _transform_second_scatter, _compute_transformation, _compute_transformation_qr,
-        _fix_component_signs.
+        _compute_first_scatter, _compute_second_scatter, _transform_second_scatter,
+        _compute_transformation, _compute_transformation_qr, _fix_component_signs.
 
         Parameters:
             X (array-like): Data to fit the ICS model, where rows are samples and columns are features.
+            y (Ignored): Not used, present for API consistency by convention.
 
         Returns:
             self:The fitted ICS object.
@@ -132,20 +137,34 @@ class ICS(BaseEstimator):
                 warnings.warn("QR algorithm is not applicable; proceeding with the standard algorithm")
                 self.algorithm = "standard"
 
-        if hasattr(X, "columns"):
-            self.feature_names_in_ = np.array(X.columns)
-        else:
-            self.feature_names_in_ = None
+        # if hasattr(X, "columns"):
+        #     self.feature_names_in_ = np.array(X.columns)
+        # else:
+        #     self.feature_names_in_ = None
 
-        X = check_array(
+        # X = check_array(
+        #     X,
+        #     force_writeable=True,
+        #     ensure_all_finite=True,
+        #     accept_sparse=("csr", "csc"),
+        #     ensure_2d=True,
+        #     ensure_min_features=2,
+        #     copy=False,
+        # )
+        X = validate_data(
+            self,
             X,
-            force_writeable=True,
+            reset=True,
             ensure_all_finite=True,
-            accept_sparse=("csr", "csc"),
+            # accept_sparse=("csr", "csc"),
             ensure_2d=True,
+            ensure_min_features=2,
             copy=False,
         )
-        self._validate_input(X) #todo: normalement plus besoin
+
+        if hasattr(X, "columns"):
+            self.feature_names_in_ = np.array(X.columns, dtype=object)
+
         self.n_features_in_ = X.shape[1]
 
         # ICS method
@@ -174,10 +193,11 @@ class ICS(BaseEstimator):
         self.W_ = W_final
         self.kurtosis_ = gen_kurtosis
         self.skewness_ = gen_skewness
+        self.scores_ = None
 
         return self
 
-    def transform(self, X):
+    def transform(self, X, y=None):
         """
         Transform the data using the fitted ICS model.
 
@@ -186,6 +206,7 @@ class ICS(BaseEstimator):
 
         Parameters:
             X (array-like): Data to transform.
+            y (Ignored): Not used, present for API consistency by convention.
 
         Returns:
             ndarray: Transformed matrix in which columns contain the scores of the selected invariant coordinates.
@@ -195,11 +216,21 @@ class ICS(BaseEstimator):
 
         check_is_fitted(self, "W_")
 
-        X = check_array(
+        # X = check_array(
+        #     X,
+        #     force_writeable=True,
+        #     ensure_all_finite=True,
+        #     accept_sparse=("csr", "csc"),
+        #     ensure_2d=True,
+        #     ensure_min_features=2,
+        #     copy=False,
+        # )
+        X = validate_data(
+            self,
             X,
-            force_writeable=True,
+            reset=False,
             ensure_all_finite=True,
-            accept_sparse=("csr", "csc"),
+            # accept_sparse=("csr", "csc"),
             ensure_2d=True,
             copy=False,
         )
@@ -222,12 +253,13 @@ class ICS(BaseEstimator):
 
         return X_new
 
-    def fit_transform(self, X):
+    def fit_transform(self, X, y=None):
         """
         Fit the ICS model and transform the data using the fitted ICS model.
 
         Parameters:
             X (array-like): Data to fit and transform.
+            y (Ignored): Not used, present for API consistency by convention.
 
         Returns:
             ndarray: Transformed matrix in which columns contain the scores of the selected invariant coordinates.
@@ -235,19 +267,29 @@ class ICS(BaseEstimator):
         self.fit(X)
         return self.transform(X)
 
+
+    def get_feature_names_out(self, input_features=None):
+        check_is_fitted(self, "feature_names_in_")
+        return self.feature_names_in_
+
+
     def plot(self, **kwargs):
-        """Plot the transformed data using the fitted ICS model."""
+        """Plot the transformed data using the transformed ICS model."""
+
+        # Check the model has been fitted and transformed
+        check_is_fitted(self, "W_")
         if self.scores_ is None:
-            raise ValueError("No transformed data available. Fit the model first.")
-        #todo: check if fitted
+            raise NotFittedError(
+                "This ICS instance has not been transformed yet. "
+                "Call 'transform' with appropriate data before using this method."
+            )
+        check_is_fitted(self, "W_")
         plot_scores(self.scores_, **kwargs)
 
 
     def plot_kurtosis(self, **kwargs):
         """Plot the generated kurtosis."""
-        # todo: check if fitted
-        if self.kurtosis_ is None:
-            raise ValueError("No generated kurtosis available. Fit the model first.")
+        check_is_fitted(self, "W_")
         _plot_kurtosis(self.kurtosis_, **kwargs)
 
 
@@ -295,30 +337,6 @@ class ICS(BaseEstimator):
         else:
             print("None")
 
-
-    def _validate_input(self, X):
-        """
-        Validate the input data matrix.
-
-        This step ensures there are no missing values, the data is at least bi-variate,
-        the algorithm name is valid, and the fix-signs string is correct. If the 'QR' algorithm
-        is chosen, it also verifies the applicability of the specified scatter matrices.
-
-        Parameters:
-            X (ndarray): Data to validate.
-
-        Raises:
-            ValueError: If the input data doesn't meet any of the requirements.
-
-        Algorithm:
-            standard, whiten, QR
-        """
-        # Check for missing values
-        p = X.shape[1]
-        if pd.isnull(X).any():
-            raise ValueError("Missing values are not allowed in X")
-        if p <= 1:
-            raise ValueError("X must be at least bi-variate")
 
     def _compute_first_scatter(self, X):
         """

@@ -5,13 +5,17 @@ Unit tests for the ICS class in the ICSpyLab package.
 import logging
 import pytest
 import numpy as np
-import random
-import string
+from sklearn.exceptions import NotFittedError
+from sklearn.utils.estimator_checks import check_estimator
 from icspylab import ICS, cov, covW, covAxis, cov4
 from tests.fixtures import run_py_ics
 from tests.settings import algorithm, center, fix_signs
 
 logger = logging.getLogger(__name__)
+
+
+def test_ics_sklearn_compatible():
+    check_estimator(ICS())
 
 
 # Section: Initialization Tests
@@ -31,12 +35,8 @@ def test_initialization():
     assert ics.fix_signs == 'scores'
     assert ics.S1_args == {}
     assert ics.S2_args == {}
-    assert ics.W_ is None
-    assert ics.scores_ is None
-    assert ics.kurtosis_ is None
-    assert ics.skewness_ is None
-    assert ics.feature_names_in_ is None
-    assert ics.S1_X_ is None
+    assert ics.criteria_select is None
+    assert ics.criteria_args == {}
 
 
 def test_S1_as_matrix():
@@ -47,9 +47,11 @@ def test_S1_as_matrix():
 
     """
     X = np.random.randn(100, 5)
-    cov_matrix = np.cov(X.T)
-    with pytest.raises(TypeError, match="S1 must be a function returning a Scatter object."):
-        ICS(S1=cov_matrix)
+    cov_matrix = np.cov(X, rowvar=False)
+    ics = ICS(S1=cov_matrix)
+
+    with pytest.raises(TypeError, match="must be a callable"):
+        ics.fit(X)
 
 
 def test_S1_as_string():
@@ -59,8 +61,11 @@ def test_S1_as_string():
     The test verifies that a TypeError is raised if S1 a character string.
 
     """
-    with pytest.raises(TypeError, match="S1 must be a function returning a Scatter object."):
-        ICS(S1="cov")
+    X = np.random.randn(10, 3)
+    ics = ICS(S1="cov")
+
+    with pytest.raises(TypeError, match="must be a callable"):
+        ics.fit(X)
 
 
 def test_S2_as_matrix():
@@ -71,9 +76,11 @@ def test_S2_as_matrix():
 
     """
     X = np.random.randn(100, 5)
-    cov_matrix = np.cov(X.T)
-    with pytest.raises(TypeError, match="S2 must be a function returning a Scatter object."):
-        ICS(S2=cov_matrix)
+    cov_matrix = np.cov(X, rowvar=False)
+    ics = ICS(S2=cov_matrix)
+
+    with pytest.raises(TypeError, match="must be a callable"):
+        ics.fit(X)
 
 
 def test_S2_as_string():
@@ -83,8 +90,11 @@ def test_S2_as_string():
     The test verifies that a TypeError is raised if S2 a character string.
 
     """
-    with pytest.raises(TypeError, match="S2 must be a function returning a Scatter object."):
-        ICS(S2="cov")
+    X = np.random.randn(10, 3)
+    ics = ICS(S2="cov")
+
+    with pytest.raises(TypeError, match="must be a callable"):
+        ics.fit(X)
 
 
 def test_invalid_scatters_for_QR():
@@ -94,8 +104,10 @@ def test_invalid_scatters_for_QR():
     This test verifies that ICS initialization raises a warning when the algorithm is "QR" and the scatter matrices are
     invalid for "QR", then is checks that the code continues with algorithm = "standard".
     """
+    X = np.random.randn(100, 5)
+    ics = ICS(S1=covW, S2=cov, algorithm="QR")
     with pytest.warns(UserWarning, match="QR algorithm is not applicable; proceeding with the standard algorithm"):
-        ics = ICS(S1=covW, S2=cov, algorithm="QR")
+        ics.fit(X)
     assert ics.algorithm == 'standard'
 
 def test_invalid_algorithm_error():
@@ -104,11 +116,11 @@ def test_invalid_algorithm_error():
 
     This test verifies that the ICS initialization raises a ValueError when an invalid algorithm name is provided.
     """
-    invalid_algorithm = ''.join(random.choices(string.ascii_letters + string.digits, k=np.random.randint(1, 10)))
-    while invalid_algorithm in ['whiten', 'standard', 'QR']:  # ensure the random string is not a valid algorithm name
-        invalid_algorithm = ''.join(random.choices(string.ascii_letters + string.digits, k=np.random.randint(1, 10)))
-    with pytest.raises(ValueError, match="algorithm must be one of \['whiten', 'standard', 'QR'\]"):
-        ICS(algorithm=invalid_algorithm)
+    X = np.random.randn(10, 3)
+    ics = ICS(algorithm="coconut")
+
+    with pytest.raises(ValueError, match="must be a str among"):
+        ics.fit(X)
 
 
 def test_invalid_fix_signs_error():
@@ -117,11 +129,11 @@ def test_invalid_fix_signs_error():
 
     This test verifies that the ICS initialization raises a ValueError when an invalid fix_signs value is provided.
     """
-    invalid_fix_signs = ''.join(random.choices(string.ascii_letters + string.digits, k=np.random.randint(1, 5)))
-    while invalid_fix_signs in ['scores', 'W']:  # ensure the random string is not a valid fix_signs name
-        invalid_fix_signs = ''.join(random.choices(string.ascii_letters + string.digits, k=np.random.randint(1, 10)))
-    with pytest.raises(ValueError, match="fix_signs must be one of \['scores', 'W'\]"):
-        ICS(fix_signs=invalid_fix_signs)
+    X = np.random.randn(10, 3)
+    ics = ICS(fix_signs="coconut")
+
+    with pytest.raises(ValueError, match="must be a str among"):
+        ics.fit(X)
 
 
 # Section: Fit Method Tests
@@ -155,7 +167,7 @@ def test_transform_method():
     transformed_data = ics.transform(X)
     assert isinstance(ics, ICS)
     assert transformed_data.shape == X.shape
-    with pytest.raises(TypeError):
+    with pytest.raises(NotFittedError):
         ics_unfitted = ICS()
         ics_unfitted.transform(X)
 
@@ -235,7 +247,7 @@ def test_single_variable_error(run_py_ics, algorithm, center, fix_signs):
     """
     X_single_var = np.random.randn(100, 1)  # 100 samples, 1 feature
     params = {}
-    with pytest.raises(ValueError, match="X must be at least bi-variate"):
+    with pytest.raises(ValueError, match="minimum of 2"):
         run_py_ics(X=X_single_var, algorithm=algorithm, center=center, fix_signs=fix_signs, **params)
 
 
@@ -251,7 +263,7 @@ def test_missing_values_error(run_py_ics, algorithm, center, fix_signs):
     X_missing_values = np.random.randn(100, 5)
     X_missing_values[0, 0] = np.nan
     params = {}
-    with pytest.raises(ValueError, match="Missing values are not allowed in X"):
+    with pytest.raises(ValueError, match="Input contains NaN"):
         run_py_ics(X=X_missing_values, algorithm=algorithm, center=center, fix_signs=fix_signs, **params)
 
 
