@@ -153,11 +153,11 @@ def run_py_ics():
     """
     def _run_py_ics(X, S1=cov, S2=covW, algorithm='whiten', center=False, fix_signs='scores', S1_args={}, S2_args={}):
         ics = ICS(S1=S1, S2=S2, algorithm=algorithm, center=center, fix_signs=fix_signs, S1_args=S1_args, S2_args=S2_args)
-        ics.fit_transform(X)
+        X_new = ics.fit_transform(X)
         return {
             'transformation_matrix': ics.W_,
             'kurtosis': ics.kurtosis_,
             'skewness': ics.skewness_,
-            'transformed_data': ics.scores_,
+            'transformed_data': X_new,
         }
     return _run_py_ics

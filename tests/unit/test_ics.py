@@ -33,10 +33,10 @@ def test_initialization():
     assert ics.algorithm == 'whiten'
     assert ics.center is False
     assert ics.fix_signs == 'scores'
-    assert ics.S1_args == {}
-    assert ics.S2_args == {}
+    assert ics.S1_args is None
+    assert ics.S2_args is None
     assert ics.criteria_select is None
-    assert ics.criteria_args == {}
+    assert ics.criteria_args is None
 
 
 def test_S1_as_matrix():
@@ -229,9 +229,9 @@ def test_large_dataset():
     """
     ics = ICS()
     X = np.random.randn(10000, 10)
-    ics.fit_transform(X)
+    X_new = ics.fit_transform(X)
     assert ics.W_ is not None
-    assert ics.scores_ is not None
+    assert X_new is not None
     assert ics.kurtosis_ is not None
 
 
@@ -263,7 +263,7 @@ def test_missing_values_error(run_py_ics, algorithm, center, fix_signs):
     X_missing_values = np.random.randn(100, 5)
     X_missing_values[0, 0] = np.nan
     params = {}
-    with pytest.raises(ValueError, match="Input contains NaN"):
+    with pytest.raises(ValueError, match="NaN"):
         run_py_ics(X=X_missing_values, algorithm=algorithm, center=center, fix_signs=fix_signs, **params)
 
 

@@ -25,12 +25,11 @@ from .plot import plot_scores, _plot_kurtosis
 
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_array, check_is_fitted, validate_data
-from sklearn.utils import get_tags
 from sklearn.utils._param_validation import StrOptions
 from sklearn.exceptions import NotFittedError
 
 
-class ICS(BaseEstimator, TransformerMixin):
+class ICS(TransformerMixin, BaseEstimator):
     """
     Invariant Coordinate Selection (ICS) Class and associated methods.
 
@@ -102,14 +101,10 @@ class ICS(BaseEstimator, TransformerMixin):
         self.algorithm = algorithm
         self.center = center
         self.fix_signs = fix_signs
-        self.S1_args = {} if S1_args is None else S1_args
-        self.S2_args = {} if S2_args is None else S2_args
+        self.S1_args = S1_args
+        self.S2_args = S2_args
         self.criteria_select = criteria_select
-        self.criteria_args = {} if criteria_args is None else criteria_args
-
-
-    # def _more_tags(self):
-    #     return {"X_types": ["2darray"], "requires_y": False, "stateless": False}
+        self.criteria_args = criteria_args
 
 
     def fit(self, X, y=None):
@@ -137,11 +132,6 @@ class ICS(BaseEstimator, TransformerMixin):
                 warnings.warn("QR algorithm is not applicable; proceeding with the standard algorithm")
                 self.algorithm = "standard"
 
-        # if hasattr(X, "columns"):
-        #     self.feature_names_in_ = np.array(X.columns)
-        # else:
-        #     self.feature_names_in_ = None
-
         # X = check_array(
         #     X,
         #     force_writeable=True,
@@ -159,11 +149,14 @@ class ICS(BaseEstimator, TransformerMixin):
             # accept_sparse=("csr", "csc"),
             ensure_2d=True,
             ensure_min_features=2,
+            ensure_min_samples=2,
             copy=False,
         )
 
         if hasattr(X, "columns"):
             self.feature_names_in_ = np.array(X.columns, dtype=object)
+        else:
+            self.feature_names_in_ = None
 
         self.n_features_in_ = X.shape[1]
 
@@ -243,7 +236,7 @@ class ICS(BaseEstimator, TransformerMixin):
 
         # Compute the final transformed data
         Z_final = X @ self.W_.T
-        self.scores_ = Z_final
+        # self.scores_ = Z_final
 
         # Select components
         if self.criteria_select is None:
@@ -353,7 +346,9 @@ class ICS(BaseEstimator, TransformerMixin):
         Algorithms:
             standard, whiten, QR
         """
-        S1_X = self.S1(X, **self.S1_args)
+
+        S1_args = {} if self.S1_args is None else self.S1_args
+        S1_X = self.S1(X, **S1_args)
         if not isinstance(S1_X, Scatter):
             raise ValueError("S1 must return a Scatter object")
 
@@ -374,7 +369,8 @@ class ICS(BaseEstimator, TransformerMixin):
         Algorithm:
             standard, whiten
         """
-        S2_X = self.S2(X, **self.S2_args)
+        S2_args = {} if self.S2_args is None else self.S2_args
+        S2_X = self.S2(X, **S2_args)
         if not isinstance(S2_X, Scatter):
             raise ValueError("S2 must return an Scatter object")
         return S2_X
@@ -560,11 +556,13 @@ class ICS(BaseEstimator, TransformerMixin):
             standard, whiten, QR
         """
 
+        criteria_args = {} if self.criteria_args is None else self.criteria_args
+
         if self.criteria_select == 'normal_crit':
-            selection_res = normal_crit(X, **self.criteria_args)
+            selection_res = normal_crit(X, **criteria_args)
         else:
             assert self.criteria_select == 'med_crit'
-            selection_res = med_crit(self.kurtosis_, **self.criteria_args)
+            selection_res = med_crit(self.kurtosis_, **criteria_args)
 
         self.criteria_out_ = selection_res
 
