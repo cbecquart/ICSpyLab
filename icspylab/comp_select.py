@@ -4,6 +4,37 @@ from sklearn.utils.validation import check_array
 import numbers
 
 
+
+class ComponentSelect:
+    """
+    A class to represent a component selection method and its related data.
+
+    Attributes:
+        label (str): Label of the component selection method.
+        components (ndarray): Invariant components selected by the method.
+        n_components (int): Number of invariant components selected by the method.
+        component_names (ndarray): Names of invariant components selected by the method.
+        info (dict): Additional information specific to the method.
+    """
+
+    def __init__(self, label, components, n_components, component_names, info):
+        """
+        Initialize the ComponentSelect object with specified parameters.
+
+        Parameters:
+            label (str): Label of the component selection method.
+            components (ndarray): Invariant components selected by the method.
+            n_components (int): Number of invariant components selected by the method.
+            component_names (list): Names of invariant components selected by the method.
+            info (dict): Additional information specific to the method.
+        """
+        self.label = label
+        self.components = components
+        self.n_components = n_components
+        self.component_names = component_names
+        self.info = info
+
+
 def _normaltest(x):
     """D’Agostino and Pearson’s test."""
     stat, p = normaltest(x)
@@ -29,7 +60,7 @@ def _shapiro_test(x):
     stat, p = shapiro(x)
     return {"statistic": stat, "p_value": p}
 
-def normal_crit(X, level=0.05, test="agostino_test", max_select=None):
+def normal_crit(X, W, level=0.05, test="agostino", max_select=None, **kwargs):
     """
     Identifies invariant coordinates that deviate from normality using univariate normality tests. Only the first and
     last components are investigated.
@@ -42,7 +73,8 @@ def normal_crit(X, level=0.05, test="agostino_test", max_select=None):
     `shapiro <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.shapiro.html>`_.
 
     Parameters:
-        X (ndarray): Transformed matrix in which each column contains the scores of the corresponding invariant coordinate.
+        X (ndarray): Data to fit the ICS model, where rows are samples and columns are features.
+        W (ndarray): Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
         level (float, default=0.05) The initial level used to make a decision based on the test p-values.
         test ({'normal', 'agostino', 'jarque', 'anscombe', 'shapiro'}, default='agostino') Name of the normality test to be used. Refer to the SciPy documentation for more information about the tests.
         max_select (int or None, default=None): Maximum number of components to select.
@@ -74,27 +106,30 @@ def normal_crit(X, level=0.05, test="agostino_test", max_select=None):
         raise ValueError("level must be between 0 and 1.")
 
     # max_select validation
-    comp_select = [f"IC_{i+1}" for i in range(X.shape[1])]
+    all_comp_names = [f"IC_{i+1}" for i in range(X.shape[1])]
     p = X.shape[1]
     max_select = _validate_nb_select(max_select, p)
 
+    # Transform X to apply the normality tests
+    Z = X @ W.T
+
     # Apply marginal normality tests to all components and select on p-values
-    test_pvals = np.array([test_fun(X[:, j])["p_value"] for j in range(X.shape[1])])
+    test_pvals = np.array([test_fun(Z[:, j])["p_value"] for j in range(Z.shape[1])])
     comp_signif = test_pvals <= level
 
     # If none of them are significative
     if comp_signif.sum() == 0:
-        select = []
+        selected_component_names = []
         adjusted_levels = [level]
 
     # Else: we select the components on the extreme left and right while they are not gaussian
     else:
         temp = 1
-        select = []
+        selected_component_names = []
         adjusted_levels = [level]
 
         pvals = test_pvals.copy()
-        comps = comp_select.copy()
+        comps = all_comp_names.copy()
 
         while temp <= max_select:
 
@@ -102,12 +137,12 @@ def normal_crit(X, level=0.05, test="agostino_test", max_select=None):
             right_pval = pvals[-1]
 
             if (left_pval < level) and (left_pval < right_pval):
-                select.append(comps[0])
+                selected_component_names.append(comps[0])
                 comps = comps[1:]
                 pvals = pvals[1:]
 
             elif right_pval < level:
-                select.append(comps[-1])
+                selected_component_names.append(comps[-1])
                 comps = comps[:-1]
                 pvals = pvals[:-1]
 
@@ -120,26 +155,35 @@ def normal_crit(X, level=0.05, test="agostino_test", max_select=None):
             pvals = pvals * temp / (temp - 1)
             adjusted_levels.append(level / temp)
 
-    out = {
+    # Keep only the selected components
+    name_to_idx = {name: i for i, name in enumerate(all_comp_names)}
+    idx = [name_to_idx[name] for name in selected_component_names]
+    components = W[idx, :]
+
+    # ComponentSelect class
+    n_components = len(selected_component_names)
+
+    info = {
         "crit": "normal",
         "level": level,
         "max_select": max_select,
         "test": test,
         "pvalues": test_pvals.copy(),
         "adjusted_levels": adjusted_levels,
-        "select": select
+        "component_names": selected_component_names
     }
 
-    return out
+    return ComponentSelect(label="normal", components=components, n_components=n_components, component_names=selected_component_names, info=info)
 
 
-def med_crit(gen_kurtosis, nb_select=None):
+def med_crit(kurtosis, W, nb_select=None, **kwargs):
     """
     Identifies as interesting the invariant coordinates whose generalized eigenvalues (kurtosis) are the furthermost
     away from the median of all generalized eigenvalues (kurtosis).
 
     Parameters:
-        gen_kurtosis (ndarray): Array of kurtosis values.
+        kurtosis (ndarray): Array of kurtosis values.
+        W (ndarray): Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
         nb_select (int or None, default=None): Exact number of components to select. If None (default), number of components to select is the number of variables minus one.
 
     Returns:
@@ -148,7 +192,7 @@ def med_crit(gen_kurtosis, nb_select=None):
 
     # gen_kurtosis validation
     gen_kurtosis = check_array(
-        gen_kurtosis,
+        kurtosis,
         ensure_2d=False,
         dtype=float,
         force_all_finite=True,
@@ -161,25 +205,33 @@ def med_crit(gen_kurtosis, nb_select=None):
     p = len(gen_kurtosis)
     nb_select = _validate_nb_select(nb_select, p)
 
-    comp_select = [f"IC_{i + 1}" for i in range(p)]
+    all_comp_names = [f"IC_{i + 1}" for i in range(p)]
 
     # Components associated with the furthest eigenvalues from the median
     med_gen_kurtosis = np.median(gen_kurtosis)
     gen_kurtosis_diff = np.abs(gen_kurtosis - med_gen_kurtosis)
 
     idx_sel = np.argsort(gen_kurtosis_diff)[::-1][: nb_select]
-    select = [comp_select[i] for i in idx_sel]
+    selected_component_names = [all_comp_names[i] for i in idx_sel]
 
-    out = {
+    # Keep only the selected components
+    name_to_idx = {name: i for i, name in enumerate(all_comp_names)}
+    idx = [name_to_idx[name] for name in selected_component_names]
+    components = W[idx, :]
+
+    # ComponentSelect class
+    n_components = len(selected_component_names)
+
+    info = {
         "crit": "med",
-        "n_components": nb_select,
+        "nb_select": nb_select,
         "gen_kurtosis": gen_kurtosis,
         "med_gen_kurtosis": med_gen_kurtosis,
         "gen_kurtosis_diff_med": gen_kurtosis_diff,
-        "select": select
+        "component_names": selected_component_names
     }
 
-    return out
+    return ComponentSelect(label="med", components=components, n_components=n_components, component_names=selected_component_names, info=info)
 
 
 def _validate_nb_select(nb_select, p):
