@@ -9,9 +9,10 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.utils.validation import check_array
 
 
-def plot_scores(scores, **kwargs):
+def plot_ics(scores, **kwargs):
     """
     Plots a scatterplot matrix of the component scores of an invariant coordinate system obtained via an ICS
     transformation.
@@ -22,11 +23,18 @@ def plot_scores(scores, **kwargs):
     Parameters:
         scores (ndarray): results from an ICS transformation.
     """
-    #todo:
-    if isinstance(scores, (np.ndarray, pd.DataFrame, list)):
-        scores_df = pd.DataFrame(scores, columns=[f"IC_{i+1}" for i in range(scores.shape[1])])
-    else:
-        raise TypeError("`scores` must be array-like: numpy.ndarray, or pandas.DataFrame.")
+
+    X = check_array(
+        scores,
+        force_writeable=True,
+        ensure_all_finite=True,
+        accept_sparse=("csr", "csc"),
+        ensure_2d=True,
+        ensure_min_features=2,
+        copy=False,
+    )
+
+    scores_df = pd.DataFrame(X, columns=[f"IC_{i+1}" for i in range(X.shape[1])])
 
     p = scores_df.shape[1]
 

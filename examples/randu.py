@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from icspylab import ICS, cov, covW, cov4, mcd, tcov, tcov2
+from icspylab import ICS, cov, covW, cov4, mcd, tcov, tcov2, plot_ics
+from sklearn.decomposition import PCA
 
 
 def generate_randu_dataset(n_points=400, seed=1.0):
@@ -53,10 +54,21 @@ plt.close(fig)
 # Compute and plot the invariant components
 # ics = ICS(S1=cov, S2=covW, algorithm='standard', S2_args={'alpha': 1, 'cf': 2})
 ics = ICS(S1=cov, S2=tcov2, algorithm='standard')
-ics.fit_transform(X)
-ics.plot()
+X_ics = ics.fit_transform(X)
+plot_ics(X_ics)
+ics.plot_kurtosis()
 
-print(tcov2(X).scatter)
-print(tcov(X).scatter)
+# Compute and plot the principal components
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X)
+
+plt.figure(figsize=(5, 5))
+plt.scatter(X_pca[:, 0], X_pca[:, 1], alpha=0.7)
+plt.title("PCA projection of the simulated dataset \n(first two components)")
+plt.xlabel("Principal component 1")
+plt.ylabel("Principal component 2")
+plt.axis("equal")
+plt.savefig("../docs/_static/randu_pca.png", dpi=200, bbox_inches="tight")
+plt.close()
 
 ics.describe()

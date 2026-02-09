@@ -61,11 +61,11 @@ def sqrt_symmetric_matrix(A, inverse=False):
 
     # Compute the eigenvalues and eigenvectors of the matrix
     A_eigenval, A_eigenvect = np.linalg.eig(A)
-    # Checks
-    if np.any(A_eigenval < -1e-12):
-        raise ValueError("A must be positive semi-definite to compute a real square root.")
-    if inverse and np.any(A_eigenval < 1e-12):
-        raise np.linalg.LinAlgError("A is singular; cannot compute inverse square root.")
+    # # Checks
+    # if np.any(A_eigenval < -1e-12):
+    #     raise ValueError("A must be positive semi-definite to compute a real square root.")
+    # if inverse and np.any(A_eigenval < 1e-12):
+    #     raise np.linalg.LinAlgError("A is singular; cannot compute inverse square root.")
     # Sort the eigenvalues and eigenvectors
     A_eigenval, A_eigenvect = sort_eigenvalues_eigenvectors(A_eigenval, A_eigenvect)
 

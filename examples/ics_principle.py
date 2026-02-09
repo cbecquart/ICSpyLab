@@ -140,7 +140,7 @@ fig.add_trace(go.Scatter(x=[axis_start[0], axis_end[0]], y=[axis_start[1], axis_
 ics = ICS(S1=cov, S2=cov4, algorithm="whiten")
 X_new = ics.fit_transform(X)
 
-ics_coef = ics.W_
+ics_coef = ics.components_
 axis_start = origin - axis_length * ics_coef[0]
 axis_end = origin + axis_length * ics_coef[0]
 fig.add_trace(go.Scatter(x=[axis_start[0], axis_end[0]], y=[axis_start[1], axis_end[1]],

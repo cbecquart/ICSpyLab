@@ -19,9 +19,9 @@ from scipy.linalg import qr
 from numpy.linalg import multi_dot
 
 from .scatter import Scatter, cov, covW, covAxis, cov4
-from .comp_select import normal_crit, med_crit
+from .comp_select import ComponentSelect
 from .utils import sort_eigenvalues_eigenvectors, sqrt_symmetric_matrix, _sign_max, _check_gen_kurtosis
-from .plot import plot_scores, _plot_kurtosis
+from .plot import plot_ics, _plot_kurtosis
 
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_array, check_is_fitted, validate_data
@@ -38,25 +38,26 @@ class ICS(TransformerMixin, BaseEstimator):
     It supports various scatter matrix calculations and offers multiple algorithms for applying ICS.
 
     Parameters:
-        S1 (function returning a scatter object, default=cov): Function to compute the first scatter matrix.
-        S2 (function returning a scatter object, default=covW): Function to compute the second scatter matrix.
+        S1 (function returning a Scatter object, default=cov): Function to compute the first scatter matrix.
+        S2 (function returning a Scatter object, default=covW): Function to compute the second scatter matrix.
         algorithm ({'standard', 'whiten', 'QR'}, default='whiten'): The algorithm used for transformation.
         center (bool, default=False): A logical indicating whether the invariant coordinates should be centered with respect to the first locattion or not. Centering is only applicable if the first scatter object contains a location component, otherwise this is set to False. Note that this only affects the scores of the invariant components (attribute scores_), but not the generalized kurtosis values (attribute kurtosis_).
         fix_signs({'scores', 'W'}, default='scores') How to fix the signs of the invariant coordinates. Possible values are 'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs based on the coefficient matrix of the linear transformation.
-        S1_args (dict, default={}): Additional arguments for S1.
-        S2_args (dict, default={}): Additional arguments for S2.
-        criteria_select (str or None, default=None): The criteria to select the invariant components. If None (default), all components are kept.
-        criteria_args (dict, default={}): Additional arguments for criteria_select.
+        S1_args (dict or None, default=None): Additional arguments for S1.
+        S2_args (dict or None, default=None): Additional arguments for S2.
+        method_select (function returning a ComponentSelect object or None, default=None): The criteria to select the invariant components. If None (default), all components are kept.
+        select_args (dict or None, default=None): Additional arguments for method_select.
 
     Attributes:
-        W_ (ndarray): Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
-        scores_ (ndarray): Transformed matrix in which each column contains the scores of the corresponding invariant coordinate.
+        components_ (ndarray):  Invariant axes in feature space: the transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate. The components are sorted by decreasing kurtosis_.
+        n_components_ (int): Number of components kept.
+        component_names_ (list): Names of components kept.
         kurtosis_ (ndarray): Generalized kurtosis values.
         skewness_ (ndarray): Skewness values.
         n_features_in_ (int): Number of features seen during fit.
         feature_names_in_ (ndarray): Names of features seen during fit. Defined only when X has feature names that are all strings.
         S1_X_ (ndarray): Fitted scatter S1. Defined only when center=True.
-        criteria_out_ (dict): Summary of the component selection step. Defined only when criteria_select is not None.
+        criteria_out_ (dict): Summary of the component selection step. Defined only when method_select is not None.
 
     Supported algorithms:
         1. standard: performs the spectral decomposition of the symmetric matrix :math:`S_1(X)^{-1/2}S_2(X)S_1(X)^{-1/2}`
@@ -80,8 +81,8 @@ class ICS(TransformerMixin, BaseEstimator):
         "fix_signs": [StrOptions({"scores", "W"})],
         "S1_args": [dict, None],
         "S2_args": [dict, None],
-        "criteria_select": [StrOptions({"normal_crit", "med_crit"}), None],
-        "criteria_args": [dict, None],
+        "method_select": [callable, None],
+        "select_args": [dict, None],
     }
 
     def __init__(
@@ -93,8 +94,8 @@ class ICS(TransformerMixin, BaseEstimator):
             fix_signs='scores',
             S1_args=None,
             S2_args=None,
-            criteria_select=None,
-            criteria_args=None
+            method_select=None,
+            select_args=None
     ):
         self.S1 = S1
         self.S2 = S2
@@ -103,8 +104,8 @@ class ICS(TransformerMixin, BaseEstimator):
         self.fix_signs = fix_signs
         self.S1_args = S1_args
         self.S2_args = S2_args
-        self.criteria_select = criteria_select
-        self.criteria_args = criteria_args
+        self.method_select = method_select
+        self.select_args = select_args
 
 
     def fit(self, X, y=None):
@@ -183,12 +184,25 @@ class ICS(TransformerMixin, BaseEstimator):
         if self.center:
             self.S1_X_ = S1_X
 
-        self.W_ = W_final
         self.kurtosis_ = gen_kurtosis
         self.skewness_ = gen_skewness
-        self.scores_ = None
+
+        # Component selection
+
+        if self.method_select is None:
+            self.components_ = W_final
+            self.n_components_ = self.components_.shape[0]
+            self.component_names_ = [f"IC_{i + 1}" for i in range(self.n_components_)]
+
+        else:
+            selection_res = self._component_selection(X, W_final)
+            self.components_ = selection_res.components
+            self.n_components_ = selection_res.n_components
+            self.component_names_ = selection_res.component_names
+            self.criteria_out_ = selection_res.info
 
         return self
+
 
     def transform(self, X, y=None):
         """
@@ -204,10 +218,10 @@ class ICS(TransformerMixin, BaseEstimator):
         Returns:
             ndarray: Transformed matrix in which columns contain the scores of the selected invariant coordinates.
         """
-        # if self.W_ is None:
+        # if self.components_ is None:
         #     raise TypeError("The ICS model must be fitted before transforming data.")
 
-        check_is_fitted(self, "W_")
+        check_is_fitted(self, "components_")
 
         # X = check_array(
         #     X,
@@ -228,23 +242,23 @@ class ICS(TransformerMixin, BaseEstimator):
             copy=False,
         )
 
-        assert self.W_.shape[0] == X.shape[1], f"The fitted model expects {self.W_.shape[0]} features in X."
+        assert self.components_.shape[1] == X.shape[1], f"The fitted model expects {self.components_.shape[0]} features in X."
 
         if self.center:
             # Center the data if required
             X = self._center_data(X, self.S1_X_)
 
         # Compute the final transformed data
-        Z_final = X @ self.W_.T
-        # self.scores_ = Z_final
+        X_new = X @ self.components_.T
 
-        # Select components
-        if self.criteria_select is None:
-            X_new = Z_final
-        else:
-            X_new = self._component_selection(Z_final)
+        # # Select components
+        # if self.method_select is None:
+        #     X_new = Z_final
+        # else:
+        #     X_new = self._component_selection(Z_final)
 
         return X_new
+
 
     def fit_transform(self, X, y=None):
         """
@@ -266,23 +280,9 @@ class ICS(TransformerMixin, BaseEstimator):
         return self.feature_names_in_
 
 
-    def plot(self, **kwargs):
-        """Plot the transformed data using the transformed ICS model."""
-
-        # Check the model has been fitted and transformed
-        check_is_fitted(self, "W_")
-        if self.scores_ is None:
-            raise NotFittedError(
-                "This ICS instance has not been transformed yet. "
-                "Call 'transform' with appropriate data before using this method."
-            )
-        check_is_fitted(self, "W_")
-        plot_scores(self.scores_, **kwargs)
-
-
     def plot_kurtosis(self, **kwargs):
         """Plot the generated kurtosis."""
-        check_is_fitted(self, "W_")
+        check_is_fitted(self, "components_")
         _plot_kurtosis(self.kurtosis_, **kwargs)
 
 
@@ -296,7 +296,7 @@ class ICS(TransformerMixin, BaseEstimator):
         """
 
         if self.feature_names_in_ is None:
-            feature_names = np.array([f'Feature_{i+1}' for i in range(self.W_.shape[1])])
+            feature_names = np.array([f'Feature_{i+1}' for i in range(self.components_.shape[1])])
         else:
             feature_names = self.feature_names_in_
 
@@ -319,12 +319,19 @@ class ICS(TransformerMixin, BaseEstimator):
         else:
             print("None")
 
+        # Print component selection information
+        print("\nInformation on the component selection:")
+        print(f"method_select: {self.method_select}")
+        print(f"select_args: {self.select_args}")
+        print(f"component selection info: {self.criteria_out_}")
+        print(f"{self.n_components_} are kept: {self.component_names_}")
+
         # Print the coefficient matrix
         print("\nThe coefficient matrix of the linear transformation is:")
-        if self.W_ is not None:
+        if self.components_ is not None:
             header = "     " + " ".join(f"{name:>12}" for name in feature_names)
             print(header)
-            for idx, row in enumerate(self.W_, start=1):
+            for idx, row in enumerate(self.components_, start=1):
                 row_str = " ".join(f"{val:>12.5f}" for val in row)
                 print(f"IC_{idx:<3} {row_str}")
         else:
@@ -372,7 +379,7 @@ class ICS(TransformerMixin, BaseEstimator):
         S2_args = {} if self.S2_args is None else self.S2_args
         S2_X = self.S2(X, **S2_args)
         if not isinstance(S2_X, Scatter):
-            raise ValueError("S2 must return an Scatter object")
+            raise ValueError("S2 must return a Scatter object")
         return S2_X
 
     def _transform_second_scatter(self, S1_X_inv_sqrt, S2_X):
@@ -541,13 +548,13 @@ class ICS(TransformerMixin, BaseEstimator):
 
         return W_final, gen_skewness
 
-    def _component_selection(self, X):
+    def _component_selection(self, X, W_final):
         """
         Implement the component selection step based on the specified method.
 
         Parameters:
-            X (ndarray): Transformed matrix in which each column contains the scores of the corresponding invariant
-            coordinate.
+            X (ndarray): Data to fit the ICS model, where rows are samples and columns are features.
+            W_final (ndarray):
 
         Returns:
             ndarray: Transformed matrix in which columns contain the scores of the selected invariant coordinates.
@@ -556,20 +563,17 @@ class ICS(TransformerMixin, BaseEstimator):
             standard, whiten, QR
         """
 
-        criteria_args = {} if self.criteria_args is None else self.criteria_args
+        select_args = {} if self.select_args is None else self.select_args
 
-        if self.criteria_select == 'normal_crit':
-            selection_res = normal_crit(X, **criteria_args)
-        else:
-            assert self.criteria_select == 'med_crit'
-            selection_res = med_crit(self.kurtosis_, **criteria_args)
+        selection_res = self.method_select(
+            X=X,
+            W = W_final,
+            kurtosis=self.kurtosis_,
+            skewness=self.skewness_,
+            **select_args)
 
-        self.criteria_out_ = selection_res
+        if not isinstance(selection_res, ComponentSelect):
+            raise ValueError("method_select must return a ComponentSelect object")
 
-        comp_names = [f"IC_{i + 1}" for i in range(X.shape[1])]
-        name_to_idx = {name: i for i, name in enumerate(comp_names)}
-        idx = [name_to_idx[name] for name in selection_res["select"]]
-        X_new = X[:, idx]
-
-        return X_new
+        return selection_res
 

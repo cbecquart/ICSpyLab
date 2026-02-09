@@ -148,9 +148,10 @@ def test_fit_method():
     X = np.random.randn(100, 5)
     ics.fit(X)
     assert isinstance(ics, ICS)
-    assert ics.W_ is not None
+    assert ics.components_ is not None
+    assert ics.n_components_ is not None
+    assert ics.component_names_ is not None
     assert ics.kurtosis_ is not None
-    assert ics.scores_ is None
 
 
 # Section: Transform Method Tests
@@ -204,7 +205,7 @@ def test_fit_transform_method():
 #     assert "ICS Summary" in captured.out
 #     assert "Algorithm" in captured.out
 #     assert "Generalized Kurtosis" in captured.out
-#     assert "Transformation Matrix (W_)" in captured.out
+#     assert "Transformation Matrix (components_)" in captured.out
 #     assert "Transformed Data (Scores)" in captured.out
 
 
@@ -230,7 +231,7 @@ def test_large_dataset():
     ics = ICS()
     X = np.random.randn(10000, 10)
     X_new = ics.fit_transform(X)
-    assert ics.W_ is not None
+    assert ics.components_ is not None
     assert X_new is not None
     assert ics.kurtosis_ is not None
 
