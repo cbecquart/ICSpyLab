@@ -195,7 +195,7 @@ def med_crit(kurtosis, W, nb_select=None, **kwargs):
         kurtosis,
         ensure_2d=False,
         dtype=float,
-        force_all_finite=True,
+        ensure_all_finite=True,
     )
 
     if gen_kurtosis.ndim != 1:

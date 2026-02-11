@@ -142,6 +142,12 @@ class ICS(TransformerMixin, BaseEstimator):
         #     ensure_min_features=2,
         #     copy=False,
         # )
+
+        if hasattr(X, "columns"):
+            self.feature_names_in_ = np.array(X.columns)
+        else:
+            self.feature_names_in_ = None
+
         X = validate_data(
             self,
             X,
@@ -153,11 +159,6 @@ class ICS(TransformerMixin, BaseEstimator):
             ensure_min_samples=2,
             copy=False,
         )
-
-        if hasattr(X, "columns"):
-            self.feature_names_in_ = np.array(X.columns, dtype=object)
-        else:
-            self.feature_names_in_ = None
 
         self.n_features_in_ = X.shape[1]
 
