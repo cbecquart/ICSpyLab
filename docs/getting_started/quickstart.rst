@@ -1,5 +1,5 @@
-Usage
-=====
+Quick Start
+===========
 
 This section provides examples of how to use the ICSpyLab package. The core of the package is the ICS class.
 The implementation is similar to the sklearn framework, including a fit-transform logic. For more information about the

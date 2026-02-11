@@ -69,14 +69,9 @@ For references, see the :doc:`references` page.
    :hidden:
    :maxdepth: 2
 
-   installation
-   usage
+   getting_started/index
    examples/index
-   ics
-   plot
-   scatter
-   comp_select
-   utils
+   api/index
    test
    contributors
    references
