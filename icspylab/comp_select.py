@@ -14,7 +14,7 @@ class ComponentSelect:
         components (ndarray): Invariant components selected by the method.
         n_components (int): Number of invariant components selected by the method.
         component_names (ndarray): Names of invariant components selected by the method.
-        info (dict): Additional information specific to the method.
+        info (dict or None): Additional information specific to the method.
     """
 
     def __init__(self, label, components, n_components, component_names, info):
@@ -26,7 +26,7 @@ class ComponentSelect:
             components (ndarray): Invariant components selected by the method.
             n_components (int): Number of invariant components selected by the method.
             component_names (list): Names of invariant components selected by the method.
-            info (dict): Additional information specific to the method.
+            info (dict or None): Additional information specific to the method.
         """
         self.label = label
         self.components = components

@@ -57,7 +57,7 @@ class ICS(TransformerMixin, BaseEstimator):
         n_features_in_ (int): Number of features seen during fit.
         feature_names_in_ (ndarray): Names of features seen during fit. Defined only when X has feature names that are all strings.
         S1_X_ (ndarray): Fitted scatter S1. Defined only when center=True.
-        criteria_out_ (dict): Summary of the component selection step. Defined only when method_select is not None.
+        criteria_out_ (dict or None): Summary of the component selection step. Defined only when method_select is not None.
 
     Supported algorithms:
         1. standard: performs the spectral decomposition of the symmetric matrix :math:`S_1(X)^{-1/2}S_2(X)S_1(X)^{-1/2}`
