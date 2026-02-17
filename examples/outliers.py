@@ -38,7 +38,23 @@ anomaly_frac = y_train.mean()
 print(f"{n_samples} datapoints with {y_train.sum()} anomalies ({anomaly_frac:.02%}) and {n_features} features")
 
 
-# LOF with and without ICS
+# LOF
+
+lof_plain = make_pipeline(
+    RobustScaler(),
+    LocalOutlierFactor(
+        n_neighbors=int(n_samples * anomaly_frac),
+        novelty=True)
+)
+
+lof_plain.fit(X_train)
+scores_lof_plain = -lof_plain.decision_function(X_test)
+# Predictions
+y_pred_plain = lof_plain.predict(X_test)
+y_pred_plain_bin = (y_pred_plain == -1).astype(int)
+
+
+# LOF with ICS
 
 lof_ics  = make_pipeline(
     ICS(method_select=med_crit),
@@ -49,66 +65,24 @@ lof_ics  = make_pipeline(
 )
 
 lof_ics.fit(X_train)
-scores_ics = -lof_ics.decision_function(X_test)
-
-lof_plain = make_pipeline(
-    RobustScaler(),
-    LocalOutlierFactor(
-        n_neighbors=int(n_samples * anomaly_frac),
-        novelty=True)
-)
-
-lof_plain.fit(X_train)
-scores_plain = -lof_plain.decision_function(X_test)
-
-# roc curves
-fpr_ics, tpr_ics, _ = roc_curve(y_test, scores_ics)
-auc_ics = auc(fpr_ics, tpr_ics)
-
-fpr_plain, tpr_plain, _ = roc_curve(y_test, scores_plain)
-auc_plain = auc(fpr_plain, tpr_plain)
-
-plt.figure(figsize=(6, 6))
-
-plt.plot(fpr_ics, tpr_ics, label=f"ICS + LOF (AUC = {auc_ics:.3f})")
-plt.plot(fpr_plain, tpr_plain, label=f"LOF only (AUC = {auc_plain:.3f})")
-
-plt.plot([0, 1], [0, 1], "k--", label="Random")
-
-plt.xlabel("False Positive Rate")
-plt.ylabel("True Positive Rate")
-plt.title("ROC Curve – LOF with and without ICS")
-plt.legend()
-plt.grid(True)
-plt.show()
-
-# confusion matrices
+scores_lof_ics = -lof_ics.decision_function(X_test)
+# Predictions
 y_pred_ics = lof_ics.predict(X_test)      # 1=inlier, -1=outlier
 y_pred_ics_bin = (y_pred_ics == -1).astype(int)  # 1=outlier, 0=inlier
 
-y_pred_plain = lof_plain.predict(X_test)
-y_pred_plain_bin = (y_pred_plain == -1).astype(int)
 
-cm = confusion_matrix(y_test, y_pred_ics_bin)
-cm2 = confusion_matrix(y_test, y_pred_plain_bin)
+# IForest
 
-fig, axes = plt.subplots(1, 2, figsize=(10, 4))
-ConfusionMatrixDisplay(cm, display_labels=["Inlier", "Outlier"]).plot(ax=axes[0], cmap=plt.cm.Blues)
-axes[0].set_title("ICS + LOF")
+if_plain = IsolationForest(random_state=42)
 
-ConfusionMatrixDisplay(cm2, display_labels=["Inlier", "Outlier"]).plot(ax=axes[1], cmap=plt.cm.Oranges)
-axes[1].set_title("LOF only")
-plt.show()
-
-# F1 scores
-f1_ics = f1_score(y_test, y_pred_ics_bin)
-f1_plain = f1_score(y_test, y_pred_plain_bin)
-
-print(f"F1 score ICS + LOF: {f1_ics:.3f}")
-print(f"F1 score LOF only: {f1_plain:.3f}")
+if_plain.fit(X_train)
+scores_if_plain = -if_plain.decision_function(X_test)
+# Predictions
+y_pred_if_plain = if_plain.predict(X_test)
+y_pred_if_plain_bin = (y_pred_if_plain == -1).astype(int)
 
 
-# IForest with and without ICS
+# IForest with ICS
 
 if_ics = make_pipeline(
     ICS(method_select=med_crit),
@@ -116,55 +90,101 @@ if_ics = make_pipeline(
 )
 
 if_ics.fit(X_train)
-scores_ics = -if_ics.decision_function(X_test)
-
-
-if_plain = IsolationForest(random_state=42)
-
-if_plain.fit(X_train)
-scores_plain = -if_plain.decision_function(X_test)
-
-
-fpr_ics, tpr_ics, _ = roc_curve(y_test, scores_ics)
-auc_ics = auc(fpr_ics, tpr_ics)
-
-fpr_plain, tpr_plain, _ = roc_curve(y_test, scores_plain)
-auc_plain = auc(fpr_plain, tpr_plain)
-
-plt.figure(figsize=(6, 6))
-
-plt.plot(fpr_ics, tpr_ics, label=f"ICS + IF (AUC = {auc_ics:.3f})")
-plt.plot(fpr_plain, tpr_plain, label=f"IF only (AUC = {auc_plain:.3f})")
-
-plt.plot([0, 1], [0, 1], "k--", label="Random")
-
-plt.xlabel("False Positive Rate")
-plt.ylabel("True Positive Rate")
-plt.title("ROC Curve – IF with and without ICS")
-plt.legend()
-plt.grid(True)
-plt.show()
-
-# confusion_matrix
+scores_if_ics = -if_ics.decision_function(X_test)
+# Predictions
 y_pred_if_ics = if_ics.predict(X_test)      # 1=inlier, -1=outlier
 y_pred_if_ics_bin = (y_pred_if_ics == -1).astype(int)  # 1=outlier, 0=inlier
 
-y_pred_if_plain = if_plain.predict(X_test)
-y_pred_if_plain_bin = (y_pred_if_plain == -1).astype(int)
 
-cm = confusion_matrix(y_test, y_pred_if_ics_bin)
-cm2 = confusion_matrix(y_test, y_pred_if_plain_bin)
+# ROC curves
 
-fig, axes = plt.subplots(1, 2, figsize=(10, 4))
-ConfusionMatrixDisplay(cm, display_labels=["Inlier", "Outlier"]).plot(ax=axes[0], cmap=plt.cm.Blues)
-axes[0].set_title("ICS + IF")
+fpr_lof_ics, tpr_lof_ics, _ = roc_curve(y_test, scores_lof_ics)
+auc_lof_ics = auc(fpr_lof_ics, tpr_lof_ics)
 
-ConfusionMatrixDisplay(cm2, display_labels=["Inlier", "Outlier"]).plot(ax=axes[1], cmap=plt.cm.Oranges)
-axes[1].set_title("IF only")
-plt.show()
+fpr_lof_plain, tpr_lof_plain, _ = roc_curve(y_test, scores_lof_plain)
+auc_lof_plain = auc(fpr_lof_plain, tpr_lof_plain)
 
-f1_if_ics = f1_score(y_test, y_pred_if_ics_bin)
+fpr_if_ics, tpr_if_ics, _ = roc_curve(y_test, scores_if_ics)
+auc_if_ics = auc(fpr_if_ics, tpr_if_ics)
+
+fpr_if_plain, tpr_if_plain, _ = roc_curve(y_test, scores_if_plain)
+auc_if_plain = auc(fpr_if_plain, tpr_if_plain)
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+# Subplot 1 : LOF
+axes[0].plot(fpr_lof_ics, tpr_lof_ics, label=f"ICS + LOF (AUC = {auc_lof_ics:.3f})")
+axes[0].plot(fpr_lof_plain, tpr_lof_plain, label=f"LOF only (AUC = {auc_lof_plain:.3f})")
+axes[0].plot([0, 1], [0, 1], "k--", label="Random")
+
+axes[0].set_xlabel("False Positive Rate")
+axes[0].set_ylabel("True Positive Rate")
+axes[0].set_title("ROC Curve – LOF")
+axes[0].legend()
+axes[0].grid(True)
+
+# Subplot 2 : Isolation Forest
+axes[1].plot(fpr_if_ics, tpr_if_ics, label=f"ICS + IF (AUC = {auc_if_ics:.3f})")
+axes[1].plot(fpr_if_plain, tpr_if_plain, label=f"IF only (AUC = {auc_if_plain:.3f})")
+axes[1].plot([0, 1], [0, 1], "k--", label="Random")
+
+axes[1].set_xlabel("False Positive Rate")
+axes[1].set_ylabel("True Positive Rate")
+axes[1].set_title("ROC Curve – Isolation Forest")
+axes[1].legend()
+axes[1].grid(True)
+
+plt.tight_layout()
+plt.savefig("../docs/_static/outliers_ROC.png", dpi=200, bbox_inches="tight")
+plt.close()
+
+
+# Confusion matrices
+
+cm_lof_ics = confusion_matrix(y_test, y_pred_ics_bin)
+cm_lof_plain = confusion_matrix(y_test, y_pred_plain_bin)
+
+cm_if_ics = confusion_matrix(y_test, y_pred_if_ics_bin)
+cm_if_plain = confusion_matrix(y_test, y_pred_if_plain_bin)
+
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+ConfusionMatrixDisplay(cm_lof_ics, display_labels=["Inlier", "Outlier"]).plot(
+    ax=axes[0, 0], cmap=plt.cm.Blues, colorbar=False
+)
+axes[0, 0].set_title("ICS + LOF")
+
+ConfusionMatrixDisplay(cm_lof_plain, display_labels=["Inlier", "Outlier"]).plot(
+    ax=axes[1, 0], cmap=plt.cm.Oranges, colorbar=False
+)
+axes[1, 0].set_title("LOF only")
+
+ConfusionMatrixDisplay(cm_if_ics, display_labels=["Inlier", "Outlier"]).plot(
+    ax=axes[0, 1], cmap=plt.cm.Blues, colorbar=False
+)
+axes[0, 1].set_title("ICS + IF")
+
+ConfusionMatrixDisplay(cm_if_plain, display_labels=["Inlier", "Outlier"]).plot(
+    ax=axes[1, 1], cmap=plt.cm.Oranges, colorbar=False
+)
+axes[1, 1].set_title("IF only")
+
+plt.tight_layout()
+plt.savefig("../docs/_static/outliers_CM.png", dpi=200, bbox_inches="tight")
+plt.close()
+
+
+# F1 scores
+
+f1_plain = f1_score(y_test, y_pred_plain_bin)
+f1_ics = f1_score(y_test, y_pred_ics_bin)
+
+print(f"F1 score LOF only: {f1_plain:.3f}")
+print(f"F1 score ICS + LOF: {f1_ics:.3f}")
+
 f1_if_plain = f1_score(y_test, y_pred_if_plain_bin)
+f1_if_ics = f1_score(y_test, y_pred_if_ics_bin)
 
-print(f"F1 score ICS + IF: {f1_if_ics:.3f}")
 print(f"F1 score IF only: {f1_if_plain:.3f}")
+print(f"F1 score ICS + IF: {f1_if_ics:.3f}")

@@ -1,4 +1,4 @@
-Custom component selection
+Custom Component selection
 ==========================
 
 
@@ -43,21 +43,25 @@ If you just need a one-shot usage you can simply apply the selection method on t
     Shape after ICS and manual component selection: (150,)
 
 
-While manual slicing of `X_ics`` is sufficient for exploratory analysis, integrating the selection step into the :class:`icspylab.ICS`
+While manual slicing of ``X_ics`` is sufficient for exploratory analysis, integrating the selection step into the :class:`icspylab.ICS`
 estimator is recommended when building pipelines or performing model selection. To do so, recall that the ``method_select``
-parameter of an :class:`ICS` instance is
-(if not None) a callable returning a :class:`ComponentSelect` object.
+parameter of an :class:`icspylab.ics.ICS` instance is
+(if not None) a callable returning a :class:`icspylab.comp_select.ComponentSelect` object.
 The :class:`ComponentSelect` object acts as a container describing which invariant components are retained and how they map
 back to the original feature space. Each :class:`ComponentSelect` has the
-following attributes: label, components, n_components, component_names, info.
+following attributes: :attr:`icspylab.comp_select.ComponentSelect.label`,
+:attr:`icspylab.comp_select.ComponentSelect.components`,
+:attr:`icspylab.comp_select.ComponentSelect.n_components`,
+:attr:`icspylab.comp_select.ComponentSelect.component_names`,
+:attr:`icspylab.comp_select.ComponentSelect.info`.
 
-After the component computation, during the component selection step of the ICS :meth:`icspylab.ICS.fit` method,
+After the component computation, during the component selection step of the ICS :meth:`icspylab.ics.ICS.fit` method,
 ``method_select`` is called with the following parameters:
-    - X (ndarray): Data to fit the ICS model, where rows are samples and columns are features.
-    - W (ndarray): Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
-    - kurtosis (ndarray): Generalized kurtosis values.
-    - skewness (ndarray): Skewness values.
-    - **select_args: Other arguments from the parameter ``select_args`` of the ``ICS`` object.
+    - ``X`` (ndarray): Data to fit the ICS model, where rows are samples and columns are features.
+    - ``W`` (ndarray): Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
+    - ``kurtosis`` (ndarray): Generalized kurtosis values.
+    - ``skewness`` (ndarray): Skewness values.
+    - ``**select_args``: Other arguments from the parameter ``select_args`` of the :class:`ICS` object.
 
 The method to select the last component is then:
 
@@ -80,7 +84,7 @@ The method to select the last component is then:
 
 Recall that each row of ``W`` corresponds to one invariant component, expressed in the original feature space.
 
-Do not forget **kwargs for consistency! The **kwargs argument ensures forward compatibility and allows the function to
+Do not forget ``**kwargs`` for consistency! The ``**kwargs`` argument ensures forward compatibility and allows the function to
 receive additional information such as kurtosis, skewness, or user-defined parameters without breaking the API.
 
 Lets try it on the Iris dataset:

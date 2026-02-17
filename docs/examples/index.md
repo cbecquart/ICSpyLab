@@ -1,6 +1,6 @@
 # Examples
 
-This section presents practical examples illustrating how to use **ICSpyLab**
+This section presents practical examples illustrating how to use ``ICSpyLab``
 for dimensionality reduction, clustering, and anomaly detection.
 
 ```{toctree}
@@ -8,3 +8,4 @@ for dimensionality reduction, clustering, and anomaly detection.
 
 randu
 circle
+outliers

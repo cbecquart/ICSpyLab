@@ -35,9 +35,11 @@ below illustrates how to compute the MCD scatter on the Iris dataset.
 
 
 We can now use this scatter to apply ICS. Recall that the scatter parameters of an
-:class:`ICS` instance (``S1`` and ``S2``) must be callables returning a
-:class:`Scatter` object. Each :class:`Scatter` object provides three attributes:
-``location``, ``scatter``, and ``label``.
+:class:`icspylab.ics.ICS` instance (``S1`` and ``S2``) must be callables returning a
+:class:`icspylab.scatter.Scatter` object. Each :class:`Scatter` object provides three attributes:
+:attr:`icspylab.scatter.Scatter.location`,
+:attr:`icspylab.scatter.Scatter.scatter`, and
+:attr:`icspylab.scatter.Scatter.label`.
 
 Below, we define a function computing the MCD scatter, which we will use as
 ``S1``:
@@ -66,3 +68,6 @@ Below, we define a function computing the MCD scatter, which we will use as
     # Fit and transform the ICS model
     ics.fit_transform(X)
 
+
+This tutorial demonstrates how ``ICSpyLab`` can be extended through user-defined
+scatter operators, enabling advanced customization of the ICS workflow.
