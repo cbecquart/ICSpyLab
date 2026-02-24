@@ -21,7 +21,7 @@ from numpy.linalg import multi_dot
 from .scatter import Scatter, cov, covW, covAxis, cov4
 from .comp_select import ComponentSelect
 from .utils import sort_eigenvalues_eigenvectors, sqrt_symmetric_matrix, _sign_max, _check_gen_kurtosis
-from .plot import plot_ics, _plot_kurtosis
+from .plot import _plot_kurtosis
 
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_array, check_is_fitted, validate_data
@@ -137,7 +137,6 @@ class ICS(TransformerMixin, BaseEstimator):
         #     X,
         #     force_writeable=True,
         #     ensure_all_finite=True,
-        #     accept_sparse=("csr", "csc"),
         #     ensure_2d=True,
         #     ensure_min_features=2,
         #     copy=False,
@@ -153,7 +152,6 @@ class ICS(TransformerMixin, BaseEstimator):
             X,
             reset=True,
             ensure_all_finite=True,
-            # accept_sparse=("csr", "csc"),
             ensure_2d=True,
             ensure_min_features=2,
             ensure_min_samples=2,
@@ -228,7 +226,6 @@ class ICS(TransformerMixin, BaseEstimator):
         #     X,
         #     force_writeable=True,
         #     ensure_all_finite=True,
-        #     accept_sparse=("csr", "csc"),
         #     ensure_2d=True,
         #     ensure_min_features=2,
         #     copy=False,
@@ -238,7 +235,6 @@ class ICS(TransformerMixin, BaseEstimator):
             X,
             reset=False,
             ensure_all_finite=True,
-            # accept_sparse=("csr", "csc"),
             ensure_2d=True,
             copy=False,
         )
