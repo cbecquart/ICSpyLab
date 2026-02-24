@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
-from icspylab import Scatter, cov, covW, covAxis, cov4, mcd, tcov, tM
+import pandas as pd
+from icspylab import Scatter, cov, covW, covAxis, cov4, mcd, tcov, tM, tcov2
 import logging
 
 logger = logging.getLogger(__name__)
@@ -38,11 +39,8 @@ def test_cov():
     This test verifies that the cov function correctly calculates the covariance matrix
     of the given data matrix. It asserts that the scatter matrix has the correct shape
     and that the location vector has the correct length.
-
-    Attributes:
-        data_matrix (np.ndarray): The data matrix to be used for covariance calculation.
     """
-    X = np.random.rand(100, 5)
+    X = np.random.rand(20, 5)
     scatter = cov(X)
 
     assert scatter.label == "Covariance"
@@ -57,11 +55,8 @@ def test_covW():
     This test verifies that the covW function correctly calculates the weighted covariance
     matrix of the given data matrix. It asserts that the scatter matrix has the correct
     shape and that the location vector has the correct length.
-
-    Attributes:
-        data_matrix (np.ndarray): The data matrix to be used for weighted covariance calculation.
     """
-    X = np.random.randn(100, 5)
+    X = np.random.randn(20, 5)
     scatter = covW(X, alpha=1, cf=1)
 
     assert scatter.label == "Weighted Covariance"
@@ -76,11 +71,8 @@ def test_covAxis():
     This test verifies that the covAxis function correctly calculates the Tyler shape matrix
     of the given data matrix. It asserts that the scatter matrix has the correct shape
     and that the location vector has the correct length.
-
-    Attributes:
-        data_matrix (np.ndarray): The data matrix to be used for Tyler shape matrix calculation.
     """
-    X = np.random.randn(100, 5)
+    X = np.random.randn(20, 5)
     scatter = covAxis(X)
 
     assert scatter.label == "CovAxis"
@@ -95,11 +87,8 @@ def test_cov4():
     This test verifies that the cov4 function correctly calculates the fourth-order covariance
     matrix of the given data matrix. It asserts that the scatter matrix has the correct shape
     and that the location vector has the correct length.
-
-    Attributes:
-        data_matrix (np.ndarray): The data matrix to be used for fourth-order covariance calculation.
     """
-    X = np.random.randn(100, 5)
+    X = np.random.randn(20, 5)
     scatter = cov4(X)
 
     assert scatter.label == "Cov4"
@@ -113,11 +102,8 @@ def test_mcd_reweighted():
 
     This test verifies that the mcd function correctly implements the MCD scatter of the given data matrix. It asserts
     that the scatter matrix has the correct shape and that the location vector has the correct length.
-
-    Attributes:
-        data_matrix (np.ndarray): The data matrix to be used for fourth-order covariance calculation.
     """
-    X = np.random.randn(100, 5)
+    X = np.random.randn(20, 5)
     scatter = mcd(X)
 
     assert scatter.label == "MCD"
@@ -131,11 +117,8 @@ def test_mcd_raw():
 
     This test verifies that the mcd function correctly implements the MCD scatter of the given data matrix. It asserts
     that the scatter matrix has the correct shape and that the location vector has the correct length.
-
-    Attributes:
-        data_matrix (np.ndarray): The data matrix to be used for fourth-order covariance calculation.
     """
-    X = np.random.randn(100, 5)
+    X = np.random.randn(20, 5)
     scatter = mcd(X, reweighted=False)
 
     assert scatter.label == "MCD"
@@ -150,11 +133,8 @@ def test_tcov_cpp():
     This test verifies that the tcov function correctly implements the TCOV scatter of the given data matrix.
     It asserts that the scatter matrix has the correct shape
     and that the location vector is None.
-
-    Attributes:
-        data_matrix (np.ndarray): The data matrix to be used for fourth-order covariance calculation.
     """
-    X = np.random.randn(100, 5)
+    X = np.random.randn(20, 5)
     scatter = tcov(X, use_cpp=True)
 
     assert scatter.label == "TCOV"
@@ -169,14 +149,27 @@ def test_tcov_py():
     This test verifies that the tcov function correctly implements the TCOV scatter of the given data matrix.
     It asserts that the scatter matrix has the correct shape
     and that the location vector is None.
-
-    Attributes:
-        data_matrix (np.ndarray): The data matrix to be used for fourth-order covariance calculation.
     """
-    X = np.random.randn(100, 5)
+    X = np.random.randn(20, 5)
     scatter = tcov(X, use_cpp=False)
 
     assert scatter.label == "TCOV"
+    assert scatter.scatter.shape == (5, 5)
+    assert scatter.location == None
+    assert isinstance(scatter, Scatter)
+
+def test_tcov2():
+    """
+    Test the tcov2 function for calculating TCOV2.
+
+    This test verifies that the tcov2 function correctly implements the TCOV2 scatter of the given data matrix.
+    It asserts that the scatter matrix has the correct shape
+    and that the location vector is None.
+    """
+    X = np.random.randn(20, 5)
+    scatter = tcov2(X)
+
+    assert scatter.label == "TCOV2"
     assert scatter.scatter.shape == (5, 5)
     assert scatter.location == None
     assert isinstance(scatter, Scatter)
@@ -188,14 +181,27 @@ def test_tM():
     This test verifies that the tM function correctly implements the tM scatter of the given data matrix.
     It asserts that the scatter matrix has the correct shape
     and that the location vector has the correct length.
-
-    Attributes:
-        data_matrix (np.ndarray): The data matrix to be used for fourth-order covariance calculation.
     """
-    X = np.random.randn(100, 5)
+    X = np.random.randn(20, 5)
     scatter = tM(X)
 
     assert scatter.label == "tM"
     assert scatter.scatter.shape == (5, 5)
     assert scatter.location.shape == (5,)
     assert isinstance(scatter, Scatter)
+
+def test_scatters_dataframe():
+    X_df = pd.DataFrame(np.random.randn(10, 3), columns=["A", "B", "C"])
+    # All functions should accept pd.DataFrame
+    for func in [cov, covW, covAxis, cov4, mcd, tcov, tcov2, tM]:
+        s = func(X_df)
+        assert isinstance(s, Scatter)
+
+def test_scatters_1D():
+    X_1d = np.random.randn(10)
+    # All functions should accept pd.DataFrame
+    for func in [cov, mcd, tcov]:
+        s = func(X_1d)
+        print(s.scatter)
+        assert isinstance(s, Scatter)
+        assert s.scatter.shape == (1, 1)

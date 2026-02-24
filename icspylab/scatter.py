@@ -16,6 +16,7 @@ import pandas as pd
 from scipy.spatial.distance import mahalanobis
 from numpy.linalg import multi_dot
 from sklearn.covariance import MinCovDet
+from sklearn.utils.validation import check_array
 from numba import njit
 import warnings
 try:
@@ -64,9 +65,12 @@ def cov(X, location=True):
     X = np.asarray(X)
     if X.ndim > 2:
         raise ValueError("X has more than 2 dimensions")
+    if X.ndim == 1:
+        X = X.reshape(-1, 1)
+    p = X.shape[1]
 
     # Compute the covariance matrix
-    cov_cov = np.cov(X, rowvar=False)
+    cov_cov = np.cov(X, rowvar=False).reshape(p, p)
 
     # Compute the mean location if required
     cov_loc = X.mean(0) if location else None
@@ -80,7 +84,7 @@ def covW(X, location=True, alpha=1, cf=1):
     For more details, check the R documentation of the package ICS (function covW).
 
     Parameters:
-        X (array-like): The data matrix.
+        X (array-like): Data matrix, must be at least bi-variate.
         location (bool, default=True) Whether to include the mean location.
         alpha (float, default=1) Parameter of the one-step M-estimator.
         cf (float, default=1) Consistency factor of the one-step M-estimator.
@@ -104,11 +108,11 @@ def covW(X, location=True, alpha=1, cf=1):
 
     # Check inputs
     X = np.asarray(X)
-    if X.ndim > 2:
-        raise ValueError("X has more than 2 dimensions")
+    if X.ndim != 2:
+        raise ValueError("X must be a 2D array")
     n, p = X.shape
-    if pd.isnull(X).any():
-        raise ValueError("Missing values are not allowed in X")
+    if np.isnan(X).any():
+        raise ValueError("X must not contain NaN values")
     if p <= 1:
         raise ValueError("X must be at least bi-variate")
 
@@ -178,7 +182,7 @@ def mcd(X, reweighted=True, **kwargs):
     selection of observations ("consistency step"). Once the MCD estimator is computed, the observations can be weighted
     by their Mahalanobis distance. The resulting estimator is called the reweighted MCD. The "reweighting step" is
     performed by default. To access the raw estimators of the MCD, call the raw_location_ and raw_covariance_ attributes
-    of a MinCovDet object. information, check out scikit learn's `documentation <https://scikit-learn.org/stable/modules/generated/sklearn.covariance.MinCovDet.html>`_.
+    of a MinCovDet object. Fore more information, check out scikit learn's `documentation <https://scikit-learn.org/stable/modules/generated/sklearn.covariance.MinCovDet.html>`_.
 
     Parameters:
         X (array-like): The data matrix.
@@ -191,6 +195,17 @@ def mcd(X, reweighted=True, **kwargs):
         - Rousseeuw, P.J. (1984) Least median of squares regression. J. Am Stat Ass, 79:871.
         - A Fast Algorithm for the Minimum Covariance Determinant Estimator, 1999, American Statistical Association and the American Society for Quality, TECHNOMETRICS.
     """
+
+    # Check inputs
+    X = np.asarray(X)
+    if X.ndim > 2:
+        raise ValueError("X has more than 2 dimensions")
+    if X.ndim == 1:
+        X = X.reshape(-1, 1)
+    n = X.shape[0]
+    if n < 2:
+        raise ValueError("X must have at least 2 observations")
+
     mcd_fit = MinCovDet(**kwargs).fit(X)
 
     if reweighted:
@@ -301,9 +316,16 @@ def tcov(X, beta=2, use_cpp=True):
 
     # Check types
     X = np.asarray(X, dtype=np.float64)
-    X = np.ascontiguousarray(X)
+    if X.ndim > 2:
+        raise ValueError("X has more than 2 dimensions")
     if X.ndim == 1:
         X = X.reshape(-1, 1)
+    X = np.ascontiguousarray(X)
+
+    n = X.shape[0]
+    if n < 2:
+        raise ValueError("X must have at least 2 observations")
+
     beta = float(beta)
 
     # If use_cpp=True, tcov_module can't be None. Otherwise, proceed with use_cpp=False.
@@ -386,7 +408,7 @@ def tM(X, df=1, mu_init=None, V_init=None, eps=1e-6, maxiter=100):
     is as in Arslan et al. (1995).
 
     Parameters:
-        X (array-like): data
+        X (array-like): data matrix, must be at least bi-variate
         df (int >= 1, default=1) assumed degrees of freedom of the t-distribution. Default is 1 which corresponds
         to the Cauchy distribution.
         mu_init (ndarray(p) or None, default=None) initial value of the location mu
@@ -402,7 +424,26 @@ def tM(X, df=1, mu_init=None, V_init=None, eps=1e-6, maxiter=100):
         - Arslan, O., Constable, P.D.L. and Kent, J.T. (1995), Convergence behaviour of the EM algorithm for the multivariate t-distribution, Communications in Statistics, Theory and Methods, 24, 2981–3000. <doi:10.1080/03610929508831664>.
     """
 
+    # Check inputs
     X = np.asarray(X)
+    if X.ndim != 2:
+        raise ValueError("X must be a 2D array")
+    n, p = X.shape
+    if np.isnan(X).any():
+        raise ValueError("X must not contain NaN values")
+    if p <= 1:
+        raise ValueError("X must be at least bi-variate")
+
+    if df < 1:
+        raise ValueError("df (degrees of freedom) must be >= 1")
+    if mu_init is not None and mu_init.shape[0] != X.shape[1]:
+        raise ValueError("mu_init must have length equal to the number of features in X")
+    if V_init is not None and V_init.shape != (X.shape[1], X.shape[1]):
+        raise ValueError("V_init must be square with shape (n_features, n_features)")
+    if eps <= 0:
+        raise ValueError("eps must be positive")
+    if maxiter < 1:
+        raise ValueError("maxiter must be >= 1")
 
     # Initialize values for location mu and scatter V if necessary
     if mu_init is None:
@@ -440,7 +481,7 @@ def tcov2(X):
     Computes a pairwise one-step M-estimate of scatter.
 
     Parameters:
-        X (array-like):  data
+        X (array-like): data matrix, must be at least bi-variate.
 
     Returns:
         Scatter: An object containing the location(=None) and scatter matrix.
@@ -464,9 +505,15 @@ def tcov2(X):
 
     # Check types
     X = np.asarray(X, dtype=np.float64)
+    if X.ndim != 2:
+        raise ValueError("X must be a 2D array")
     X = np.ascontiguousarray(X)
-    if X.ndim == 1:
-        X = X.reshape(-1, 1)
+
+    n, p = X.shape
+    if n < 2:
+        raise ValueError("X must have at least 2 observations")
+    if p <= 1:
+        raise ValueError("X must be at least bi-variate")
 
     cov_inv = np.linalg.inv(np.cov(X, rowvar=False))
     tcov_X = _tcov2_numba(X, cov_inv)

@@ -35,8 +35,8 @@ def test_initialization():
     assert ics.fix_signs == 'scores'
     assert ics.S1_args is None
     assert ics.S2_args is None
-    assert ics.criteria_select is None
-    assert ics.criteria_args is None
+    assert ics.method_select is None
+    assert ics.select_args is None
 
 
 def test_S1_as_matrix():
