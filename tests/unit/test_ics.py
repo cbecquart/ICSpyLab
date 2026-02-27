@@ -50,7 +50,7 @@ def test_S1_as_matrix():
     cov_matrix = np.cov(X, rowvar=False)
     ics = ICS(S1=cov_matrix)
 
-    with pytest.raises(TypeError, match="must be a callable"):
+    with pytest.raises(TypeError):
         ics.fit(X)
 
 
@@ -62,9 +62,9 @@ def test_S1_as_string():
 
     """
     X = np.random.randn(10, 3)
-    ics = ICS(S1="cov")
+    ics = ICS(S1="unknown")
 
-    with pytest.raises(TypeError, match="must be a callable"):
+    with pytest.raises(ValueError):
         ics.fit(X)
 
 
@@ -79,7 +79,7 @@ def test_S2_as_matrix():
     cov_matrix = np.cov(X, rowvar=False)
     ics = ICS(S2=cov_matrix)
 
-    with pytest.raises(TypeError, match="must be a callable"):
+    with pytest.raises(TypeError):
         ics.fit(X)
 
 
@@ -91,9 +91,9 @@ def test_S2_as_string():
 
     """
     X = np.random.randn(10, 3)
-    ics = ICS(S2="cov")
+    ics = ICS(S2="unknown")
 
-    with pytest.raises(TypeError, match="must be a callable"):
+    with pytest.raises(ValueError):
         ics.fit(X)
 
 

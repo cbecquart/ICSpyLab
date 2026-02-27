@@ -18,7 +18,7 @@ import warnings
 from scipy.linalg import qr
 from numpy.linalg import multi_dot
 
-from .scatter import Scatter, cov, covW, covAxis, cov4
+from .scatter import Scatter, cov, covW, covAxis, cov4, mcd, tM, tcov, tcov2
 from .comp_select import ComponentSelect
 from .utils import sort_eigenvalues_eigenvectors, sqrt_symmetric_matrix, _sign_max, _check_gen_kurtosis
 from .plot import _plot_kurtosis
@@ -27,6 +27,18 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_array, check_is_fitted, validate_data
 from sklearn.utils._param_validation import StrOptions
 from sklearn.exceptions import NotFittedError
+
+
+_SCATTER_MAP = {
+    "cov": cov,
+    "cov4": cov4,
+    "covAxis": covAxis,
+    "covW": covW,
+    "mcd": mcd,
+    "tM": tM,
+    "tcov": tcov,
+    "tcov2": tcov2,
+}
 
 
 class ICS(TransformerMixin, BaseEstimator):
@@ -38,8 +50,8 @@ class ICS(TransformerMixin, BaseEstimator):
     It supports various scatter matrix calculations and offers multiple algorithms for applying ICS.
 
     Parameters:
-        S1 (function returning a Scatter object, default=cov): Function to compute the first scatter matrix.
-        S2 (function returning a Scatter object, default=covW): Function to compute the second scatter matrix.
+        S1 (callable returning a Scatter object or {'cov', 'cov4', 'covAxis', 'covW', 'mcd', 'tM', 'tcov', 'tcov2'}, default='cov'): Function to compute the first scatter matrix.
+        S2 (callable returning a Scatter object or {'cov', 'cov4', 'covAxis', 'covW', 'mcd', 'tM', 'tcov', 'tcov2'}, default='covW'): Function to compute the second scatter matrix.
         algorithm ({'standard', 'whiten', 'QR'}, default='whiten'): The algorithm used for transformation.
         center (bool, default=False): A logical indicating whether the invariant coordinates should be centered with respect to the first locattion or not. Centering is only applicable if the first scatter object contains a location component, otherwise this is set to False. Note that this only affects the scores of the invariant components (attribute scores_), but not the generalized kurtosis values (attribute kurtosis_).
         fix_signs({'scores', 'W'}, default='scores') How to fix the signs of the invariant coordinates. Possible values are 'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs based on the coefficient matrix of the linear transformation.
@@ -74,8 +86,8 @@ class ICS(TransformerMixin, BaseEstimator):
     """
 
     _parameter_constraints = {
-        "S1": [callable],
-        "S2": [callable],
+        "S1": [StrOptions(set(_SCATTER_MAP.keys())), callable],
+        "S2": [StrOptions(set(_SCATTER_MAP.keys())), callable],
         "algorithm": [StrOptions({"whiten", "standard", "QR"})],
         "center": ["boolean"],
         "fix_signs": [StrOptions({"scores", "W"})],
@@ -87,8 +99,8 @@ class ICS(TransformerMixin, BaseEstimator):
 
     def __init__(
             self,
-            S1=cov,
-            S2=covW,
+            S1="cov",
+            S2="covW",
             algorithm='whiten',
             center=False,
             fix_signs='scores',
@@ -128,8 +140,18 @@ class ICS(TransformerMixin, BaseEstimator):
 
         self._validate_params()
 
+        if isinstance(self.S1, str):
+            self.S1_ = _SCATTER_MAP[self.S1]
+        else:
+            self.S1_ = self.S1
+
+        if isinstance(self.S2, str):
+            self.S2_ = _SCATTER_MAP[self.S2]
+        else:
+            self.S2_ = self.S2
+
         if self.algorithm == "QR":
-            if not (self.S1 == cov and (self.S2 == covW or self.S2 == covAxis or self.S2 == cov4)):
+            if not (self.S1_ == cov and self.S2_ in (covW, covAxis, cov4)):
                 warnings.warn("QR algorithm is not applicable; proceeding with the standard algorithm")
                 self.algorithm = "standard"
 
@@ -298,9 +320,9 @@ class ICS(TransformerMixin, BaseEstimator):
             feature_names = self.feature_names_in_
 
         print("\nICS based on two scatter matrices")
-        print(f"S1: {self.S1.__name__}")
+        print(f"S1: {self.S1_.__name__}")
         print(f"S1_args: {self.S1_args}")
-        print(f"S2: {self.S2.__name__}")
+        print(f"S2: {self.S2_.__name__}")
         print(f"S2_args: {self.S2_args}")
 
         print("\nInformation on the algorithm:")
@@ -352,7 +374,7 @@ class ICS(TransformerMixin, BaseEstimator):
         """
 
         S1_args = {} if self.S1_args is None else self.S1_args
-        S1_X = self.S1(X, **S1_args)
+        S1_X = self.S1_(X, **S1_args)
         if not isinstance(S1_X, Scatter):
             raise ValueError("S1 must return a Scatter object")
 
@@ -374,7 +396,7 @@ class ICS(TransformerMixin, BaseEstimator):
             standard, whiten
         """
         S2_args = {} if self.S2_args is None else self.S2_args
-        S2_X = self.S2(X, **S2_args)
+        S2_X = self.S2_(X, **S2_args)
         if not isinstance(S2_X, Scatter):
             raise ValueError("S2 must return a Scatter object")
         return S2_X
@@ -469,13 +491,13 @@ class ICS(TransformerMixin, BaseEstimator):
         d = (n - 1) * np.sum(Q ** 2, axis=1)
 
         # Determine alpha and cf values based on the second scatter matrix function
-        if self.S2 == cov4:
+        if self.S2_ == cov4:
             alpha = 1
             cf = 1 / (p + 2)
-        elif self.S2 == covAxis:
+        elif self.S2_ == covAxis:
             alpha = -1
             cf = p
-        elif self.S2 == covW:
+        elif self.S2_ == covW:
             alpha = self.S2_args.get('alpha', 1)
             cf = self.S2_args.get('cf', 1)
 

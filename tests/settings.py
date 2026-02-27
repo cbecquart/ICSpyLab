@@ -31,12 +31,12 @@ params_sets = [
     # Set 1: Covariance and weighted covariance with specific alpha and cf values
     (
         {'S1': 'ICS_cov', 'S2': 'ICS_covW', 'S1_args': {}, 'S2_args': {'alpha': 2, 'cf': 3}, 'na_action': 'na.fail'},
-        {'S1': cov, 'S2': covW, 'S1_args': {}, 'S2_args': {'alpha': 2, 'cf': 3}}
+        {'S1': cov, 'S2': 'covW', 'S1_args': {}, 'S2_args': {'alpha': 2, 'cf': 3}}
     ),
     # Set 2: Covariance and fourth-order covariance
     (
         {'S1': 'ICS_cov', 'S2': 'ICS_cov4', 'S1_args': {}, 'S2_args': {}, 'na_action': 'na.fail'},
-        {'S1': cov, 'S2': cov4, 'S1_args': {}, 'S2_args': {}}
+        {'S1': 'cov', 'S2': cov4, 'S1_args': {}, 'S2_args': {}}
     ),
     # Set 3: Covariance and Tyler shape matrix
     (
