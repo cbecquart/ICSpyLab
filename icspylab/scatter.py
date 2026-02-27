@@ -174,7 +174,7 @@ def cov4(X, location=True):
     return cov4_scatter
 
 
-def mcd(X, reweighted=True, **kwargs):
+def mcd(X, support_fraction=0.25, reweighted=True, **kwargs):
     """
     Wrapper function around scikit learn's implementation of the MCD (Minimum Covariance Determinant) scatter, using
     the FastMCD algorithm. MCD is a robust estimator of covariance. The idea is to find a given proportion of
@@ -186,6 +186,7 @@ def mcd(X, reweighted=True, **kwargs):
 
     Parameters:
         X (array-like): The data matrix.
+        support_fraction (float or None, default=0.25): The proportion of observations to be included in the support of the raw MCD estimate. This corresponds to the `support_fraction` parameter of sklearn.covariance.MinCovDet. By default, it is set to 0.25, which differs from the default used in sklearn.covariance.MinCovDet. If None, the original MinCovDet default value is used: (n_samples + n_features + 1) / (2 * n_samples).
         reweighted (bool, default=True) If True, use the reweighted version of the MCD estimator.
 
     Returns:
@@ -206,7 +207,7 @@ def mcd(X, reweighted=True, **kwargs):
     if n < 2:
         raise ValueError("X must have at least 2 observations")
 
-    mcd_fit = MinCovDet(**kwargs).fit(X)
+    mcd_fit = MinCovDet(support_fraction=support_fraction, **kwargs).fit(X)
 
     if reweighted:
         mcd_loc = mcd_fit.location_
