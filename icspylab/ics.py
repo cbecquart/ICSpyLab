@@ -50,8 +50,8 @@ class ICS(TransformerMixin, BaseEstimator):
     It supports various scatter matrix calculations and offers multiple algorithms for applying ICS.
 
     Parameters:
-        S1 (callable returning a Scatter object or {'cov', 'cov4', 'covAxis', 'covW', 'mcd', 'tM', 'tcov', 'tcov2'}, default='cov'): Function to compute the first scatter matrix.
-        S2 (callable returning a Scatter object or {'cov', 'cov4', 'covAxis', 'covW', 'mcd', 'tM', 'tcov', 'tcov2'}, default='covW'): Function to compute the second scatter matrix.
+        S1 (callable or str, default='cov'): First scatter estimator. If a string is provided, it must be one of the predefined scatter estimators (see the "Available scatter estimators" section below). Otherwise, it must be a callable returning a Scatter object.
+        S2 (callable or str, default='cov4'): Second scatter estimator. If a string is provided, it must be one of the predefined scatter estimators (see the "Available scatter estimators" section below). Otherwise, it must be a callable returning a Scatter object.
         algorithm ({'standard', 'whiten', 'QR'}, default='whiten'): The algorithm used for transformation.
         center (bool, default=False): A logical indicating whether the invariant coordinates should be centered with respect to the first locattion or not. Centering is only applicable if the first scatter object contains a location component, otherwise this is set to False. Note that this only affects the scores of the invariant components (attribute scores_), but not the generalized kurtosis values (attribute kurtosis_).
         fix_signs({'scores', 'W'}, default='scores') How to fix the signs of the invariant coordinates. Possible values are 'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs based on the coefficient matrix of the linear transformation.
@@ -71,18 +71,30 @@ class ICS(TransformerMixin, BaseEstimator):
         S1_X_ (ndarray): Fitted scatter S1. Defined only when center=True.
         criteria_out_ (dict or None): Summary of the component selection step. Defined only when method_select is not None.
 
+    Available scatter estimators are (see :mod:`icspylab.scatter` for a full description of the available scatters):
+        - ``'cov'``: classical covariance matrix and mean
+        - ``'cov4'``: fourth-moment estimator
+        - ``'covAxis'``: one-step Tyler shape estimator
+        - ``'covW'``: one-step M-estimator using mean and covariance matrix as starting point
+        - ``'mcd'``: Minimum Covariance Determinant
+        - ``'tM'``: location and scatter for a multivariate t-distribution
+        - ``'tcov'``: one-step pairwise M-estimator
+        - ``'tcov2'``: one-step pairwise M-estimator
+
     Supported algorithms:
         1. standard: performs the spectral decomposition of the symmetric matrix :math:`S_1(X)^{-1/2}S_2(X)S_1(X)^{-1/2}`
         2. whiten: whitens the data with respect to the first scatter matrix before computing the second scatter matrix.
         3. QR: numerically stable algorithm based on the QR algorithm for a common family of scatter pairs: if S1 is cov(), and if S2 is one of cov4, covW, or covAxis. See Archimbaud et al. (2023) for details.
 
-    Examples:
+    Example:
         >>> from sklearn.datasets import load_iris
         >>> from icspylab import ICS
         >>> iris = load_iris()
         >>> X = iris.data
         >>> ics = ICS()
         >>> ics.fit(X)
+        >>> print(ics.kurtosis_)
+        [1.20739878 1.0269412  0.9292235  0.74046722]
     """
 
     _parameter_constraints = {
@@ -100,7 +112,7 @@ class ICS(TransformerMixin, BaseEstimator):
     def __init__(
             self,
             S1="cov",
-            S2="covW",
+            S2="cov4",
             algorithm='whiten',
             center=False,
             fix_signs='scores',

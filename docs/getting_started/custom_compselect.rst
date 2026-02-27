@@ -8,7 +8,7 @@ While some methods are already available in ``ICSpyLab``, this section illustrat
 the invariant components. As we will see, the ``method_select`` parameter allows users to inject a component
 selection strategy directly into the ICS fitting procedure.
 
-Let's start with some data exploration, we apply ICS with the scatter pair COV-COV4 on the Iris dataset.
+We start start with some data exploration, we apply ICS with the scatter pair COV-COV4 on the Iris dataset.
 By default, ``method_select``=None and all invariant components are kept.
 
 .. code-block:: python
@@ -40,6 +40,7 @@ If you just need a one-shot usage you can simply apply the selection method on t
 
 
 .. code-block:: text
+
     Shape after ICS and manual component selection: (150,)
 
 
@@ -57,11 +58,12 @@ following attributes: :attr:`icspylab.comp_select.ComponentSelect.label`,
 
 After the component computation, during the component selection step of the ICS :meth:`icspylab.ics.ICS.fit` method,
 ``method_select`` is called with the following parameters:
-    - ``X`` (ndarray): Data to fit the ICS model, where rows are samples and columns are features.
-    - ``W`` (ndarray): Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
-    - ``kurtosis`` (ndarray): Generalized kurtosis values.
-    - ``skewness`` (ndarray): Skewness values.
-    - ``**select_args``: Other arguments from the parameter ``select_args`` of the :class:`ICS` object.
+
+- ``X`` (ndarray): Data to fit the ICS model, where rows are samples and columns are features.
+- ``W`` (ndarray): Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
+- ``kurtosis`` (ndarray): Generalized kurtosis values.
+- ``skewness`` (ndarray): Skewness values.
+- ``**select_args``: Other arguments from the parameter ``select_args`` of the :class:`ICS` object.
 
 The method to select the last component is then:
 
@@ -102,6 +104,7 @@ Lets try it on the Iris dataset:
 
 
 .. code-block:: text
+
     Shape after ICS with select_last_comp: (150, 1) with component names: ['IC_4']
 
 
@@ -137,6 +140,7 @@ Finally, you want to keep some flexibility and select the last ``q`` components 
 
 
 .. code-block:: text
+
     Shape after ICS with select_last_q_comp (default q): (150, 1) with component names: ['IC_4']
 
 
@@ -157,6 +161,7 @@ To select the last 2 components, just specify ``q=2`` in ``select_args``.
 
 
 .. code-block:: text
+
     Shape after ICS with select_last_q_comp (q=2): (150, 2) with component names: ['IC_3', 'IC_4']
 
 

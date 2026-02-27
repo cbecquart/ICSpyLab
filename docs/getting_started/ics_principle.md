@@ -123,10 +123,10 @@ To compute the invariant components, ICS relies on the joint diagonalization of 
 $V_2$.
 
 ```{math}
-    \begin{align*}
+    \begin{aligned}
         H'V_1H &= I_p \\
         H'V_2H &= \Delta
-    \end{align*}
+    \end{aligned}
 ```
    
 where $V_1, V_2 \in \mathcal{P}_p$, $\Delta = \text{diag}(\rho_1, \dots, \rho_p)$, $\rho_1, \dots, \rho_p$ 

@@ -17,6 +17,9 @@ below illustrates how to compute the MCD scatter on the Iris dataset.
     from sklearn.datasets import load_iris
     from sklearn.covariance import MinCovDet
 
+    iris = load_iris()
+    X = iris.data
+
     mcd_fit = MinCovDet().fit(X)
     mcd_loc = mcd_fit.location_
     mcd_cov = mcd_fit.covariance_
@@ -47,11 +50,11 @@ Below, we define a function computing the MCD scatter, which we will use as
 .. code-block:: python
 
     def mcd_scatter(X, **kwargs):
-      mcd_fit = MinCovDet(**kwargs).fit(X)
-      mcd_loc = mcd_fit.location_
-      mcd_cov = mcd_fit.covariance_
+        mcd_fit = MinCovDet(**kwargs).fit(X)
+        mcd_loc = mcd_fit.location_
+        mcd_cov = mcd_fit.covariance_
 
-      return Scatter(location=mcd_loc, scatter=mcd_cov, label="MCD")
+        return Scatter(location=mcd_loc, scatter=mcd_cov, label="MCD")
 
     mcd_scatter(X)
 

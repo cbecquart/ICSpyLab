@@ -65,7 +65,7 @@ Example 2: Plotting transformed data
 
 **Example plot:**
 
-.. image:: images/plt_scores.png
+.. image:: ../_static/plt_scores.png
    :alt: Transformed Data Plot
    :align: center
 
@@ -76,7 +76,7 @@ Example 2: Plotting transformed data
 
 **Example plot:**
 
-.. image:: images/plt_kurtosis.png
+.. image:: ../_static/plt_kurtosis.png
    :alt: Kurtosis
    :align: center
 

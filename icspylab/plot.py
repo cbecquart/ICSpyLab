@@ -22,6 +22,15 @@ def plot_ics(scores, **kwargs):
 
     Parameters:
         scores (ndarray): results from an ICS transformation.
+
+    Example:
+        >>> from sklearn.datasets import load_iris
+        >>> from icspylab import ICS
+        >>> iris = load_iris()
+        >>> X = iris.data
+        >>> ics = ICS()
+        >>> X_new = ics.fit_transform(X)
+        >>> plot_ics(X_new)
     """
 
     X = check_array(

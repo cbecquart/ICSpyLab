@@ -59,6 +59,15 @@ def cov(X, location=True):
 
     Returns:
         Scatter: An object containing the location and scatter matrix.
+
+    Example:
+        >>> import numpy as np
+        >>> from icspylab.scatter import cov
+        >>> X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+        >>> cov_X = cov(X)
+        >>> print(cov_X.scatter)
+        [[5.6 3.6]
+         [3.6 2.4]]
     """
 
     # Check inputs
@@ -104,6 +113,14 @@ def covW(X, location=True, alpha=1, cf=1):
         - :math:`w(d)= d^{α}` is a non-negative and continuous weight function applied to the squared Mahalanobis distance :math:`D^2(x_i)`.
         - :math:`cf` is a consistency factor
 
+    Example:
+        >>> import numpy as np
+        >>> from icspylab.scatter import covW
+        >>> X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+        >>> covW_X = covW(X)
+        >>> print(covW_X.scatter)
+        [[7.77777778 5.        ]
+         [5.         3.33333333]]
     """
 
     # Check inputs
@@ -143,7 +160,17 @@ def covAxis(X, location=True):
 
     Returns:
         Scatter: An object containing the location and scatter matrix.
+
+    Example:
+        >>> import numpy as np
+        >>> from icspylab.scatter import covAxis
+        >>> X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+        >>> covAxis_X = covAxis(X)
+        >>> print(covAxis_X.scatter)
+        [[5.6 3.6]
+         [3.6 2.4]]
     """
+
     X = np.asarray(X)
     p = X.shape[1]
     # Directly call covW with given parameters
@@ -163,7 +190,17 @@ def cov4(X, location=True):
 
     Returns:
         Scatter: An object containing the location and custom weighted scatter matrix.
+
+    Example:
+        >>> import numpy as np
+        >>> from icspylab.scatter import cov4
+        >>> X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+        >>> cov4_X = cov4(X)
+        >>> print(cov4_X.scatter)
+        [[1.94444444 1.25      ]
+         [1.25       0.83333333]]
     """
+
     X = np.asarray(X)
     p = X.shape[1]
     location_ = X.mean(0) if location else None
@@ -195,6 +232,15 @@ def mcd(X, support_fraction=0.25, reweighted=True, **kwargs):
     References:
         - Rousseeuw, P.J. (1984) Least median of squares regression. J. Am Stat Ass, 79:871.
         - A Fast Algorithm for the Minimum Covariance Determinant Estimator, 1999, American Statistical Association and the American Society for Quality, TECHNOMETRICS.
+
+    Example:
+        >>> import numpy as np
+        >>> from icspylab.scatter import mcd
+        >>> X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+        >>> mcd_X = mcd(X, support_fraction=None)
+        >>> print(mcd_X.scatter)
+        [[4.66666667 3.        ]
+         [3.         2.        ]]
     """
 
     # Check inputs
@@ -313,6 +359,15 @@ def tcov(X, beta=2, use_cpp=True):
     References:
         - Caussinus, H. and Ruiz-Gazen, A. (1993) Projection Pursuit and Generalized Principal Component Analysis. In Morgenthaler, S., Ronchetti, E., Stahel, W.A. (eds.) New Directions in Statistical Data Analysis and Robustness, 35-46. Monte Verita, Proceedings of the Centro Stefano Franciscini Ascona Series. Springer-Verlag.
         - Caussinus, H. and Ruiz-Gazen, A. (1995) Metrics for Finding Typical Structures by Means of Principal Component Analysis. In Data Science and its Applications, 177-192. Academic Press.
+
+    Example:
+        >>> import numpy as np
+        >>> from icspylab.scatter import tcov
+        >>> X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+        >>> tcov_X = tcov(X)
+        >>> print(tcov_X.scatter)
+        [[5.03250611 3.2351825 ]
+         [3.2351825  2.15678833]]
     """
 
     # Check types
@@ -423,6 +478,15 @@ def tM(X, df=1, mu_init=None, V_init=None, eps=1e-6, maxiter=100):
     References:
         - Kent, J.T., Tyler, D.E. and Vardi, Y. (1994), A curious likelihood identity for the multivariate tdistribution, Communications in Statistics, Simulation and Computation, 23, 441–453. <doi:10.1080/03610919408813180>.
         - Arslan, O., Constable, P.D.L. and Kent, J.T. (1995), Convergence behaviour of the EM algorithm for the multivariate t-distribution, Communications in Statistics, Theory and Methods, 24, 2981–3000. <doi:10.1080/03610929508831664>.
+
+    Example:
+        >>> import numpy as np
+        >>> from icspylab.scatter import tM
+        >>> X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+        >>> tM_X = tM(X)
+        >>> print(tM_X.scatter)
+        [[4.66666667 3.        ]
+         [3.         2.        ]]
     """
 
     # Check inputs
@@ -502,6 +566,15 @@ def tcov2(X):
                 (y_i - y_j)^\\top S_n^{-1} (y_i - y_j)
             \\right)^2
         }
+
+    Example:
+        >>> import numpy as np
+        >>> from icspylab.scatter import tcov2
+        >>> X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+        >>> tcov2_X = tcov2(X)
+        >>> print(tcov2_X.scatter)
+        [[0.98 0.63]
+         [0.63 0.42]]
     """
 
     # Check types

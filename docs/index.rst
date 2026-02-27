@@ -32,26 +32,19 @@ Key Features
 - Methods for component selection
 - Plotting capabilities for transformed data
 
-Installation
-------------
-For installation instructions, see the :doc:`installation` page.
+Getting Started
+---------------
+For installation instructions and a quick start guide, see the :doc:`getting_started/index` section.
+Some details about ICS and guidelines to use the package are also available.
 
-Usage and examples
-------------------
-For a quick-start guide, see the :doc:`usage` page.
+Examples
+--------
 For more detailed examples, refer to the :doc:`examples/index` section.
 
 API Documentation
 -----------------
-The ICSpyLab package provides several modules to work with invariant coordinate selection. For detailed information on each module, including available functions and their usage, see the following sections:
-
-- :doc:`ics`: Core functions and classes for performing invariant coordinate selection.
-- :doc:`plot`: Functions for visualizing the results of ICS analysis.
-- :doc:`scatter`: Module containing scatter matrix calculations and the Scatter class.
-- :doc:`comp_select`: Module for the component selection step.
-- :doc:`utils`: Utility functions to support the main functionalities.
-
-Each section includes detailed descriptions, parameter information, return types, and usage examples to help you effectively use the package.
+The ICSpyLab package provides several modules to work with invariant coordinate selection.
+Each module is documented in the :doc:`api/index` section.
 
 Testing
 -------
