@@ -1,16 +1,3 @@
-"""
-Module containing scatter matrix calculations and the Scatter class.
-
-This module provides various functions to compute scatter matrices, which are essential for the
-ICS algorithm. The scatter matrices implemented include the
-covariance matrix, weighted covariance matrix, and the one-step Tyler shape matrix. These
-scatter matrices are encapsulated in the Scatter class, which includes information about
-the location (mean) and a label describing the type of scatter matrix. If you want to use ICS with other scatter
-matrices than the ones provided in this module, you would need to create Scatter object. The S1 and S2 arguments are
-functions returning Scatter objects.
-
-Most scatters come from the `R package ICS <https://cran.r-project.org/web/packages/ICS/index.html>`_.
-"""
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import mahalanobis
@@ -59,6 +46,9 @@ def cov(X, location=True):
 
     Returns:
         Scatter: An object containing the location and scatter matrix.
+
+    Refernce:
+        Refer to numpy.cov
 
     Example:
         >>> import numpy as np
@@ -113,6 +103,9 @@ def covW(X, location=True, alpha=1, cf=1):
         - :math:`w(d)= d^{α}` is a non-negative and continuous weight function applied to the squared Mahalanobis distance :math:`D^2(x_i)`.
         - :math:`cf` is a consistency factor
 
+    Reference:
+        - Archimbaud, A., Drmac, Z., Nordhausen, K., Radojicic, U. and Ruiz-Gazen, A. (2023). SIAM Journal on Mathematics of Data Science (SIMODS), Vol.5(1):97–121. doi:10.1137/22M1498759.
+
     Example:
         >>> import numpy as np
         >>> from icspylab.scatter import covW
@@ -161,6 +154,10 @@ def covAxis(X, location=True):
     Returns:
         Scatter: An object containing the location and scatter matrix.
 
+    References:
+        - Critchley , F., Pires, A. and Amado, C. (2006), Principal axis analysis, Technical Report, 06/14, The Open University Milton Keynes.
+        - Tyler, D.E., Critchley, F., Dumbgen, L. and Oja, H. (2009), Invariant co-ordinate selecetion, Journal of the Royal Statistical Society,Series B, 71, 549–592. <doi:10.1111/j.1467-9868.2009.00706.x>.
+
     Example:
         >>> import numpy as np
         >>> from icspylab.scatter import covAxis
@@ -190,6 +187,10 @@ def cov4(X, location=True):
 
     Returns:
         Scatter: An object containing the location and custom weighted scatter matrix.
+
+    References:
+        - Cardoso, J.F. (1989), Source separation using higher order moments, in Proc. IEEE Conf. on Acoustics, Speech and Signal Processing (ICASSP’89), 2109–2112. <doi:10.1109/ICASSP.1989.266878>.
+        - Oja, H., Sirkia, S. and Eriksson, J. (2006), Scatter matrices and independent component analysis, Austrian Journal of Statistics, 35, 175–189.
 
     Example:
         >>> import numpy as np
@@ -230,6 +231,7 @@ def mcd(X, support_fraction=0.25, reweighted=True, **kwargs):
         Scatter: An object containing the location and scatter matrix.
 
     References:
+        - Refer to sklearn.covariance.MinCovDet
         - Rousseeuw, P.J. (1984) Least median of squares regression. J. Am Stat Ass, 79:871.
         - A Fast Algorithm for the Minimum Covariance Determinant Estimator, 1999, American Statistical Association and the American Society for Quality, TECHNOMETRICS.
 
@@ -566,6 +568,9 @@ def tcov2(X):
                 (y_i - y_j)^\\top S_n^{-1} (y_i - y_j)
             \\right)^2
         }
+
+    Reference:
+        - Tyler, D.E., Critchley, F., Dumbgen, L. and Oja, H. (2009), Invariant co-ordinate selecetion, Journal of the Royal Statistical Society,Series B, 71, 549–592. <doi:10.1111/j.1467-9868.2009.00706.x>.
 
     Example:
         >>> import numpy as np

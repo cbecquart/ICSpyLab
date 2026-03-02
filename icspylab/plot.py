@@ -1,10 +1,3 @@
-"""
-Module for plotting transformed data using Plotly.
-
-This module provides functions to plot the results of ICS.
-
-"""
-
 import numpy as np
 import pandas as pd
 import seaborn as sns

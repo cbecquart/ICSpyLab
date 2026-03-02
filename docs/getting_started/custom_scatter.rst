@@ -1,3 +1,5 @@
+.. _custom_scatter:
+
 Custom Scatter
 ==============
 

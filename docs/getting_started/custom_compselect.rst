@@ -1,4 +1,6 @@
-Custom Component selection
+.. _custom_compselect:
+
+Custom Component Selection
 ==========================
 
 

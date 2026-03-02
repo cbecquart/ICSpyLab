@@ -4,7 +4,6 @@ from sklearn.utils.validation import check_array
 import numbers
 
 
-
 class ComponentSelect:
     """
     A class to represent a component selection method and its related data.

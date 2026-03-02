@@ -1,13 +1,21 @@
 ICS
 ===
 
+Module containing the main Invariant Coordinate Selection (ICS) Class and associated methods.
+
+The ICS class provides methods to fit the ICS model from the data, transform data using the model,
+and provide a detailed summary of the results. This module relies on scatter matrices
+(defined in the Scatter page). The ICS class supports three different
+algorithms for applying ICS to data: ('standard', 'whiten', and 'QR'), which can be specified
+as parameters during instantiation. Additional options such as the choice of scatter matrices,
+centering the data, and fixing the signs can also be defined.
+
+This implementation is based on the function ICS-S3 from the R package `ICS <https://cran.r-project.org/web/packages/ICS/index.html>`_.
+For more details about the supported algorithms and 'fix_signs' argument, see the R package
+`documentation <https://cran.r-project.org/web/packages/ICS/ICS.pdf>`_ (function ICS-S3).
+
 .. automodule:: icspylab.ics
    :members:
    :undoc-members:
    :show-inheritance:
 
-References
-----------
-
-- Archimbaud, A., Drmac, Z., Nordhausen, K., Radojcic, U. and Ruiz-Gazen, A. (2023) Numerical Considerations and a New Implementation for Invariant Coordinate Selection. SIAM Journal on Mathematics of Data Science, 5(1), 97–121. doi:10.1137/22M1498759.
-- Tyler, D.E., Critchley, F., Duembgen, L. and Oja, H. (2009) Invariant Co-ordinate Selection. Journal of the Royal Statistical Society, Series B, 71(3), 549–592. doi:10.1111/j.14679868.2009.00706.x.
