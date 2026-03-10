@@ -51,7 +51,7 @@ def sqrt_symmetric_matrix(A, inverse=False):
         raise TypeError("inverse must be a boolean.")
 
     # Compute the eigenvalues and eigenvectors of the matrix
-    A_eigenval, A_eigenvect = np.linalg.eig(A)
+    A_eigenval, A_eigenvect = np.linalg.eigh(A)
     # # Checks
     # if np.any(A_eigenval < -1e-12):
     #     raise ValueError("A must be positive semi-definite to compute a real square root.")

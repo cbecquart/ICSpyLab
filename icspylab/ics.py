@@ -1,6 +1,6 @@
 import numpy as np
 import warnings
-from scipy.linalg import qr
+from scipy.linalg import qr, eigh
 from numpy.linalg import multi_dot
 
 from .scatter import Scatter, cov, covW, covAxis, cov4, mcd, tM, tcov, tcov2
@@ -89,7 +89,7 @@ class ICS(TransformerMixin, BaseEstimator):
     _parameter_constraints = {
         "S1": [StrOptions(set(_SCATTER_MAP.keys())), callable],
         "S2": [StrOptions(set(_SCATTER_MAP.keys())), callable],
-        "algorithm": [StrOptions({"whiten", "standard", "QR"})],
+        "algorithm": [StrOptions({"whiten", "standard", "QR", "eigh"})],
         "center": ["boolean"],
         "fix_signs": [StrOptions({"scores", "W"})],
         "S1_args": [dict, None],
@@ -156,15 +156,6 @@ class ICS(TransformerMixin, BaseEstimator):
                 warnings.warn("QR algorithm is not applicable; proceeding with the standard algorithm")
                 self.algorithm = "standard"
 
-        # X = check_array(
-        #     X,
-        #     force_writeable=True,
-        #     ensure_all_finite=True,
-        #     ensure_2d=True,
-        #     ensure_min_features=2,
-        #     copy=False,
-        # )
-
         if hasattr(X, "columns"):
             self.feature_names_in_ = np.array(X.columns)
         else:
@@ -195,11 +186,17 @@ class ICS(TransformerMixin, BaseEstimator):
         elif self.algorithm == "QR":
             # Use the QR decomposition for transformation
             W, gen_kurtosis = self._compute_transformation_qr(X,  S1_X)
-        else:
+        elif self.algorithm == "standard":
             # Use the standard algorithm
             S2_X = self._compute_second_scatter(X)
             S2_Y = self._transform_second_scatter(S1_X_inv_sqrt, S2_X)
             W, gen_kurtosis = self._compute_transformation(S1_X_inv_sqrt, S2_Y)
+        else:
+            S2_X = self._compute_second_scatter(X)
+            evals, evecs = eigh(S2_X.scatter, S1_X.scatter)
+            evals, evecs = sort_eigenvalues_eigenvectors(evals, evecs)
+            gen_kurtosis = evals
+            W = evecs.T
 
         W_final, gen_skewness = self._fix_component_signs(X, W)
 
@@ -441,7 +438,7 @@ class ICS(TransformerMixin, BaseEstimator):
         Algorithms:
             standard, whiten
         """
-        S2_Y_eigenval, S2_Y_eigenvect = np.linalg.eig(S2_Y.scatter)
+        S2_Y_eigenval, S2_Y_eigenvect = np.linalg.eigh(S2_Y.scatter)
         S2_Y_eigenval, S2_Y_eigenvect = sort_eigenvalues_eigenvectors(S2_Y_eigenval, S2_Y_eigenvect)
         gen_kurtosis = S2_Y_eigenval
         W = np.dot(S2_Y_eigenvect.T, S1_X_inv_sqrt)
@@ -507,7 +504,7 @@ class ICS(TransformerMixin, BaseEstimator):
         S2_Y = cf * (n - 1) / n * (Q * (d ** alpha)).T @ Q
 
         # Perform eigenvalue decomposition on S2_Y
-        eigenvalues, eigenvectors = np.linalg.eig(S2_Y)
+        eigenvalues, eigenvectors = np.linalg.eigh(S2_Y)
         _check_gen_kurtosis(eigenvalues)
         eigenvalues, eigenvectors = sort_eigenvalues_eigenvectors(eigenvalues, eigenvectors)
 
