@@ -1,10 +1,10 @@
 import numpy as np
 from sklearn.datasets import load_iris
 from icspylab import ICS, normal_crit, med_crit, plot_ics
-from icspylab.scatter import cov, cov4, covAxis, covW, mcd, tM, tcov, tcov2
+from icspylab.scatter import cov, cov4, covAxis, covW, mcd, tM, tcov, tcovAxis
 
 # X_1d = np.random.randn(10)
-# s = tcov2(X_1d)
+# s = tcovAxis(X_1d)
 # print(s)
 
 
@@ -30,8 +30,8 @@ print(tM_X.scatter)
 tcov_X = tcov(X)
 print(tcov_X.scatter)
 
-tcov2_X = tcov2(X)
-print(tcov2_X.scatter)
+tcovAxis_X = tcovAxis(X)
+print(tcovAxis_X.scatter)
 
 
 iris = load_iris()

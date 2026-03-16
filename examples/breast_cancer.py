@@ -58,7 +58,7 @@ fig.show()
 
 
 
-from icspylab import ICS, cov, tcov, tM, cov4, tcov2, mcd
+from icspylab import ICS, cov, tcov, tM, cov4, tcovAxis, mcd
 
 ics = ICS(S1=tcov, S2=cov, algorithm="eigh").fit(X_train)
 scaled_ics = ICS(S1=tcov, S2=cov, algorithm="eigh").fit(scaled_X_train)

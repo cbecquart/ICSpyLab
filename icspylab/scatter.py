@@ -396,7 +396,7 @@ def tcov(X, beta=2, use_cpp=True):
         warnings.warn('Use the C++ implementation for faster computations (`use_cpp=True`).')
         tcov_X = _tcov_py(X, beta)         
 
-    return Scatter(location=None, scatter=tcov_X, label="TCOV")
+    return Scatter(location=None, scatter=tcov_X, label="Tcov")
 
 
 def _norm_mu_V(a, B, A):
@@ -524,7 +524,7 @@ def tM(X, df=1, mu_init=None, V_init=None, eps=1e-6, maxiter=100):
 
 
 @njit
-def _tcov2_numba(X, cov_inv):
+def _tcovAxis_numba(X, cov_inv):
     """Loop over pairs of observations and add their weighted contribution."""
 
     n, p = X.shape
@@ -543,9 +543,9 @@ def _tcov2_numba(X, cov_inv):
 
     return 2 / (n * (n-1)) * V
 
-def tcov2(X):
+def tcovAxis(X):
     """
-    Computes a pairwise one-step M-estimate of scatter.
+    Computes a pairwise one-step M-estimate of scatter, similar to tcov, but using the same weights as covAxis.
 
     Parameters:
         X (array-like): data matrix, must be at least bi-variate.
@@ -574,10 +574,10 @@ def tcov2(X):
 
     Example:
         >>> import numpy as np
-        >>> from icspylab.scatter import tcov2
+        >>> from icspylab.scatter import tcovAxis
         >>> X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
-        >>> tcov2_X = tcov2(X)
-        >>> print(tcov2_X.scatter)
+        >>> tcovAxis_X = tcovAxis(X)
+        >>> print(tcovAxis_X.scatter)
         [[0.98 0.63]
          [0.63 0.42]]
     """
@@ -595,6 +595,6 @@ def tcov2(X):
         raise ValueError("X must be at least bi-variate")
 
     cov_inv = np.linalg.inv(np.cov(X, rowvar=False))
-    tcov_X = _tcov2_numba(X, cov_inv)
+    tcov_X = _tcovAxis_numba(X, cov_inv)
 
-    return Scatter(location=None, scatter=tcov_X, label="TCOV2")
+    return Scatter(location=None, scatter=tcov_X, label="TcovAxis")

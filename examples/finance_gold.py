@@ -152,7 +152,7 @@ print("Test R²:", lasso_pipe.score(X_test, y_test))
 
 
 # ICS pipeline
-from icspylab import ICS, cov, mcd, tcov, tcov2, tM, normal_crit
+from icspylab import ICS, cov, mcd, tcov, tcovAxis, tM, normal_crit
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import TimeSeriesSplit
 

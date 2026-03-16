@@ -14,7 +14,7 @@ scaled_X_train = scaler.fit_transform(X_train)
 
 
 import matplotlib.pyplot as plt
-from icspylab import ICS, cov, tcov, tM, cov4, tcov2
+from icspylab import ICS, cov, tcov, tM, cov4, tcovAxis
 
 # from sklearn.neighbors import KNeighborsClassifier
 #

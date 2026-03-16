@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from icspylab import ICS, cov, covW, cov4, mcd, tcov, tcov2
+from icspylab import ICS, cov, covW, cov4, mcd, tcov, tcovAxis
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split

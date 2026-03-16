@@ -136,7 +136,7 @@ print("Test R²:", lasso_pipe.score(X_test, y_test))
 
 
 # ICS pipeline
-from icspylab import ICS, cov, cov4, mcd, tcov, tcov2, tM, normal_crit, med_crit
+from icspylab import ICS, cov, cov4, mcd, tcov, tcovAxis, tM, normal_crit, med_crit
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import TimeSeriesSplit
 
@@ -160,7 +160,7 @@ print("Test R²:", pipe.score(X_test, y_test))
 
 # # ICS pipeline
 # from sklearn.pipeline import Pipeline
-# from icspylab import ICS, cov, mcd, tcov, tcov2, tM
+# from icspylab import ICS, cov, mcd, tcov, tcovAxis, tM
 # from sklearn.model_selection import GridSearchCV
 # from sklearn.model_selection import TimeSeriesSplit
 #
@@ -171,7 +171,7 @@ print("Test R²:", pipe.score(X_test, y_test))
 #
 # param_grid = [
 #     {
-#         "ics__S1": [mcd, tcov, tM, tcov2],
+#         "ics__S1": [mcd, tcov, tM, tcovAxis],
 #         "ics__method_select": [normal_crit, med_crit, None],
 #     }
 # ]

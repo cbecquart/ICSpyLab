@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from icspylab import ICS, cov, covW, cov4, mcd, tcov, tcov2, plot_ics
+from icspylab import ICS, cov, covW, cov4, mcd, tcov, tcovAxis, plot_ics
 from sklearn.decomposition import PCA
 
 
@@ -53,7 +53,7 @@ plt.close(fig)
 
 # Compute and plot the invariant components
 # ics = ICS(S1=cov, S2=covW, algorithm='standard', S2_args={'alpha': 1, 'cf': 2})
-ics = ICS(S1=cov, S2=tcov2, algorithm='standard')
+ics = ICS(S1=cov, S2=tcovAxis, algorithm='standard')
 X_ics = ics.fit_transform(X)
 plot_ics(X_ics)
 ics.plot_kurtosis()

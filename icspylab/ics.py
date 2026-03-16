@@ -3,7 +3,7 @@ import warnings
 from scipy.linalg import qr, eigh
 from numpy.linalg import multi_dot
 
-from .scatter import Scatter, cov, covW, covAxis, cov4, mcd, tM, tcov, tcov2
+from .scatter import Scatter, cov, covW, covAxis, cov4, mcd, tM, tcov, tcovAxis
 from .comp_select import ComponentSelect
 from .utils import sort_eigenvalues_eigenvectors, sqrt_symmetric_matrix, _sign_max, _check_gen_kurtosis
 from .plot import _plot_kurtosis
@@ -22,7 +22,7 @@ _SCATTER_MAP = {
     "mcd": mcd,
     "tM": tM,
     "tcov": tcov,
-    "tcov2": tcov2,
+    "tcovAxis": tcovAxis,
 }
 
 
@@ -64,7 +64,7 @@ class ICS(TransformerMixin, BaseEstimator):
         - ``'mcd'``: Minimum Covariance Determinant
         - ``'tM'``: location and scatter for a multivariate t-distribution
         - ``'tcov'``: one-step pairwise M-estimator
-        - ``'tcov2'``: one-step pairwise M-estimator
+        - ``'tcovAxis'``: one-step pairwise M-estimator with the same weights as covAxis
 
     Supported algorithms:
         1. standard: performs the spectral decomposition of the symmetric matrix :math:`S_1(X)^{-1/2}S_2(X)S_1(X)^{-1/2}`

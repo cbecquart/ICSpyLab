@@ -79,7 +79,7 @@ for ax in (ax1, ax2):
 fig.show()
 
 
-from icspylab import ICS, cov, tcov, tM, cov4, tcov2, mcd
+from icspylab import ICS, cov, tcov, tM, cov4, tcovAxis, mcd
 ics = ICS(S1=cov, S2=cov4, algorithm="QR").fit(X_train)
 #scaled_ics = ICS(S1=tcov, S2=cov, algorithm="whiten").fit(scaled_X_train)
 X_train_transformed = ics.transform(X_train)

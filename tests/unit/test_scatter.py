@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import pandas as pd
-from icspylab import Scatter, cov, covW, covAxis, cov4, mcd, tcov, tM, tcov2
+from icspylab import Scatter, cov, covW, covAxis, cov4, mcd, tcov, tcovAxis, tM
 import logging
 
 logger = logging.getLogger(__name__)
@@ -128,48 +128,48 @@ def test_mcd_raw():
 
 def test_tcov_cpp():
     """
-    Test the tcov function for calculating TCOV, with use_cpp=True (default).
+    Test the tcov function for calculating Tcov, with use_cpp=True (default).
 
-    This test verifies that the tcov function correctly implements the TCOV scatter of the given data matrix.
+    This test verifies that the tcov function correctly implements the Tcov scatter of the given data matrix.
     It asserts that the scatter matrix has the correct shape
     and that the location vector is None.
     """
     X = np.random.randn(20, 5)
     scatter = tcov(X, use_cpp=True)
 
-    assert scatter.label == "TCOV"
+    assert scatter.label == "Tcov"
     assert scatter.scatter.shape == (5, 5)
     assert scatter.location == None
     assert isinstance(scatter, Scatter)
 
 def test_tcov_py():
     """
-    Test the tcov function for calculating TCOV, with use_cpp=False.
+    Test the tcov function for calculating Tcov, with use_cpp=False.
 
-    This test verifies that the tcov function correctly implements the TCOV scatter of the given data matrix.
+    This test verifies that the tcov function correctly implements the Tcov scatter of the given data matrix.
     It asserts that the scatter matrix has the correct shape
     and that the location vector is None.
     """
     X = np.random.randn(20, 5)
     scatter = tcov(X, use_cpp=False)
 
-    assert scatter.label == "TCOV"
+    assert scatter.label == "Tcov"
     assert scatter.scatter.shape == (5, 5)
     assert scatter.location == None
     assert isinstance(scatter, Scatter)
 
-def test_tcov2():
+def test_tcovAxis():
     """
-    Test the tcov2 function for calculating TCOV2.
+    Test the tcovAxis function for calculating TcovAxis.
 
-    This test verifies that the tcov2 function correctly implements the TCOV2 scatter of the given data matrix.
+    This test verifies that the tcovAxis function correctly implements the TcovAxis scatter of the given data matrix.
     It asserts that the scatter matrix has the correct shape
     and that the location vector is None.
     """
     X = np.random.randn(20, 5)
-    scatter = tcov2(X)
+    scatter = tcovAxis(X)
 
-    assert scatter.label == "TCOV2"
+    assert scatter.label == "TcovAxis"
     assert scatter.scatter.shape == (5, 5)
     assert scatter.location == None
     assert isinstance(scatter, Scatter)
@@ -193,7 +193,7 @@ def test_tM():
 def test_scatters_dataframe():
     X_df = pd.DataFrame(np.random.randn(10, 3), columns=["A", "B", "C"])
     # All functions should accept pd.DataFrame
-    for func in [cov, covW, covAxis, cov4, mcd, tcov, tcov2, tM]:
+    for func in [cov, covW, covAxis, cov4, mcd, tcov, tcovAxis, tM]:
         s = func(X_df)
         assert isinstance(s, Scatter)
 
