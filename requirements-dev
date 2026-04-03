@@ -1,0 +1,6 @@
+sphinx
+sphinx-rtd-theme
+twine
+wheel
+rpy2
+plotly
