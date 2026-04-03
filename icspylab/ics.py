@@ -4,7 +4,7 @@ from scipy.linalg import qr, eigh
 from numpy.linalg import multi_dot
 
 from .scatter import Scatter, cov, covW, covAxis, cov4, mcd, tM, tcov, tcovAxis
-from .comp_select import ComponentSelect
+from .comp_select import ComponentSelect, normal_crit, med_crit
 from .utils import sort_eigenvalues_eigenvectors, sqrt_symmetric_matrix, _sign_max, _check_gen_kurtosis
 from .plot import _plot_kurtosis
 
@@ -25,6 +25,11 @@ _SCATTER_MAP = {
     "tcovAxis": tcovAxis,
 }
 
+_SELECT_MAP = {
+    "normal": normal_crit,
+    "med": med_crit,
+}
+
 
 class ICS(TransformerMixin, BaseEstimator):
     """
@@ -42,7 +47,7 @@ class ICS(TransformerMixin, BaseEstimator):
         fix_signs({'scores', 'W'}, default='scores') How to fix the signs of the invariant coordinates. Possible values are 'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs based on the coefficient matrix of the linear transformation.
         S1_args (dict or None, default=None): Additional arguments for S1.
         S2_args (dict or None, default=None): Additional arguments for S2.
-        method_select (function returning a ComponentSelect object or None, default=None): The criteria to select the invariant components. If None (default), all components are kept.
+        method_select ({'normal', 'med'} or callable or None, default=None): The criteria to select the invariant components. If None (default), all components are kept. If a string is provided, it must be either "normal" to apply normality tests to the components, or "med" to use the median eigenvalue criterion. If callable, it must return a ComponentSelect object. For more information, refer to :mod:`icspylab.comp_select`.
         select_args (dict or None, default=None): Additional arguments for method_select.
 
     Attributes:
@@ -94,7 +99,7 @@ class ICS(TransformerMixin, BaseEstimator):
         "fix_signs": [StrOptions({"scores", "W"})],
         "S1_args": [dict, None],
         "S2_args": [dict, None],
-        "method_select": [callable, None],
+        "method_select": [StrOptions(set(_SELECT_MAP.keys())), callable, None],
         "select_args": [dict, None],
     }
 
@@ -150,6 +155,11 @@ class ICS(TransformerMixin, BaseEstimator):
             self.S2_ = _SCATTER_MAP[self.S2]
         else:
             self.S2_ = self.S2
+
+        if isinstance(self.method_select, str):
+            self.method_select_ = _SELECT_MAP[self.method_select]
+        else:
+            self.method_select_ = self.method_select
 
         if self.algorithm == "QR":
             if not (self.S1_ == cov and self.S2_ in (covW, covAxis, cov4)):
@@ -208,7 +218,7 @@ class ICS(TransformerMixin, BaseEstimator):
 
         # Component selection
 
-        if self.method_select is None:
+        if self.method_select_ is None:
             self.components_ = W_final
             self.n_components_ = self.components_.shape[0]
             self.component_names_ = [f"IC_{i + 1}" for i in range(self.n_components_)]
@@ -267,12 +277,6 @@ class ICS(TransformerMixin, BaseEstimator):
 
         # Compute the final transformed data
         X_new = X @ self.components_.T
-
-        # # Select components
-        # if self.method_select is None:
-        #     X_new = Z_final
-        # else:
-        #     X_new = self._component_selection(Z_final)
 
         return X_new
 
@@ -338,7 +342,7 @@ class ICS(TransformerMixin, BaseEstimator):
 
         # Print component selection information
         print("\nInformation on the component selection:")
-        print(f"method_select: {self.method_select}")
+        print(f"method_select: {self.method_select_}")
         print(f"select_args: {self.select_args}")
         print(f"component selection info: {self.criteria_out_}")
         print(f"{self.n_components_} are kept: {self.component_names_}")
@@ -571,7 +575,7 @@ class ICS(TransformerMixin, BaseEstimator):
 
         Parameters:
             X (ndarray): Data to fit the ICS model, where rows are samples and columns are features.
-            W_final (ndarray):
+            W_final (ndarray): The transformation matrix.
 
         Returns:
             ndarray: Transformed matrix in which columns contain the scores of the selected invariant coordinates.
@@ -582,7 +586,7 @@ class ICS(TransformerMixin, BaseEstimator):
 
         select_args = {} if self.select_args is None else self.select_args
 
-        selection_res = self.method_select(
+        selection_res = self.method_select_(
             X=X,
             W = W_final,
             kurtosis=self.kurtosis_,
