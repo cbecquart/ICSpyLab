@@ -45,7 +45,7 @@ ics.fit_transform(X)
 ics.describe()
 ```
 
-### 🤝 Contributing
+## 🤝 Contributing
 
 We welcome contributions of all kinds, including bug fixes, new features, and documentation improvements.
 
