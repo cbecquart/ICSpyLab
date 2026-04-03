@@ -43,7 +43,7 @@ class ICS(TransformerMixin, BaseEstimator):
         S1 (callable or str, default='cov'): First scatter estimator. If a string is provided, it must be one of the predefined scatter estimators (see the "Available scatter estimators" section below). Otherwise, it must be a callable returning a Scatter object.
         S2 (callable or str, default='cov4'): Second scatter estimator. If a string is provided, it must be one of the predefined scatter estimators (see the "Available scatter estimators" section below). Otherwise, it must be a callable returning a Scatter object.
         algorithm ({'standard', 'whiten', 'QR'}, default='whiten'): The algorithm used for transformation.
-        center (bool, default=False): A logical indicating whether the invariant coordinates should be centered with respect to the first locattion or not. Centering is only applicable if the first scatter object contains a location component, otherwise this is set to False. Note that this only affects the scores of the invariant components (attribute scores_), but not the generalized kurtosis values (attribute kurtosis_).
+        center (bool, default=False): A logical indicating whether the invariant coordinates should be centered with respect to the first locattion or not. Centering is only applicable if the first scatter object contains a location component, otherwise this is set to False. Note that this only affects the scores of the invariant components (attribute `self.scores_`), but not the generalized kurtosis values (attribute `self.kurtosis_`).
         fix_signs({'scores', 'W'}, default='scores') How to fix the signs of the invariant coordinates. Possible values are 'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs based on the coefficient matrix of the linear transformation.
         S1_args (dict or None, default=None): Additional arguments for S1.
         S2_args (dict or None, default=None): Additional arguments for S2.
@@ -51,7 +51,7 @@ class ICS(TransformerMixin, BaseEstimator):
         select_args (dict or None, default=None): Additional arguments for method_select.
 
     Attributes:
-        components_ (ndarray):  Invariant axes in feature space: the transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate. The components are sorted by decreasing kurtosis_.
+        components_ (ndarray):  Invariant axes in feature space: the transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate. The components are sorted by decreasing kurtosis.
         n_components_ (int): Number of components kept.
         component_names_ (list): Names of components kept.
         kurtosis_ (ndarray): Generalized kurtosis values.
@@ -222,6 +222,7 @@ class ICS(TransformerMixin, BaseEstimator):
             self.components_ = W_final
             self.n_components_ = self.components_.shape[0]
             self.component_names_ = [f"IC_{i + 1}" for i in range(self.n_components_)]
+            self.criteria_out_ = None
 
         else:
             selection_res = self._component_selection(X, W_final)
@@ -317,7 +318,7 @@ class ICS(TransformerMixin, BaseEstimator):
         """
 
         if self.feature_names_in_ is None:
-            feature_names = np.array([f'Feature_{i+1}' for i in range(self.components_.shape[1])])
+            feature_names = np.array([f'Feature_{i+1}' for i in range(self.n_features_in_)])
         else:
             feature_names = self.feature_names_in_
 
@@ -344,8 +345,14 @@ class ICS(TransformerMixin, BaseEstimator):
         print("\nInformation on the component selection:")
         print(f"method_select: {self.method_select_}")
         print(f"select_args: {self.select_args}")
-        print(f"component selection info: {self.criteria_out_}")
-        print(f"{self.n_components_} are kept: {self.component_names_}")
+        if self.criteria_out_ is not None:
+            print(f"component selection info: {self.criteria_out_}")
+        if self.n_components_ < 2:
+            print(f"{self.n_components_} component is kept: {self.component_names_}")
+        elif self.n_components_ < self.n_features_in_:
+            print(f"{self.n_components_} components are kept: {self.component_names_}")
+        else:
+            print(f"All components are kept: {self.component_names_}")
 
         # Print the coefficient matrix
         print("\nThe coefficient matrix of the linear transformation is:")

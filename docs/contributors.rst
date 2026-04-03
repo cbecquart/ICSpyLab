@@ -28,6 +28,6 @@ Original R Package Authors
 - David E. Tyler [aut]
 
 Contact Information
-===================
+-------------------
 
-For questions or feedback, please contact Colombe Becquart or open an issue on `Github <https://github.com/cbecquart/ICSpyLab>`_.
+For questions or feedback, please contact Colombe Becquart or open an issue on `Github <https://github.com/cbecquart/ICSpyLab/issues>`_.

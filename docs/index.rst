@@ -7,7 +7,7 @@ Welcome to ICSpyLab documentation!
 ==========================================================
 
 Overview
-========
+--------
 Invariant Coordinate Selection (ICS) is a data transformation method. It transforms the data, via the simultaneous
 diagonalization of two scatter matrices, into an invariant coordinate system or independent components,
 depending on the underlying assumptions.
@@ -54,6 +54,13 @@ Contributors
 ------------
 For a list of contributors and their contact information, see the :doc:`contributors` page.
 
+Contribute
+----------
+
+We welcome contributions of all kinds, including bug fixes, new features, and documentation improvements.
+
+To get started, please check out our `CONTRIBUTING <https://github.com/cbecquart/ICSpyLab/tree/main?tab=contributing-ov-file>`_ guide.
+
 References
 ----------
 For references, see the :doc:`references` page.
@@ -70,7 +77,7 @@ For references, see the :doc:`references` page.
    references
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`

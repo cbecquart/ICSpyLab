@@ -151,4 +151,6 @@ reduction in this setting.
 :align: center
 ```
 
-## References
+### References
+- Caussinus, H., & Ruiz, A. (1990). Interesting projections of multidimensional data by means of generalized principal component analyses. In Compstat: Proceedings in Computational Statistics, 9th Symposium held at Dubrovnik, Yugoslavia, 1990 (pp. 121–126). Heidelberg: Physica-Verlag HD. <https://link.springer.com/chapter/10.1007/978-3-642-50096-1_19>.
+- Tyler, D.E., Critchley, F., Dümbgen, L., and Oja, H. (2009), Invariant coordinate selection, Journal of the Royal Statistical Society, Series B, 71, 549-592. <https://doi.org/10.1111/j.1467-9868.2009.00706.x>.

@@ -5,8 +5,12 @@ This section provides examples of how to use the ICSpyLab package. The core of t
 The implementation is similar to the sklearn framework, including a fit-transform logic. For more information about the
 arguments and methods, check out the Module page. 
 
-Example 1: Fitting the ICS model
+Example 1: Fit and transform ICS
 --------------------------------
+
+This first example shows how to instantiate an ICS object to compute the invariant components.
+The output can be summarized using the `.describe()` method.
+
 .. code-block:: python
 
     import pandas as pd
@@ -18,11 +22,14 @@ Example 1: Fitting the ICS model
     X = pd.DataFrame(iris.data, columns=iris.feature_names)
 
     # Instantiate ICS object
-    # ics = ICS() # default parameters
-    ics = ICS(S1=cov, S2=covW, algorithm='standard', S2_args={'alpha': 1, 'cf': 2})
+    ics = ICS() # default parameters
+
+    # Alternative instantiations (not shown):
+    ics_str = ICS(S1="cov", S2="cov4") # string values for S1 and S2
+    ics_args = ICS(S1=cov, S2=covW, algorithm='standard', S2_args={'alpha': 1, 'cf': 2}) # custom arguments
 
     # Fit and transform the ICS model (equivalent of the function ICS-S3() from the R package ICS)
-    ics.fit_transform(X)
+    X_new = ics.fit_transform(X)
 
     # Printing a summary
     ics.describe()
@@ -33,20 +40,25 @@ Example 1: Fitting the ICS model
 
     ICS based on two scatter matrices
     S1: cov
-    S1_args: {}
-    S2: covW
-    S2_args: {'alpha': 1, 'cf': 2}
+    S1_args: None
+    S2: cov4
+    S2_args: None
 
     Information on the algorithm:
-    algorithm: standard
+    algorithm: whiten
     center: False
     fix_signs: scores
 
     The generalized kurtosis measures of the components are:
-    IC_1: 14.4888
-    IC_2: 12.3233
-    IC_3: 11.1507
-    IC_4: 8.8856
+    IC_1: 1.2074
+    IC_2: 1.0269
+    IC_3: 0.9292
+    IC_4: 0.7405
+
+    Information on the component selection:
+    method_select: None
+    select_args: None
+    All components are kept: ['IC_1', 'IC_2', 'IC_3', 'IC_4']
 
     The coefficient matrix of the linear transformation is:
          sepal length (cm) sepal width (cm) petal length (cm) petal width (cm)
@@ -56,16 +68,22 @@ Example 1: Fitting the ICS model
     IC_4        0.05244      0.60315     -0.34826     -0.37984
 
 
-Example 2: Plotting transformed data
-------------------------------------
+Example 2: Plotting functionalities
+-----------------------------------
+
+This example illustrates how to plot the transformed data (invariant components) and the kurtosis of the invariant
+components, which correspond to the eigenvalues of the joint diagonalization problem.
+
 .. code-block:: python
 
-    # Plot transformed data (scores)
-    ics.plot()
+    from icspylab import plot_ics
+
+    # Plot the invariant components
+    plot_ics(X_new)
 
 **Example plot:**
 
-.. image:: ../_static/plt_scores.png
+.. image:: ../_static/quickstart_ic.png
    :alt: Transformed Data Plot
    :align: center
 
@@ -76,13 +94,16 @@ Example 2: Plotting transformed data
 
 **Example plot:**
 
-.. image:: ../_static/plt_kurtosis.png
+.. image:: ../_static/quickstart_kurtosis.png
    :alt: Kurtosis
    :align: center
 
 
-Example 3: Fitting and transforming separately
-----------------------------------------------
+Example 3: Machine Learning pipeline
+------------------------------------
+
+This example shows how to fit and transform separately, as is usually done in machine learning pipelines.
+
 .. code-block:: python
 
     from sklearn.datasets import load_iris

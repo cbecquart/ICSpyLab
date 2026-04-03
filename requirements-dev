@@ -1,6 +1,8 @@
-sphinx
-sphinx-rtd-theme
-twine
+setuptools
 wheel
+sphinx
+sphinx-autodoc-typehints
+sphinx_rtd_theme
+twine
 rpy2
 plotly
