@@ -44,3 +44,9 @@ ics.fit_transform(X)
 # Printing a summary
 ics.describe()
 ```
+
+### 🤝 Contributing
+
+We welcome contributions of all kinds, including bug fixes, new features, and documentation improvements.
+
+To get started, please check out our [CONTRIBUTING.md](CONTRIBUTING.md) guide.
