@@ -3,7 +3,7 @@ from sklearn.utils.validation import check_array
 from .base import ComponentSelect, _validate_nb_select
 
 
-def med_crit(kurtosis, W, nb_select=None, **kwargs):
+def median_crit(kurtosis, W, nb_select=None, **kwargs):
     """
     Identifies as interesting the invariant coordinates whose generalized eigenvalues (kurtosis) are the furthermost
     away from the median of all generalized eigenvalues (kurtosis).
@@ -18,12 +18,12 @@ def med_crit(kurtosis, W, nb_select=None, **kwargs):
 
     Example:
         >>> from sklearn.datasets import load_iris
-        >>> from icspylab import ICS, med_crit
+        >>> from icspylab import ICS, median_crit
         >>> iris = load_iris()
         >>> X = iris.data
         >>> ics = ICS(S1="cov", S2="cov4")
         >>> X_new = ics.fit_transform(X)
-        >>> selection_res = med_crit(kurtosis=ics.kurtosis_, W=ics.components_)
+        >>> selection_res = median_crit(kurtosis=ics.kurtosis_,W=ics.components_)
         >>> print(selection_res.info)
         {'crit': 'med', 'nb_select': 3, 'gen_kurtosis': array([1.20739878, 1.0269412 , 0.9292235 , 0.74046722]), 'med_gen_kurtosis': np.float64(0.9780823483964416), 'gen_kurtosis_diff_med': array([0.22931644, 0.04885885, 0.04885885, 0.23761513]), 'component_names': ['IC_4', 'IC_1', 'IC_2']}
 

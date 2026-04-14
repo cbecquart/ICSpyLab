@@ -7,7 +7,7 @@ import pytest
 import numpy as np
 from sklearn.exceptions import NotFittedError
 from sklearn.utils.estimator_checks import check_estimator
-from icspylab import ICS, cov, covW, covAxis, cov4, normal_crit, med_crit, unimodal_crit
+from icspylab import ICS, cov, covW, covAxis, cov4, normal_crit, median_crit, unimodal_crit
 from tests.fixtures import run_py_ics
 from tests.settings import algorithm, center, fix_signs
 
@@ -257,14 +257,14 @@ def test_fit_method_unimodal_crit():
     assert ics.criteria_out_ is not None
 
 
-def test_fit_method_med_crit_str():
+def test_fit_method_median_crit_str():
     """
-    Test the fit method of the ICS class with method_select = "med".
+    Test the fit method of the ICS class with method_select = "median".
 
     This test verifies that the fit method processes the input data correctly,
     and sets the transformation matrix W, and kurtosis attributes.
     """
-    ics = ICS(method_select="med")
+    ics = ICS(method_select="median")
     X = np.random.randn(100, 5)
     ics.fit(X)
     assert isinstance(ics, ICS)
@@ -277,14 +277,14 @@ def test_fit_method_med_crit_str():
     assert ics.criteria_out_ is not None
 
 
-def test_fit_method_med_crit():
+def test_fit_method_median_crit():
     """
-    Test the fit method of the ICS class with method_select = med_crit.
+    Test the fit method of the ICS class with method_select = median_crit.
 
     This test verifies that the fit method processes the input data correctly,
     and sets the transformation matrix W, and kurtosis attributes.
     """
-    ics = ICS(method_select=med_crit)
+    ics = ICS(method_select=median_crit)
     X = np.random.randn(100, 5)
     ics.fit(X)
     assert isinstance(ics, ICS)

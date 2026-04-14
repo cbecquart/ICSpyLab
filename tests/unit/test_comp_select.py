@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from icspylab.comp_select import ComponentSelect, normal_crit, unimodal_crit, med_crit, _validate_nb_select, dftu
+from icspylab.comp_select import ComponentSelect, normal_crit, unimodal_crit, median_crit, _validate_nb_select, dftu
 
 def test_component_select_init():
     """Test that ComponentSelect initializes correctly."""
@@ -35,11 +35,11 @@ def test_unimodal_crit_basic():
     assert "pvalues" in res.info
     assert len(res.info["pvalues"]) == X.shape[1]
 
-def test_med_crit_basic():
-    """Test that med_crit returns a ComponentSelect with correct selection."""
+def test_median_crit_basic():
+    """Test that median_crit returns a ComponentSelect with correct selection."""
     kurtosis = np.array([1.0, 2.0, 3.0])
     W = np.eye(3)
-    res = med_crit(kurtosis, W, nb_select=2)
+    res = median_crit(kurtosis, W, nb_select=2)
     assert isinstance(res, ComponentSelect)
     assert res.n_components == 2
     assert len(res.component_names) == 2
