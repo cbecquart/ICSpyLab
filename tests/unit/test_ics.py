@@ -291,38 +291,16 @@ def test_fit_transform_method():
     assert transformed_data.shape == X.shape
 
 
-# Section: Describe Method Tests
-# def test_describe_method(capsys):
-#     """
-#     Test the describe method of the ICS class.
-#
-#     This test verifies that the describe method correctly prints a summary of the ICS model,
-#     including the algorithm, centering option, sign fixing method, generalized kurtosis,
-#     transformation matrix, transformed data, and skewness.
-#     """
-#     ics = ICS()
-#     X = np.random.randn(100, 5)
-#     ics.fit_transform(X)
-#     ics.describe()
-#     captured = capsys.readouterr()
-#     assert "ICS Summary" in captured.out
-#     assert "Algorithm" in captured.out
-#     assert "Generalized Kurtosis" in captured.out
-#     assert "Transformation Matrix (components_)" in captured.out
-#     assert "Transformed Data (Scores)" in captured.out
+def test_empty_dataset():
+    """
+    Test the fit method with an empty dataset.
 
-
-# Section: Edge Case Tests
-# def test_empty_dataset():
-#     """
-#     Test the fit method with an empty dataset.
-#
-#     This test verifies that the fit method raises a ValueError when the input data is empty.
-#     """
-#     ics = ICS()
-#     X = np.array([]).reshape(0, 5)
-#     with pytest.raises(ValueError):
-#         ics.fit(X)
+    This test verifies that the fit method raises a ValueError when the input data is empty.
+    """
+    ics = ICS()
+    X = np.array([]).reshape(0, 5)
+    with pytest.raises(ValueError):
+        ics.fit(X)
 
 
 def test_large_dataset():
