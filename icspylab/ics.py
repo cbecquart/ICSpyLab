@@ -4,12 +4,12 @@ from scipy.linalg import qr, eigh
 from numpy.linalg import multi_dot
 
 from .scatter import Scatter, cov, covW, covAxis, cov4, mcd, tM, tcov, tcovAxis
-from .comp_select import ComponentSelect, normal_crit, med_crit
+from .comp_select import ComponentSelect, normal_crit, unimodal_crit, med_crit
 from .utils import sort_eigenvalues_eigenvectors, sqrt_symmetric_matrix, _sign_max, _check_gen_kurtosis
 from .plot import _plot_kurtosis
 
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.utils.validation import check_array, check_is_fitted, validate_data
+from sklearn.utils.validation import check_is_fitted, validate_data
 from sklearn.utils._param_validation import StrOptions
 from sklearn.exceptions import NotFittedError
 
@@ -27,6 +27,7 @@ _SCATTER_MAP = {
 
 _SELECT_MAP = {
     "normal": normal_crit,
+    "unimodal": unimodal_crit,
     "med": med_crit,
 }
 
@@ -47,7 +48,7 @@ class ICS(TransformerMixin, BaseEstimator):
         fix_signs({'scores', 'W'}, default='scores') How to fix the signs of the invariant coordinates. Possible values are 'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs based on the coefficient matrix of the linear transformation.
         S1_args (dict or None, default=None): Additional arguments for S1.
         S2_args (dict or None, default=None): Additional arguments for S2.
-        method_select ({'normal', 'med'} or callable or None, default=None): The criteria to select the invariant components. If None (default), all components are kept. If a string is provided, it must be either "normal" to apply normality tests to the components, or "med" to use the median eigenvalue criterion. If callable, it must return a ComponentSelect object. For more information, refer to :mod:`icspylab.comp_select`.
+        method_select ({'med', 'normal', 'unimodal'} or callable or None, default=None): The criteria to select the invariant components. If None (default), all components are kept. If a string is provided, it must be either "med" to use the median eigenvalue criterion, "normal" to apply normality tests to the components, or "unimodal" to apply unimodality tests to the components. If callable, it must return a ComponentSelect object. For more information, refer to :mod:`icspylab.comp_select`.
         select_args (dict or None, default=None): Additional arguments for method_select.
 
     Attributes:
@@ -238,8 +239,7 @@ class ICS(TransformerMixin, BaseEstimator):
         """
         Transform the data using the fitted ICS model.
 
-        This function relies on several helper methods to perform the ICS transformation:
-        _center_data, _component_selection.
+        This function relies on the helper method _center_data.
 
         Parameters:
             X (array-like): Data to transform.
@@ -253,14 +253,6 @@ class ICS(TransformerMixin, BaseEstimator):
 
         check_is_fitted(self, "components_")
 
-        # X = check_array(
-        #     X,
-        #     force_writeable=True,
-        #     ensure_all_finite=True,
-        #     ensure_2d=True,
-        #     ensure_min_features=2,
-        #     copy=False,
-        # )
         X = validate_data(
             self,
             X,

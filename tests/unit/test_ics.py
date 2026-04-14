@@ -7,7 +7,7 @@ import pytest
 import numpy as np
 from sklearn.exceptions import NotFittedError
 from sklearn.utils.estimator_checks import check_estimator
-from icspylab import ICS, cov, covW, covAxis, cov4, normal_crit, med_crit
+from icspylab import ICS, cov, covW, covAxis, cov4, normal_crit, med_crit, unimodal_crit
 from tests.fixtures import run_py_ics
 from tests.settings import algorithm, center, fix_signs
 
@@ -205,6 +205,46 @@ def test_fit_method_normal_crit():
     and sets the transformation matrix W, and kurtosis attributes.
     """
     ics = ICS(method_select=normal_crit)
+    X = np.random.randn(100, 5)
+    ics.fit(X)
+    assert isinstance(ics, ICS)
+    assert ics.components_ is not None
+    assert ics.n_components_ is not None
+    assert ics.component_names_ is not None
+    assert ics.kurtosis_ is not None
+    assert ics.n_components_ <= X.shape[1]
+    assert ics.n_components_ == ics.components_.shape[0]
+    assert ics.criteria_out_ is not None
+
+
+def test_fit_method_unimodal_crit_str():
+    """
+    Test the fit method of the ICS class with method_select = "unimodal".
+
+    This test verifies that the fit method processes the input data correctly,
+    and sets the transformation matrix W, and kurtosis attributes.
+    """
+    ics = ICS(method_select="unimodal")
+    X = np.random.randn(100, 5)
+    ics.fit(X)
+    assert isinstance(ics, ICS)
+    assert ics.components_ is not None
+    assert ics.n_components_ is not None
+    assert ics.component_names_ is not None
+    assert ics.kurtosis_ is not None
+    assert ics.n_components_ <= X.shape[1]
+    assert ics.n_components_ == ics.components_.shape[0]
+    assert ics.criteria_out_ is not None
+
+
+def test_fit_method_unimodal_crit():
+    """
+    Test the fit method of the ICS class with method_select = unimodal_crit.
+
+    This test verifies that the fit method processes the input data correctly,
+    and sets the transformation matrix W, and kurtosis attributes.
+    """
+    ics = ICS(method_select=unimodal_crit)
     X = np.random.randn(100, 5)
     ics.fit(X)
     assert isinstance(ics, ICS)
