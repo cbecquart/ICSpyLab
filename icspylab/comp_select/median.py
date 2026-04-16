@@ -16,6 +16,11 @@ def median_crit(kurtosis, W, nb_select=None, **kwargs):
     Returns:
         dict: Summary of the component selection step
 
+    References:
+        - Archimbaud, A., Alfons, A., Nordhausen, K., & Ruiz-Gazen, A. (2023). ICSClust: Tandem clustering with invariant coordinate selection.
+        - Alfons, A., Archimbaud, A., Nordhausen, K., & Ruiz-Gazen, A. (2024). Tandem clustering with invariant coordinate selection. Econometrics and Statistics. doi:10.1016/j.ecosta.2024.03.002.
+
+
     Example:
         >>> from sklearn.datasets import load_iris
         >>> from icspylab import ICS, median_crit

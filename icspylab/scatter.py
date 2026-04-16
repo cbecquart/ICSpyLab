@@ -156,7 +156,7 @@ def covAxis(X, location=True):
 
     References:
         - Critchley , F., Pires, A. and Amado, C. (2006), Principal axis analysis, Technical Report, 06/14, The Open University Milton Keynes.
-        - Tyler, D.E., Critchley, F., Dumbgen, L. and Oja, H. (2009), Invariant co-ordinate selecetion, Journal of the Royal Statistical Society,Series B, 71, 549–592. <doi:10.1111/j.1467-9868.2009.00706.x>.
+        - Tyler, D.E., Critchley, F., Dumbgen, L. and Oja, H. (2009), Invariant co-ordinate selection, Journal of the Royal Statistical Society,Series B, 71, 549–592. <doi:10.1111/j.1467-9868.2009.00706.x>.
 
     Example:
         >>> import numpy as np
