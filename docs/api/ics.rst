@@ -11,7 +11,7 @@ as parameters during instantiation. Additional options such as the choice of sca
 centering the data, and fixing the signs can also be defined.
 
 This implementation is based on the function ICS-S3 from the R package `ICS <https://cran.r-project.org/web/packages/ICS/index.html>`_.
-For more details about the supported algorithms and 'fix_signs' argument, see the R package
+For more details about the algorithms 'standard', 'whiten' and 'QR', as well as the 'fix_signs' argument, see the R package
 `documentation <https://cran.r-project.org/web/packages/ICS/ICS.pdf>`_ (function ICS-S3).
 
 .. automodule:: icspylab.ics
