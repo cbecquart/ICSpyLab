@@ -9,4 +9,5 @@ ics
 scatter
 comp_select
 plot
+distributions
 utils

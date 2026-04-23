@@ -5,7 +5,7 @@ Unit tests for the distributions functions in the ICSpyLab package.
 import logging
 import numpy as np
 import pytest
-from icspylab.distributions import unifsphere, multivariate_powerexp, generate_gaussian_mixture, generate_student_mixture, generate_rmvpowerexp_mixture
+from icspylab.distributions import unifsphere, multivariate_powerexp, generate_gaussian_mixture, generate_student_mixture, generate_powerexp_mixture
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +47,10 @@ def test_multivariate_powerexp_errors():
     p = 2
     scatter = np.eye(p)
 
+    # negative beta
+    with pytest.raises(ValueError):
+        multivariate_powerexp(n=100, scatter=np.eye(3), beta=-1)
+
     # missing scatter
     with pytest.raises(TypeError):
         multivariate_powerexp(5)
@@ -75,6 +79,7 @@ def test_generate_gaussian_mixture_basic():
     x, labels = generate_gaussian_mixture(eps, mu, sigma, n, p)
 
     assert x.shape == (n, p)
+    assert isinstance(labels, np.ndarray)
     assert len(labels) == n
 
 
@@ -85,16 +90,18 @@ def test_generate_student_mixture_basic():
     x, labels = generate_student_mixture(eps, mu, sigma, df=5, n=n, p=p)
 
     assert x.shape == (n, p)
+    assert isinstance(labels, np.ndarray)
     assert len(labels) == n
 
 
-def test_generate_rmvpowerexp_mixture_basic():
+def test_generate_powerexp_mixture_basic():
     eps, mu, sigma = _basic_params()
     n, p = 10, 4
 
-    x, labels = generate_rmvpowerexp_mixture(eps, mu, sigma, beta=1.0, n=n, p=p)
+    x, labels = generate_powerexp_mixture(eps, mu, sigma, beta=1.0, n=n, p=p)
 
     assert x.shape == (n, p)
+    assert isinstance(labels, np.ndarray)
     assert len(labels) == n
 
 
@@ -104,7 +111,7 @@ def test_labels_content():
 
     _, labels = generate_gaussian_mixture(eps, mu, sigma, n, p)
 
-    assert set(labels).issubset({"Group_1", "Group_2"})
+    assert np.all(np.isin(labels, ["Group_1", "Group_2"]))
 
 
 def test_invalid_eps_sum():

@@ -14,6 +14,12 @@ def unifsphere(n, p):
 
     Returns:
         ndarray (n, p)
+
+    Example:
+        >>> from icspylab.distributions import unifsphere
+        >>> X = unifsphere(n=100, p=2)
+        >>> print(X.shape)
+    (100, 2)
     """
     x = np.random.normal(size=(n, p))
     norm = np.linalg.norm(x, axis=1, keepdims=True)
@@ -34,8 +40,14 @@ def multivariate_powerexp(n, scatter, location=None, beta=1):
         ndarray (n, p)
 
     References:
-        Oja, H. (2010), Multivariate Nonparametric Methods with R, Springer.
-        Nordhausen, K., & Oja, H. (2011). Multivariate L1 statistical methods: The package MNM. Journal of Statistical Software, 43, 1-28.
+        - Oja, H. (2010), Multivariate Nonparametric Methods with R, Springer.
+        - Nordhausen, K., & Oja, H. (2011). Multivariate L1 statistical methods: The package MNM. Journal of Statistical Software, 43, 1-28.
+
+    Example:
+        >>> from icspylab.distributions import multivariate_powerexp
+        >>> X = multivariate_powerexp(n=100, scatter=np.eye(3), beta=4)
+        >>> print(X.shape)
+        (100, 3)
     """
 
     scatter = np.asarray(scatter)
@@ -53,6 +65,10 @@ def multivariate_powerexp(n, scatter, location=None, beta=1):
     # check dimensions
     if len(location) != p:
         raise ValueError("location and scatter have non-conforming size")
+
+    # check beta
+    if beta <= 0:
+        raise ValueError("beta must be positive")
 
     # eigen decomposition of scatter matrix
     eigenvalues, eigenvectors = eigh(scatter)
@@ -94,6 +110,12 @@ def generate_gaussian_mixture(eps, mu, sigma, n, p):
         tuple: A tuple containing:
             data_with_noise (ndarray): Matrix (n, p) of generated data points.
             labels (ndarray): Array of cluster labels (size n).
+
+    Example:
+        >>> eps = [0.5, 0.5]
+        >>> mu = [np.ones(2), np.ones(2)*10]
+        >>> sigma = [np.eye(2) for _ in range(2)]
+        >>> X, labels = generate_gaussian_mixture(eps, mu, sigma, n=1000, p=6)
     """
     # Validate inputs
     assert np.isclose(sum(eps), 1.0), "The elements of eps must sum to 1."
@@ -128,6 +150,7 @@ def generate_gaussian_mixture(eps, mu, sigma, n, p):
     # Save group label for each point
     group_labels = ["Group_" + str(i + 1) for i in range(k)]
     labels = [val for val, count in zip(group_labels, points_per_group) for _ in range(count)]
+    labels = np.array(labels)
 
     return data_with_noise, labels
 
@@ -140,7 +163,7 @@ def generate_student_mixture(eps, mu, sigma, df, n, p):
         eps (list of float): Proportions of points assigned to each cluster (must sum to 1).
         mu (list of ndarray): List of mean vectors (centroids) for each cluster (size k).
         sigma (list of ndarray): List of covariance matrices (size k).
-        df (int or list of int): Degrees of freedom (size k if list).
+        df (int or list of int): Degrees of freedom (size k if list). Must be strictly positive integers.
         n (int): Total number of data points to generate.
         p (int): Dimension of the data, including noise.
 
@@ -148,13 +171,16 @@ def generate_student_mixture(eps, mu, sigma, df, n, p):
         tuple: A tuple containing:
             data_with_noise (ndarray): Matrix (n, p) of generated data points.
             labels (ndarray): Array of cluster labels (size n).
+
+    Example:
+        >>> eps = [0.5, 0.5]
+        >>> mu = [np.ones(2), np.ones(2)*10]
+        >>> sigma = [np.eye(2) for _ in range(2)]
+        >>> X, labels = generate_student_mixture(eps, mu, sigma, df=2, n=1000, p=6)
     """
 
     # Number of clusters k
     k = len(eps)
-
-    if isinstance(df, int):
-        df = [df for _ in range(k)]
 
     # Validate inputs
     assert np.isclose(sum(eps), 1.0), "The elements of eps must sum to 1."
@@ -187,11 +213,12 @@ def generate_student_mixture(eps, mu, sigma, df, n, p):
     # Save group label for each point
     group_labels = ["Group_" + str(i + 1) for i in range(k)]
     labels = [val for val, count in zip(group_labels, points_per_group) for _ in range(count)]
+    labels = np.array(labels)
 
     return data_with_noise, labels
 
 
-def generate_rmvpowerexp_mixture(eps, mu, sigma, beta, n, p):
+def generate_powerexp_mixture(eps, mu, sigma, beta, n, p):
     """
     Generates a mixture of multivariate power exponential distribution (PEM) with the given parameters.
 
@@ -207,6 +234,12 @@ def generate_rmvpowerexp_mixture(eps, mu, sigma, beta, n, p):
         tuple: A tuple containing:
             data_with_noise (ndarray): Matrix (n, p) of generated data points.
             labels (ndarray): Array of cluster labels (size n).
+
+    Example:
+        >>> eps = [0.5, 0.5]
+        >>> mu = [np.ones(2), np.ones(2)*10]
+        >>> sigma = [np.eye(2) for _ in range(2)]
+        >>> X, labels = generate_powerexp_mixture(eps, mu, sigma, beta=0.8, n=1000, p=6)
     """
 
     # Number of clusters k
@@ -246,5 +279,6 @@ def generate_rmvpowerexp_mixture(eps, mu, sigma, beta, n, p):
     # Save group label for each point
     group_labels = ["Group_" + str(i + 1) for i in range(k)]
     labels = [val for val, count in zip(group_labels, points_per_group) for _ in range(count)]
+    labels = np.array(labels)
 
     return data_with_noise, labels
