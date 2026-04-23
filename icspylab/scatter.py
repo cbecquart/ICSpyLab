@@ -104,6 +104,7 @@ def covW(X, location=True, alpha=1, cf=1):
         - :math:`cf` is a consistency factor
 
     Reference:
+        - Nordhausen, K., Oja, H., & Tyler, D. E. (2008). Tools for exploring multivariate data: The package ICS. Journal of Statistical Software, 28, 1-31.
         - Archimbaud, A., Drmac, Z., Nordhausen, K., Radojicic, U. and Ruiz-Gazen, A. (2023). SIAM Journal on Mathematics of Data Science (SIMODS), Vol.5(1):97–121. doi:10.1137/22M1498759.
 
     Example:
@@ -155,6 +156,7 @@ def covAxis(X, location=True):
         Scatter: An object containing the location and scatter matrix.
 
     References:
+        - Nordhausen, K., Oja, H., & Tyler, D. E. (2008). Tools for exploring multivariate data: The package ICS. Journal of Statistical Software, 28, 1-31.
         - Critchley , F., Pires, A. and Amado, C. (2006), Principal axis analysis, Technical Report, 06/14, The Open University Milton Keynes.
         - Tyler, D.E., Critchley, F., Dumbgen, L. and Oja, H. (2009), Invariant co-ordinate selection, Journal of the Royal Statistical Society,Series B, 71, 549–592. <doi:10.1111/j.1467-9868.2009.00706.x>.
 
@@ -189,6 +191,7 @@ def cov4(X, location=True):
         Scatter: An object containing the location and custom weighted scatter matrix.
 
     References:
+        - Nordhausen, K., Oja, H., & Tyler, D. E. (2008). Tools for exploring multivariate data: The package ICS. Journal of Statistical Software, 28, 1-31.
         - Cardoso, J.F. (1989), Source separation using higher order moments, in Proc. IEEE Conf. on Acoustics, Speech and Signal Processing (ICASSP’89), 2109–2112. <doi:10.1109/ICASSP.1989.266878>.
         - Oja, H., Sirkia, S. and Eriksson, J. (2006), Scatter matrices and independent component analysis, Austrian Journal of Statistics, 35, 175–189.
 
@@ -478,6 +481,7 @@ def tM(X, df=1, mu_init=None, V_init=None, eps=1e-6, maxiter=100):
         tuple: _alg3 output
 
     References:
+        - Nordhausen, K., Oja, H., & Tyler, D. E. (2008). Tools for exploring multivariate data: The package ICS. Journal of Statistical Software, 28, 1-31.
         - Kent, J.T., Tyler, D.E. and Vardi, Y. (1994), A curious likelihood identity for the multivariate tdistribution, Communications in Statistics, Simulation and Computation, 23, 441–453. <doi:10.1080/03610919408813180>.
         - Arslan, O., Constable, P.D.L. and Kent, J.T. (1995), Convergence behaviour of the EM algorithm for the multivariate t-distribution, Communications in Statistics, Theory and Methods, 24, 2981–3000. <doi:10.1080/03610929508831664>.
 
