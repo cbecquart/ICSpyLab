@@ -226,7 +226,7 @@ def generate_powerexp_mixture(eps, mu, sigma, beta, n, p):
         eps (list of float): Proportions of points assigned to each cluster (must sum to 1).
         mu (list of np.ndarray): List of mean vectors (centroids) for each cluster (size k).
         sigma (list of np.ndarray): List of covariance matrices (size k).
-        beta (int or list of float): Shape parameters (size k if list).
+        beta (float or list of float): Shape parameters (size k if list).
         n (int): Total number of data points to generate.
         p (int): Dimension of the data, including noise.
 
