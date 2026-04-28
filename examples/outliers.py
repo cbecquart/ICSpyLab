@@ -1,5 +1,5 @@
 import numpy as np
-from icspylab import ICS, med_crit
+from icspylab import ICS, median_crit, plot_ics
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
@@ -40,6 +40,14 @@ print(f"{n_samples} datapoints with {y_train.sum()} anomalies ({anomaly_frac:.02
 
 # LOF
 
+def fit_predict_scores(model, X_train, X_test):
+    model.fit(X_train)
+    scores = -model.decision_function(X_test)
+    # Predictions
+    y_pred = model.predict(X_test)  # 1=inlier, -1=outlier
+    y_pred_bin = (y_pred == -1).astype(int)  # 1=outlier, 0=inlier
+    return scores, y_pred_bin
+
 lof_plain = make_pipeline(
     RobustScaler(),
     LocalOutlierFactor(
@@ -47,131 +55,94 @@ lof_plain = make_pipeline(
         novelty=True)
 )
 
-lof_plain.fit(X_train)
-scores_lof_plain = -lof_plain.decision_function(X_test)
-# Predictions
-y_pred_plain = lof_plain.predict(X_test)
-y_pred_plain_bin = (y_pred_plain == -1).astype(int)
+scores_lof_plain, y_pred_plain_bin = fit_predict_scores(lof_plain, X_train, X_test)
 
 
 # LOF with ICS
 
 lof_ics  = make_pipeline(
-    ICS(method_select=med_crit),
+    ICS(method_select=median_crit),
     RobustScaler(),
     LocalOutlierFactor(
         n_neighbors=int(n_samples * anomaly_frac),
         novelty=True)
 )
 
-lof_ics.fit(X_train)
-scores_lof_ics = -lof_ics.decision_function(X_test)
-# Predictions
-y_pred_ics = lof_ics.predict(X_test)      # 1=inlier, -1=outlier
-y_pred_ics_bin = (y_pred_ics == -1).astype(int)  # 1=outlier, 0=inlier
+scores_lof_ics, y_pred_ics_bin = fit_predict_scores(lof_ics, X_train, X_test)
+
+print("Number of selected ICS components:", lof_ics.named_steps["ics"].n_components_)
+X_train_ics = X_train @ lof_ics.named_steps["ics"].components_.T
+plot_ics(scores = X_train_ics.iloc[:, :6])
 
 
 # IForest
 
 if_plain = IsolationForest(random_state=42)
 
-if_plain.fit(X_train)
-scores_if_plain = -if_plain.decision_function(X_test)
-# Predictions
-y_pred_if_plain = if_plain.predict(X_test)
-y_pred_if_plain_bin = (y_pred_if_plain == -1).astype(int)
+scores_if_plain, y_pred_if_plain_bin = fit_predict_scores(if_plain, X_train, X_test)
 
 
 # IForest with ICS
 
 if_ics = make_pipeline(
-    ICS(method_select=med_crit),
+    ICS(method_select=median_crit),
     IsolationForest(random_state=42)
 )
 
-if_ics.fit(X_train)
-scores_if_ics = -if_ics.decision_function(X_test)
-# Predictions
-y_pred_if_ics = if_ics.predict(X_test)      # 1=inlier, -1=outlier
-y_pred_if_ics_bin = (y_pred_if_ics == -1).astype(int)  # 1=outlier, 0=inlier
+scores_if_ics, y_pred_if_ics_bin = fit_predict_scores(if_ics, X_train, X_test)
 
 
 # ROC curves
 
-fpr_lof_ics, tpr_lof_ics, _ = roc_curve(y_test, scores_lof_ics)
-auc_lof_ics = auc(fpr_lof_ics, tpr_lof_ics)
-
-fpr_lof_plain, tpr_lof_plain, _ = roc_curve(y_test, scores_lof_plain)
-auc_lof_plain = auc(fpr_lof_plain, tpr_lof_plain)
-
-fpr_if_ics, tpr_if_ics, _ = roc_curve(y_test, scores_if_ics)
-auc_if_ics = auc(fpr_if_ics, tpr_if_ics)
-
-fpr_if_plain, tpr_if_plain, _ = roc_curve(y_test, scores_if_plain)
-auc_if_plain = auc(fpr_if_plain, tpr_if_plain)
+def plot_roc(ax, curves, title, y_test):
+    for label, scores in curves.items():
+        fpr, tpr, _ = roc_curve(y_test, scores)
+        auc_val = auc(fpr, tpr)
+        ax.plot(fpr, tpr, label=f"{label} (AUC = {auc_val:.3f})")
+    ax.plot([0, 1], [0, 1], "k--", label="Random")
+    ax.set_xlabel("False Positive Rate")
+    ax.set_ylabel("True Positive Rate")
+    ax.set_title(title)
+    ax.legend()
+    ax.grid(True)
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 
 # Subplot 1 : LOF
-axes[0].plot(fpr_lof_ics, tpr_lof_ics, label=f"ICS + LOF (AUC = {auc_lof_ics:.3f})")
-axes[0].plot(fpr_lof_plain, tpr_lof_plain, label=f"LOF only (AUC = {auc_lof_plain:.3f})")
-axes[0].plot([0, 1], [0, 1], "k--", label="Random")
-
-axes[0].set_xlabel("False Positive Rate")
-axes[0].set_ylabel("True Positive Rate")
-axes[0].set_title("ROC Curve – LOF")
-axes[0].legend()
-axes[0].grid(True)
+plot_roc(ax=axes[0],
+         curves={"ICS + LOF": scores_lof_ics, "LOF only": scores_lof_plain},
+         title="ROC Curve – LOF",
+         y_test=y_test)
 
 # Subplot 2 : Isolation Forest
-axes[1].plot(fpr_if_ics, tpr_if_ics, label=f"ICS + IF (AUC = {auc_if_ics:.3f})")
-axes[1].plot(fpr_if_plain, tpr_if_plain, label=f"IF only (AUC = {auc_if_plain:.3f})")
-axes[1].plot([0, 1], [0, 1], "k--", label="Random")
-
-axes[1].set_xlabel("False Positive Rate")
-axes[1].set_ylabel("True Positive Rate")
-axes[1].set_title("ROC Curve – Isolation Forest")
-axes[1].legend()
-axes[1].grid(True)
+plot_roc(ax=axes[1],
+         curves={"ICS + IF": scores_if_ics,  "IF only": scores_if_plain},
+         title="ROC Curve – Isolation Forest",
+         y_test=y_test)
 
 plt.tight_layout()
-plt.savefig("../docs/_static/outliers_ROC.png", dpi=200, bbox_inches="tight")
+plt.savefig("../docs/_static/outliers_ROC2.png", dpi=200, bbox_inches="tight")
 plt.close()
 
 
 # Confusion matrices
 
-cm_lof_ics = confusion_matrix(y_test, y_pred_ics_bin)
-cm_lof_plain = confusion_matrix(y_test, y_pred_plain_bin)
-
-cm_if_ics = confusion_matrix(y_test, y_pred_if_ics_bin)
-cm_if_plain = confusion_matrix(y_test, y_pred_if_plain_bin)
-
+def plot_confusion(ax, y_pred_bin, title, cmap):
+    cm = confusion_matrix(y_test, y_pred_bin)
+    ConfusionMatrixDisplay(cm, display_labels=["Inlier", "Outlier"]).plot(
+        ax=ax, cmap=cmap, colorbar=False
+    )
+    ax.set_title(title)
 
 fig, axes = plt.subplots(2, 2, figsize=(12, 10))
 
-ConfusionMatrixDisplay(cm_lof_ics, display_labels=["Inlier", "Outlier"]).plot(
-    ax=axes[0, 0], cmap=plt.cm.Blues, colorbar=False
-)
-axes[0, 0].set_title("ICS + LOF")
-
-ConfusionMatrixDisplay(cm_lof_plain, display_labels=["Inlier", "Outlier"]).plot(
-    ax=axes[1, 0], cmap=plt.cm.Oranges, colorbar=False
-)
-axes[1, 0].set_title("LOF only")
-
-ConfusionMatrixDisplay(cm_if_ics, display_labels=["Inlier", "Outlier"]).plot(
-    ax=axes[0, 1], cmap=plt.cm.Blues, colorbar=False
-)
-axes[0, 1].set_title("ICS + IF")
-
-ConfusionMatrixDisplay(cm_if_plain, display_labels=["Inlier", "Outlier"]).plot(
-    ax=axes[1, 1], cmap=plt.cm.Oranges, colorbar=False
-)
-axes[1, 1].set_title("IF only")
+plot_confusion(ax=axes[0, 0], y_pred_bin=y_pred_ics_bin, title="ICS + LOF", cmap=plt.cm.Blues)
+plot_confusion(ax=axes[1, 0], y_pred_bin=y_pred_plain_bin, title="LOF only", cmap=plt.cm.Oranges)
+plot_confusion(ax=axes[0, 1], y_pred_bin=y_pred_if_ics_bin, title="ICS + IF", cmap=plt.cm.Blues)
+plot_confusion(ax=axes[1, 1], y_pred_bin=y_pred_if_plain_bin, title="IF only", cmap=plt.cm.Oranges)
 
 plt.tight_layout()
-plt.savefig("../docs/_static/outliers_CM.png", dpi=200, bbox_inches="tight")
+plt.savefig("../docs/_static/outliers_CM2.png", dpi=200, bbox_inches="tight")
 plt.close()
 
 
@@ -179,12 +150,10 @@ plt.close()
 
 f1_plain = f1_score(y_test, y_pred_plain_bin)
 f1_ics = f1_score(y_test, y_pred_ics_bin)
-
-print(f"F1 score LOF only: {f1_plain:.3f}")
-print(f"F1 score ICS + LOF: {f1_ics:.3f}")
-
 f1_if_plain = f1_score(y_test, y_pred_if_plain_bin)
 f1_if_ics = f1_score(y_test, y_pred_if_ics_bin)
 
+print(f"F1 score LOF only: {f1_plain:.3f}")
+print(f"F1 score ICS + LOF: {f1_ics:.3f}")
 print(f"F1 score IF only: {f1_if_plain:.3f}")
 print(f"F1 score ICS + IF: {f1_if_ics:.3f}")
