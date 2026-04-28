@@ -15,7 +15,6 @@ below illustrates how to compute the MCD scatter on the Iris dataset.
 
 .. code-block:: python
 
-    import pandas as pd
     from sklearn.datasets import load_iris
     from sklearn.covariance import MinCovDet
 
@@ -51,6 +50,8 @@ Below, we define a function computing the MCD scatter, which we will use as
 
 .. code-block:: python
 
+    from icspylab import Scatter
+
     def mcd_scatter(X, **kwargs):
         mcd_fit = MinCovDet(**kwargs).fit(X)
         mcd_loc = mcd_fit.location_
@@ -68,10 +69,12 @@ Below, we define a function computing the MCD scatter, which we will use as
 
 .. code-block:: python
 
+    from icspylab import ICS
+
     ics = ICS(S1=mcd_scatter, S2=cov)
 
     # Fit and transform the ICS model
-    ics.fit_transform(X)
+    X_new = ics.fit_transform(X)
 
 
 This tutorial demonstrates how ``ICSpyLab`` can be extended through user-defined
