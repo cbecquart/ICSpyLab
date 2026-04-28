@@ -60,8 +60,8 @@ gen_cov = np.diag((1, 5))
 gen_loc = np.array([0, 0])
 
 X = np.random.default_rng().multivariate_normal(gen_loc, gen_cov, n_samples)
-df = pd.DataFrame(X, columns=['X1', 'X2'])
-df['Group'] = 'Group_1'
+df = pd.DataFrame(X, columns=["X1", "X2"])
+df["Group"] = "Group_1"
 
 # Add some outliers
 if add_outliers:
@@ -69,8 +69,8 @@ if add_outliers:
     outlier_loc = np.array([8, -2])
     X_out = np.random.default_rng().multivariate_normal(outlier_loc, outlier_cov, n_outliers)
     X = np.concatenate((X, X_out), axis=0)
-    df_out = pd.DataFrame(X_out, columns=['X1', 'X2'])
-    df_out['Group'] = 'Group_2'
+    df_out = pd.DataFrame(X_out, columns=["X1", "X2"])
+    df_out["Group"] = "Group_2"
     df = pd.concat([df, df_out])
 
 

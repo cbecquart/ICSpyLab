@@ -71,7 +71,7 @@ Below, we define a function computing the MCD scatter, which we will use as
 
     from icspylab import ICS
 
-    ics = ICS(S1=mcd_scatter, S2=cov)
+    ics = ICS(S1=mcd_scatter, S2="cov")
 
     # Fit and transform the ICS model
     X_new = ics.fit_transform(X)

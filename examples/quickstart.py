@@ -16,7 +16,7 @@ ics = ICS()  # default parameters
 
 # Alternative instantiations (not shown):
 ics_str = ICS(S1="cov", S2="cov4")  # string values for S1 and S2
-ics_args = ICS(S1=cov, S2=covW, algorithm='standard', S2_args={'alpha': 1, 'cf': 2})  # custom arguments
+ics_args = ICS(S1=cov, S2=covW, algorithm="standard", S2_args={"alpha": 1, "cf": 2})  # custom arguments
 
 # Fit and transform the ICS model (equivalent of the function ICS-S3() from the R package ICS)
 X_new = ics.fit_transform(X)

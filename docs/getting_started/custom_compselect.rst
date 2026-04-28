@@ -16,7 +16,7 @@ By default, ``method_select``=None and all invariant components are kept.
 .. code-block:: python
 
     import pandas as pd
-    from icspylab import ICS, ComponentSelect, cov, cov4, plot_ics
+    from icspylab import ICS, ComponentSelect, plot_ics
     from sklearn.datasets import load_iris
 
     # Load dataset
@@ -24,7 +24,7 @@ By default, ``method_select``=None and all invariant components are kept.
     X = pd.DataFrame(iris.data, columns=iris.feature_names)
 
     # Instantiate ICS object
-    ics = ICS(S1=cov, S2=cov4, algorithm='standard')
+    ics = ICS(S1="cov", S2="cov4", algorithm="standard")
 
     # Fit and transform the ICS model
     X_ics = ics.fit_transform(X)
@@ -96,7 +96,7 @@ Lets try it on the Iris dataset:
 .. code-block:: python
 
     # Instantiate ICS object
-    ics_custom = ICS(S1=cov, S2=cov4, algorithm='standard', method_select=select_last_comp)
+    ics_custom = ICS(S1="cov", S2="cov4", algorithm="standard", method_select=select_last_comp)
 
     # Fit and transform the ICS model
     X_ics_custom = ics_custom.fit_transform(X)
@@ -132,7 +132,7 @@ Finally, you want to keep some flexibility and select the last ``q`` components 
 .. code-block:: python
 
     # Instantiate ICS object with select_last_q_comp and default parameters
-    ics_custom = ICS(S1=cov, S2=cov4, algorithm='standard', method_select=select_last_q_comp)
+    ics_custom = ICS(S1="cov", S2="cov4", algorithm="standard", method_select=select_last_q_comp)
 
     # Fit and transform the ICS model
     X_ics_custom = ics_custom.fit_transform(X)
@@ -153,7 +153,7 @@ To select the last 2 components, just specify ``q=2`` in ``select_args``.
 .. code-block:: python
 
     # Instantiate ICS object with select_last_q_comp and q=2
-    ics_custom = ICS(S1=cov, S2=cov4, algorithm='standard', method_select=select_last_q_comp, select_args={'q': 2})
+    ics_custom = ICS(S1="cov", S2="cov4", algorithm="standard", method_select=select_last_q_comp, select_args={"q": 2})
 
     # Fit and transform the ICS model
     X_ics_custom = ics_custom.fit_transform(X)

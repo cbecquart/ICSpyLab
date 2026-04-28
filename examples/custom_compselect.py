@@ -1,5 +1,5 @@
 import pandas as pd
-from icspylab import ICS, ComponentSelect, cov, cov4, plot_ics
+from icspylab import ICS, ComponentSelect, plot_ics
 from sklearn.datasets import load_iris
 
 # Load dataset
@@ -7,7 +7,7 @@ iris = load_iris()
 X = pd.DataFrame(iris.data, columns=iris.feature_names)
 
 # Instantiate ICS object
-ics = ICS(S1=cov, S2=cov4, algorithm='standard')
+ics = ICS(S1="cov", S2="cov4", algorithm="standard")
 
 # Fit and transform the ICS model
 X_ics = ics.fit_transform(X)
@@ -35,7 +35,7 @@ def select_last_comp(W, **kwargs):
                            component_names=selected_component_names, info=None)
 
 # Instantiate ICS object
-ics_custom = ICS(S1=cov, S2=cov4, algorithm='standard', method_select=select_last_comp)
+ics_custom = ICS(S1="cov", S2="cov4", algorithm="standard", method_select=select_last_comp)
 
 # Fit and transform the ICS model
 X_ics_custom = ics_custom.fit_transform(X)
@@ -61,7 +61,7 @@ def select_last_q_comp(W, q=1, **kwargs):
                            component_names=selected_component_names, info=None)
 
 # Instantiate ICS object with select_last_q_comp and default parameters
-ics_custom = ICS(S1=cov, S2=cov4, algorithm='standard', method_select=select_last_q_comp)
+ics_custom = ICS(S1="cov", S2="cov4", algorithm="standard", method_select=select_last_q_comp)
 
 # Fit and transform the ICS model
 X_ics_custom = ics_custom.fit_transform(X)
@@ -70,7 +70,7 @@ print(f"Shape after ICS with select_last_q_comp (default q): {X_ics_custom.shape
       f" with component names: {ics_custom.component_names_}")
 
 # Instantiate ICS object with select_last_q_comp and q=2
-ics_custom = ICS(S1=cov, S2=cov4, algorithm='standard', method_select=select_last_q_comp, select_args={'q': 2})
+ics_custom = ICS(S1="cov", S2="cov4", algorithm="standard", method_select=select_last_q_comp, select_args={"q": 2})
 
 # Fit and transform the ICS model
 X_ics_custom = ics_custom.fit_transform(X)
