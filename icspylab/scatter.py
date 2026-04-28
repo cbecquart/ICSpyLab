@@ -215,20 +215,22 @@ def cov4(X, location=True):
     return cov4_scatter
 
 
-def mcd(X, support_fraction=0.25, reweighted=True, **kwargs):
+def mcd(X, support_fraction=0.25, reweighted=False, **kwargs):
     """
-    Wrapper function around scikit learn's implementation of the MCD (Minimum Covariance Determinant) scatter, using
-    the FastMCD algorithm. MCD is a robust estimator of covariance. The idea is to find a given proportion of
-    non-outlying observations and compute their empirical covariance matrix. It is then rescaled to account for the
-    selection of observations ("consistency step"). Once the MCD estimator is computed, the observations can be weighted
-    by their Mahalanobis distance. The resulting estimator is called the reweighted MCD. The "reweighting step" is
-    performed by default. To access the raw estimators of the MCD, call the raw_location_ and raw_covariance_ attributes
-    of a MinCovDet object. Fore more information, check out scikit learn's `documentation <https://scikit-learn.org/stable/modules/generated/sklearn.covariance.MinCovDet.html>`_.
+    Wrapper function around scikit learn's implementation of the MCD (Minimum Covariance Determinant) estimator,
+    computed using the FastMCD algorithm. The MCD is a robust estimator of location and covariance. It is based on
+    selecting a subset of observations (of given size) whose empirical covariance matrix has minimal determinant.
+    The covariance estimate is then rescaled to ensure consistency. An optional reweighting step can be applied,
+    where observations are weighted according to their Mahalanobis distance from the estimated location. This yields
+    the reweighted MCD estimator. In scikit-learn's MinCovDet, both raw (non-reweighted) and reweighted estimates are
+    available through the attributes `raw_location_`, `raw_covariance_`, `location_`, and `covariance_`.
+    By default, this function returns the raw estimates.
+    Fore more information, check out scikit learn's `documentation <https://scikit-learn.org/stable/modules/generated/sklearn.covariance.MinCovDet.html>`_.
 
     Parameters:
         X (array-like): The data matrix.
         support_fraction (float or None, default=0.25): The proportion of observations to be included in the support of the raw MCD estimate. This corresponds to the `support_fraction` parameter of sklearn.covariance.MinCovDet. By default, it is set to 0.25, which differs from the default used in sklearn.covariance.MinCovDet. If None, the original MinCovDet default value is used: (n_samples + n_features + 1) / (2 * n_samples).
-        reweighted (bool, default=True) If True, use the reweighted version of the MCD estimator.
+        reweighted (bool, default=False) If True, use the reweighted version of the MCD estimator. Default is False.
 
     Returns:
         Scatter: An object containing the location and scatter matrix.
