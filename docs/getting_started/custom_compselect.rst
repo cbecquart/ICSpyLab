@@ -30,6 +30,9 @@ By default, ``method_select``=None and all invariant components are kept.
     X_ics = ics.fit_transform(X)
     plot_ics(X_ics)
 
+.. image:: ../_static/custom_compselect.PNG
+   :alt: Compselect
+   :align: center
 
 Looking at the invariant coordinates on the plot above, you decide that you want to keep only the last component.
 If you just need a one-shot usage you can simply apply the selection method on the output ``X_ics``.
