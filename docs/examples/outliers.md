@@ -110,7 +110,7 @@ separate test set.
 # LOF
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.preprocessing import RobustScaler
-from sklearn.pipeline import make_pipeline
+from sklearn.pipeline import Pipeline
 
 def fit_predict_scores(model, X_train, X_test):
     model.fit(X_train)
@@ -120,12 +120,10 @@ def fit_predict_scores(model, X_train, X_test):
     y_pred_bin = (y_pred == -1).astype(int)  # 1=outlier, 0=inlier
     return scores, y_pred_bin
 
-lof_plain = make_pipeline(
-    RobustScaler(),
-    LocalOutlierFactor(
-        n_neighbors=int(n_samples * anomaly_frac),
-        novelty=True)
-)
+lof_plain = Pipeline([
+    ("scaler", RobustScaler()),
+    ("lof", LocalOutlierFactor(n_neighbors=int(n_samples * anomaly_frac), novelty=True))
+])
 
 scores_lof_plain, y_pred_plain_bin = fit_predict_scores(lof_plain, X_train, X_test)
 ```
@@ -140,15 +138,51 @@ algorithm operates on standardized invariant coordinates.
 # LOF with ICS
 from icspylab import ICS, median_crit
 
-lof_ics  = make_pipeline(
-    ICS(method_select=median_crit),
-    RobustScaler(),
-    LocalOutlierFactor(
-        n_neighbors=int(n_samples * anomaly_frac),
-        novelty=True)
-)
+lof_ics = Pipeline([
+    ("ics", ICS(method_select=median_crit)),
+    ("scaler", RobustScaler()),
+    ("lof", LocalOutlierFactor(n_neighbors=int(n_samples * anomaly_frac), novelty=True))
+])
 
 scores_lof_ics, y_pred_ics_bin = fit_predict_scores(lof_ics, X_train, X_test)
+```
+
+Although hyperparameter tuning can be performed using cross-validation, we do not rely on it in this example.
+The dataset exhibits a very low contamination rate (≈1%), which makes cross-validation unstable: some folds may 
+contain very few anomalies, leading to high variance in evaluation metrics such as the F1 score.
+
+In this context, performance estimates obtained via cross-validation can be unreliable and may lead to suboptimal 
+parameter selection. Alternative strategies could mitigate this issue, but are beyond the scope of this tutorial.
+For this reason, we prefer to fix reasonable parameters and evaluate the models on a held-out 
+test set.
+
+```python
+# Optional: hyperparameter tuning via cross-validation
+# Note: this is not used in this example due to the extreme class imbalance
+#
+# from sklearn.model_selection import GridSearchCV, StratifiedKFold
+# cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+#
+# def get_f1_score(estimator, X, y):
+#     y_pred = estimator.predict(X)
+#     y_pred_bin = (y_pred == -1).astype(int)
+#     return f1_score(y, y_pred_bin)
+#
+# param_grid = {
+#     "ics__select_args": [{"nb_select": 5}, {"nb_select": 10}, {"nb_select": 20}, {"nb_select": n_features - 1}]
+# }
+#
+# lof_ics_grid = GridSearchCV(
+#     lof_ics,
+#     param_grid,
+#     scoring= get_f1_score,
+#     cv=cv
+# )
+#
+# lof_ics_grid.fit(X_train, y_train)
+# print(lof_ics_grid.best_params_)
+#
+# scores_lof_ics, y_pred_ics_bin = fit_predict_scores(lof_ics_grid.best_estimator_, X_train, X_test)
 ```
 
 ## IForest
@@ -160,7 +194,10 @@ the default parameters.
 # IForest
 from sklearn.ensemble import IsolationForest
 
-if_plain = IsolationForest(random_state=42)
+if_plain = Pipeline([
+    ("if", IsolationForest(random_state=42))
+])
+
 scores_if_plain, y_pred_if_plain_bin = fit_predict_scores(if_plain, X_train, X_test)
 ```
 
@@ -170,10 +207,10 @@ selected via the ``median_crit`` criterion.
 ```python
 # IForest with ICS
 
-if_ics = make_pipeline(
-    ICS(method_select=median_crit),
-    IsolationForest(random_state=42)
-)
+if_ics = Pipeline([
+    ("ics", ICS(method_select=median_crit)),
+    ("if", IsolationForest(random_state=42))
+])
 
 scores_if_ics, y_pred_if_ics_bin = fit_predict_scores(if_ics, X_train, X_test)
 ```
@@ -267,15 +304,15 @@ print(f"F1 score ICS + IF: {f1_if_ics:.3f}")
 
 ```text
 F1 score LOF only: 0.010
-F1 score ICS + LOF: 0.160
+F1 score ICS + LOF: 0.157
 F1 score IF only: 0.050
-F1 score ICS + IF: 0.481
+F1 score ICS + IF: 0.315
 ```
 
 Adding ICS as a pre-processing step improves the area under the curve (AUC) for both LOF and Isolation 
 Forest analysis. However, due to the strong class imbalance, ROC curves may provide an overly optimistic 
 view of performance. Precision-recall-oriented metrics such as the F1 score are more informative in this setting.
-It rises from 0.010 to 0.160 for LOF and from 0.050 to 0.481 for Isolation Forest. 
+It rises from 0.010 to 0.157 for LOF and from 0.050 to 0.315 for Isolation Forest. 
 The confusion matrices further demonstrate that ICS helps to detect many more anomalies while only moderately 
 increasing the number of false positives, particularly in the case of Isolation Forest. 
 

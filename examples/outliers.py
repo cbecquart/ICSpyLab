@@ -3,7 +3,7 @@ from icspylab import ICS, median_crit, plot_ics
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
-from sklearn.pipeline import make_pipeline
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import RobustScaler
 from sklearn.datasets import fetch_covtype
 from sklearn.metrics import roc_curve, auc, confusion_matrix, ConfusionMatrixDisplay, f1_score
@@ -48,46 +48,67 @@ def fit_predict_scores(model, X_train, X_test):
     y_pred_bin = (y_pred == -1).astype(int)  # 1=outlier, 0=inlier
     return scores, y_pred_bin
 
-lof_plain = make_pipeline(
-    RobustScaler(),
-    LocalOutlierFactor(
-        n_neighbors=int(n_samples * anomaly_frac),
-        novelty=True)
-)
+lof_plain = Pipeline([
+    ("scaler", RobustScaler()),
+    ("lof", LocalOutlierFactor(n_neighbors=int(n_samples * anomaly_frac), novelty=True))
+])
 
 scores_lof_plain, y_pred_plain_bin = fit_predict_scores(lof_plain, X_train, X_test)
 
 
 # LOF with ICS
 
-lof_ics  = make_pipeline(
-    ICS(method_select=median_crit),
-    RobustScaler(),
-    LocalOutlierFactor(
-        n_neighbors=int(n_samples * anomaly_frac),
-        novelty=True)
-)
+lof_ics = Pipeline([
+    ("ics", ICS(method_select=median_crit)),
+    ("scaler", RobustScaler()),
+    ("lof", LocalOutlierFactor(n_neighbors=int(n_samples * anomaly_frac), novelty=True))
+])
 
 scores_lof_ics, y_pred_ics_bin = fit_predict_scores(lof_ics, X_train, X_test)
 
-print("Number of selected ICS components:", lof_ics.named_steps["ics"].n_components_)
-X_train_ics = X_train @ lof_ics.named_steps["ics"].components_.T
-plot_ics(scores = X_train_ics.iloc[:, :6])
+# Optional: hyperparameter tuning via cross-validation
+# Note: this is not used in this example due to the extreme class imbalance
+#
+# from sklearn.model_selection import GridSearchCV, StratifiedKFold
+# cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+#
+# def get_f1_score(estimator, X, y):
+#     y_pred = estimator.predict(X)
+#     y_pred_bin = (y_pred == -1).astype(int)
+#     return f1_score(y, y_pred_bin)
+#
+# param_grid = {
+#     "ics__select_args": [{"nb_select": 5}, {"nb_select": 10}, {"nb_select": 20}, {"nb_select": n_features - 1}]
+# }
+#
+# lof_ics_grid = GridSearchCV(
+#     lof_ics,
+#     param_grid,
+#     scoring= get_f1_score,
+#     cv=cv
+# )
+#
+# lof_ics_grid.fit(X_train, y_train)
+# print(lof_ics_grid.best_params_)
+#
+# scores_lof_ics, y_pred_ics_bin = fit_predict_scores(lof_ics_grid.best_estimator_, X_train, X_test)
 
 
 # IForest
 
-if_plain = IsolationForest(random_state=42)
+if_plain = Pipeline([
+    ("if", IsolationForest(random_state=42))
+])
 
 scores_if_plain, y_pred_if_plain_bin = fit_predict_scores(if_plain, X_train, X_test)
 
 
 # IForest with ICS
 
-if_ics = make_pipeline(
-    ICS(method_select=median_crit),
-    IsolationForest(random_state=42)
-)
+if_ics = Pipeline([
+    ("ics", ICS(method_select=median_crit)),
+    ("if", IsolationForest(random_state=42))
+])
 
 scores_if_ics, y_pred_if_ics_bin = fit_predict_scores(if_ics, X_train, X_test)
 
