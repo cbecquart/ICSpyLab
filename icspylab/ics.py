@@ -9,9 +9,8 @@ from .utils import sort_eigenvalues_eigenvectors, sqrt_symmetric_matrix, _sign_m
 from .plot import _plot_kurtosis
 
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.utils.validation import check_is_fitted, validate_data
+from sklearn.utils.validation import check_is_fitted, validate_data, check_array
 from sklearn.utils._param_validation import StrOptions
-from sklearn.exceptions import NotFittedError
 
 
 _SCATTER_MAP = {
@@ -79,6 +78,7 @@ class ICS(TransformerMixin, BaseEstimator):
 
     References:
         - Tyler, D.E., Critchley, F., Dumbgen, L. and Oja, H. (2009) Invariant Co-ordinate Selection. Journal of the Royal Statistical Society, Series B, 71(3), 549–592. doi:10.1111/j.14679868.2009.00706.x.
+        - Nordhausen, K., Oja, H., & Tyler, D. E. (2008). Tools for exploring multivariate data: The package ICS. Journal of Statistical Software, 28, 1-31.
         - For algorithm=='QR', refer to Archimbaud, A., Drmac, Z., Nordhausen, K., Radojcic, U. and Ruiz-Gazen, A. (2023) Numerical Considerations and a New Implementation for Invariant Coordinate Selection. SIAM Journal on Mathematics of Data Science, 5(1), 97–121. doi:10.1137/22M1498759.
 
     Example:
@@ -248,8 +248,6 @@ class ICS(TransformerMixin, BaseEstimator):
         Returns:
             ndarray: Transformed matrix in which columns contain the scores of the selected invariant coordinates.
         """
-        # if self.components_ is None:
-        #     raise TypeError("The ICS model must be fitted before transforming data.")
 
         check_is_fitted(self, "components_")
 
@@ -287,6 +285,28 @@ class ICS(TransformerMixin, BaseEstimator):
         """
         self.fit(X)
         return self.transform(X)
+
+
+    def inverse_transform(self, X):
+        """Transform data back to its original space.
+
+        In other words, return an `X_original` whose transform would be X.
+
+        Parameters:
+            X (array-like): Transformed data,  where `n_samples` is the number of samples and `n_components` is the number of components.
+
+        Returns:
+            ndarray: Original data, where `n_samples` is the number of samples and `n_features` is the number of features.
+        """
+
+        check_is_fitted(self, "components_")
+
+        X = check_array(X, input_name="X", dtype=[np.float64, np.float32])
+
+        if self.center:
+            return X @ self.components_ + self.S1_X_.location
+        else:
+            return X @ self.components_
 
 
     def get_feature_names_out(self, input_features=None):
