@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.utils.validation import check_array
 
 
-def plot_ics(scores, **kwargs):
+def plot_ics(scores, col_names=None, **kwargs):
     """
     Plots a scatterplot matrix of the component scores of an invariant coordinate system obtained via an ICS
     transformation.
@@ -36,7 +36,12 @@ def plot_ics(scores, **kwargs):
         copy=False,
     )
 
-    scores_df = pd.DataFrame(X, columns=[f"IC_{i+1}" for i in range(X.shape[1])])
+    if col_names is None:
+        col_names_ = [f"IC_{i+1}" for i in range(X.shape[1])]
+    else:
+        #todo: check input
+        col_names_ = col_names.copy()
+    scores_df = pd.DataFrame(X, columns=col_names_)
 
     p = scores_df.shape[1]
 
@@ -47,7 +52,7 @@ def plot_ics(scores, **kwargs):
         cols = list(range(3)) + list(range(p-3, p))
         sns.pairplot(scores_df.iloc[:, cols], **kwargs)
 
-    plt.show()
+    plt.show() #todo: return plot or .show()
 
 
 def _plot_kurtosis(kurtosis, **kwargs):
