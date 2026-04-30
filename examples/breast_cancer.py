@@ -74,7 +74,7 @@ markers = ("s", "o")
 for target_class, color, marker in zip(target_classes, colors, markers):
     ax1.scatter(
         x=X_train_transformed[y_train == target_class, 0],
-        y=X_train_transformed[y_train == target_class, 0],
+        y=X_train_transformed[y_train == target_class, 1],
         color=color,
         label=f"class {target_class}",
         alpha=0.5,

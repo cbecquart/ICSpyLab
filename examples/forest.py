@@ -27,8 +27,8 @@ print("X shape:", X.shape)
 
 
 # Train test split
-X_train, X_other, y_train, y_other = train_test_split(X, y, train_size=0.05, stratify=y, random_state=42)
-X_test, _, y_test, _ = train_test_split(X_other, y_other, train_size=0.05, stratify=y_other, random_state=42)
+X_train, X_other, y_train, y_other = train_test_split(X, y, train_size=0.03, stratify=y, random_state=42)
+X_test, _, y_test, _ = train_test_split(X_other, y_other, train_size=0.01, stratify=y_other, random_state=42)
 print("X_train shape:", X_train.shape)
 
 scaled_X_train = scaler.fit_transform(X_train)
@@ -43,7 +43,7 @@ X_train_std_transformed = scaled_pca.transform(scaled_X_train)
 
 fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
 
-target_classes = (7, 4, 5)
+target_classes = (2, 3, 4)
 colors = ("blue", "red", "green")
 markers = ("^", "s", "o")
 
@@ -87,7 +87,7 @@ X_train_transformed = ics.transform(X_train)
 
 fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
 
-target_classes = (2, 4, 5)
+target_classes = (2, 3, 4)
 colors = ("blue", "red", "green")
 markers = ("^", "s", "o")
 

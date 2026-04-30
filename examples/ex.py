@@ -1,11 +1,20 @@
 import numpy as np
 from sklearn.datasets import load_iris
-from icspylab import ICS, normal_crit, med_crit, plot_ics
+from icspylab import ICS, normal_crit, median_crit, unimodal_crit, plot_ics, dftu
 from icspylab.scatter import cov, cov4, covAxis, covW, mcd, tM, tcov, tcovAxis
+from icspylab.distributions import *
 
 # X_1d = np.random.randn(10)
 # s = tcovAxis(X_1d)
 # print(s)
+
+eps = [0.5, 0.5]
+mu = [np.ones(2), np.ones(2)*10]
+sigma = [np.eye(2) for _ in range(2)]
+
+X, labels = generate_gaussian_mixture(eps, mu, sigma, n=1000, p=6)
+plot_ics(X)
+
 
 
 X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
@@ -37,20 +46,24 @@ print(tcovAxis_X.scatter)
 iris = load_iris()
 X = iris.data
 
-ics = ICS()
-X_new = ics.fit_transform(X)
-plot_ics(X_new)
+stat, p = dftu(X[:,0])
+print(round(stat, 2), round(p, 2))
 
 ics = ICS(S1="cov", S2="cov4")
 X_new = ics.fit_transform(X)
 
-selection_res = normal_crit(X=X_new, W=ics.components_)
+plot_ics(X_new)
+
+selection_res = normal_crit(X=X, W=ics.components_)
 print(selection_res.info)
 
-selection_res = med_crit(kurtosis=ics.kurtosis_, W=ics.components_)
+selection_res = median_crit(kurtosis=ics.kurtosis_, W=ics.components_)
 print(selection_res.info)
 
-a=0
+selection_res = unimodal_crit(X=X, W=ics.components_)
+print(selection_res.info)
+
+
 # selection_res = normal_crit(ics.scores_, level=0.05,
 #             test="agostino_test",
 #             max_select=None)
