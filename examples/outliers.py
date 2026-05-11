@@ -14,11 +14,6 @@ s = (y == 2) + (y == 4)
 X = X.loc[s]
 y = y.loc[s]
 y = (y != 2).astype(np.int32)
-
-mask = X.notna().all(axis=1) & y.notna()
-X = X.loc[mask]
-y = y.loc[mask]
-
 print("X shape:", X.shape)
 
 # Features cleaning
@@ -27,7 +22,6 @@ cols_to_drop = zero_ratio[zero_ratio > 0.999].index
 print("Features to drop (more than 99.9% of 0 values):\n", cols_to_drop)
 X = X.drop(cols_to_drop, axis=1)
 print("X shape:", X.shape)
-
 
 # Train test split
 X_train, X_other, y_train, y_other = train_test_split(X, y, train_size=0.05, stratify=y, random_state=42)

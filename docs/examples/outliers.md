@@ -36,10 +36,6 @@ X = X.loc[s]
 y = y.loc[s]
 y = (y != 2).astype(np.int32)
 
-mask = X.notna().all(axis=1) & y.notna()
-X = X.loc[mask]
-y = y.loc[mask]
-
 print("X shape:", X.shape)
 ```
 
@@ -50,7 +46,7 @@ X shape: (286048, 54)
 The features contain a lot of dummy variables ``Soil_Type``. 
 The exploration of the features reveals that many of them contains almost only zeros.
 Such features may lead to nearly singular scatter matrices, which can affect the eigen decomposition underlying ICS.
-We decide to drop them to avoid any issues. 
+We decide to drop them to avoid any issues.
 
 ```python
 # Features cleaning
@@ -70,7 +66,7 @@ Features to drop (more than 99.9% of 0 values):
 X shape: (286048, 44)
 ```
 
-As the dataset contains over 280,000 samples, we have subsampled it to reduce the computational cost 
+As the dataset contains over 280,000 samples, we subsample it to reduce the computational cost 
 while maintaining class imbalance. We select 5% of the samples 
 for training and 5% for testing.
 
