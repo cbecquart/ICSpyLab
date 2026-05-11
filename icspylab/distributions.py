@@ -4,6 +4,8 @@ from scipy.stats import gamma, multivariate_t
 import warnings
 
 
+# --- Multivariate distributions ---
+
 def unifsphere(n, p):
     """
     Generate n vectors uniformly distributed on the unit sphere in dimension p.
@@ -94,6 +96,8 @@ def multivariate_powerexp(n, scatter, location=None, beta=1):
 
     return mvpowerexp
 
+
+# --- Elliptical mixtures ---
 
 def generate_gaussian_mixture(eps, mu, sigma, n, p):
     """
@@ -282,3 +286,45 @@ def generate_powerexp_mixture(eps, mu, sigma, beta, n, p):
     labels = np.array(labels)
 
     return data_with_noise, labels
+
+
+# --- RANDU ---
+
+def generate_randu(n=400, seed=1):
+    """
+    Generate a synthetic dataset based on the classical RANDU pseudo-random number generator.
+
+    RANDU is an obsolete linear congruential generator that is widely used as a benchmark example of poor randomness properties.
+
+    The implementation follows the standard definition described in the R datasets package manual.
+
+    Parameters:
+        n (int, default=400): Number of data points to generate.
+        seed (int, default=1): Seed of the generator.
+
+    Returns:
+        ndarray (n, 3)
+
+    References:
+        - Fortran Language Reference Manual (1999), Compaq.
+        - R Core Team (datasets package), https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/randu.html
+
+    Example:
+        >>> from icspylab.distributions import generate_randu
+        >>> X = generate_randu(n=100)
+        >>> print(X.shape)
+        (100, 3)
+    """
+
+    def randu():
+        nonlocal seed
+        seed = ((2 ** 16 + 3) * seed) % (2 ** 31)
+        return seed / (2 ** 31)
+
+    x = np.empty((n, 3), dtype=float)
+
+    for i in range(n):
+        U = np.array([randu() for _ in range(5)])
+        x[i, :] = np.round(U[:3], 6)
+
+    return x
