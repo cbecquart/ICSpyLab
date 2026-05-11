@@ -15,6 +15,7 @@ def plot_ics(scores, col_names=None, **kwargs):
 
     Parameters:
         scores (ndarray): results from an ICS transformation.
+        col_names (list): names of columns to plot.
 
     Example:
         >>> from sklearn.datasets import load_iris
@@ -39,7 +40,14 @@ def plot_ics(scores, col_names=None, **kwargs):
     if col_names is None:
         col_names_ = [f"IC_{i+1}" for i in range(X.shape[1])]
     else:
-        #todo: check input
+        if not isinstance(col_names, list):
+            raise TypeError(
+                f"'col_names' must be a list, got {type(col_names).__name__} instead."
+            )
+        if len(col_names) != X.shape[1]:
+            raise ValueError(
+                f"'col_names' must contain exactly {X.shape[1]} elements."
+            )
         col_names_ = col_names.copy()
     scores_df = pd.DataFrame(X, columns=col_names_)
 
@@ -52,7 +60,7 @@ def plot_ics(scores, col_names=None, **kwargs):
         cols = list(range(3)) + list(range(p-3, p))
         sns.pairplot(scores_df.iloc[:, cols], **kwargs)
 
-    plt.show() #todo: return plot or .show()
+    plt.show()
 
 
 def _plot_kurtosis(kurtosis, **kwargs):
