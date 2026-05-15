@@ -8,6 +8,7 @@ from sklearn.decomposition import PCA
 # Generate and plot the RANDU dataset
 
 X = generate_randu()
+print(X.shape)
 
 fig = plt.figure()
 ax = fig.add_subplot(projection="3d")
@@ -19,7 +20,6 @@ plt.close(fig)
 ics = ICS(S1='cov', S2='tcovAxis', algorithm='standard')
 X_ics = ics.fit_transform(X)
 plot_ics(X_ics)
-ics.plot_kurtosis()
 
 # Compute and plot the principal components
 pca = PCA(n_components=2)
@@ -33,5 +33,3 @@ plt.ylabel("Principal component 2")
 plt.axis("equal")
 plt.savefig("../docs/_static/randu_pca.png", dpi=200, bbox_inches="tight")
 plt.close()
-
-ics.describe()

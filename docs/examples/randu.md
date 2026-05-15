@@ -12,14 +12,20 @@ these dependencies, in contrast to variance-based approaches such as PCA.
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
-from icspylab import ICS
+from icspylab import ICS, plot_ics
 from icspylab.distributions import generate_randu
+from sklearn.decomposition import PCA
 ```
 
 The dataset is generated using the `generate_randu()` function.
 
 ```python
 X = generate_randu()
+print("X shape:", X.shape)
+```
+
+```text
+X shape: (400, 3)
 ```
 
 The plot below illustrates the generated RANDU dataset in three dimensions.
@@ -50,6 +56,29 @@ ics.plot()
 
 ```{image} ../_static/randu_ics.png
 :alt: ICS projection on the RANDU dataset
+:width: 500px
+:align: center
+```
+
+On the contrary, the underlying structure of RANDU is not visible on the first principal components. 
+
+```python
+# Compute the principal components
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X)
+
+# Plot the principal components
+plt.figure(figsize=(5, 5))
+plt.scatter(X_pca[:, 0], X_pca[:, 1], alpha=0.7)
+plt.title("PCA projection of the simulated dataset \n(first two components)")
+plt.xlabel("Principal component 1")
+plt.ylabel("Principal component 2")
+plt.axis("equal")
+plt.show()
+```
+
+```{image} ../_static/randu_pca.png
+:alt: PCA projection on the RANDU dataset
 :width: 500px
 :align: center
 ```
