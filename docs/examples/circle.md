@@ -12,6 +12,7 @@ coordinates, variance σ² on the first two components and 1 + σ² on the other
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 from icspylab import ICS, cov, tcov
 ```
 
@@ -71,8 +72,10 @@ figure below.
 
 ```python
 # PCA
+scaler = StandardScaler().set_output(transform="pandas")
+X_scaled = scaler.fit_transform(X)
 pca = PCA(n_components=2)
-X_pca = pca.fit_transform(X)
+X_pca = pca.fit_transform(X_scaled)
 
 # Plot PCA projection
 plt.figure(figsize=(5, 5))
@@ -95,12 +98,12 @@ in the first two components.
 
 ```python
 # ICS
-ics = ICS(S1=tcov, S2=cov, algorithm='standard')
-ics.fit_transform(X)
+ics = ICS(S1="tcov", S2="cov", algorithm="standard")
+X_ics = ics.fit_transform(X)
 
 # Plot ICS projection
 plt.figure(figsize=(5, 5))
-plt.scatter(ics.scores_[:, 0], ics.scores_[:, 1], alpha=0.7)
+plt.scatter(X_ics[:, 0], X_ics[:, 1], alpha=0.7)
 plt.title("ICS projection of the simulated dataset \n(first two components, TCOV–COV scatter pair)")
 plt.xlabel("Invariant component 1")
 plt.ylabel("Invariant component 2")
