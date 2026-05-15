@@ -126,32 +126,15 @@ def test_mcd_raw():
     assert scatter.location.shape == (5,)
     assert isinstance(scatter, Scatter)
 
-def test_tcov_cpp():
+def test_tcov():
     """
-    Test the tcov function for calculating Tcov, with use_cpp=True (default).
+    Test the tcov function for calculating Tcov.
 
     This test verifies that the tcov function correctly implements the Tcov scatter of the given data matrix.
-    It asserts that the scatter matrix has the correct shape
-    and that the location vector is None.
+    It asserts that the scatter matrix has the correct shape and that the location vector is None.
     """
     X = np.random.randn(20, 5)
-    scatter = tcov(X, use_cpp=True)
-
-    assert scatter.label == "Tcov"
-    assert scatter.scatter.shape == (5, 5)
-    assert scatter.location == None
-    assert isinstance(scatter, Scatter)
-
-def test_tcov_py():
-    """
-    Test the tcov function for calculating Tcov, with use_cpp=False.
-
-    This test verifies that the tcov function correctly implements the Tcov scatter of the given data matrix.
-    It asserts that the scatter matrix has the correct shape
-    and that the location vector is None.
-    """
-    X = np.random.randn(20, 5)
-    scatter = tcov(X, use_cpp=False)
+    scatter = tcov(X)
 
     assert scatter.label == "Tcov"
     assert scatter.scatter.shape == (5, 5)

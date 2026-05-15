@@ -299,18 +299,7 @@ def _tcov_numba(X, cov_inv, b):
     return V / denominator
 
 
-def _tcov_py(X, beta):
-    """Python implementation of tcov, optimized with Numba. In the paper, we have w(x) = exp(-x/2). But since we always
-    call w(beta * r^2), we instead set b = -beta/2 and use w(x) = exp(x)."""
-
-    # Initialize b and the inverse covariance
-    b = -beta / 2.0
-    cov_inv = np.linalg.inv(np.cov(X, rowvar=False))
-
-    return _tcov_numba(X, cov_inv, b)
-
-
-def tcov(X, beta=2, use_cpp=True):
+def tcov(X, beta=2):
     """
     Computes a pairwise one-step M-estimate of scatter with weights based on pairwise Mahalanobis distances.
     It can be interpreted as a `local` covariance matrix. Without the exponential term (or when beta=0), :math:`T_n` is
@@ -321,7 +310,6 @@ def tcov(X, beta=2, use_cpp=True):
     Parameters:
         X (array-like):  data
         beta (int or float > 0, default=2): positive numeric value specifying the tuning parameter of the tcov estimator. The optimal value depends on the data but it usually is between 1.5 and 2.5.
-        use_cpp (bool, default=True): whether to use the C++ implementation. If `use_cpp=True` (default), the code calls Andreas Alfons' C++ implementation. It is faster but requires a Python module compiled from the C++ source. Precompiled modules are included in ICSpyLab for Windows and Python versions 3.10–3.14. If the module is not available, the code issues a warning and continues with `use_cpp=False`, which calls a Numba routine instead. For help building the module, see `icspylab/tcov/README.md`.
 
     Returns:
         Scatter: An object containing the location(=None) and scatter matrix.
@@ -363,6 +351,10 @@ def tcov(X, beta=2, use_cpp=True):
 
         \\lVert x \\rVert_M^2 = x^\\top M x
 
+
+    The computation is optimized with Numba. In the paper, we have :math:`w(x) = exp(-x/2)`. But since we always
+    call :math:`w(beta * r^2)`, we instead set :math:`b = -beta/2` and use :math:`w(x) = exp(x)`.
+
     References:
         - Caussinus, H. and Ruiz-Gazen, A. (1993) Projection Pursuit and Generalized Principal Component Analysis. In Morgenthaler, S., Ronchetti, E., Stahel, W.A. (eds.) New Directions in Statistical Data Analysis and Robustness, 35-46. Monte Verita, Proceedings of the Centro Stefano Franciscini Ascona Series. Springer-Verlag.
         - Caussinus, H. and Ruiz-Gazen, A. (1995) Metrics for Finding Typical Structures by Means of Principal Component Analysis. In Data Science and its Applications, 177-192. Academic Press.
@@ -391,15 +383,11 @@ def tcov(X, beta=2, use_cpp=True):
 
     beta = float(beta)
 
-    # If use_cpp=True, tcov_module can't be None. Otherwise, proceed with use_cpp=False.
-    if use_cpp and (tcov_module is not None):
-        tcov_X = tcov_module.tcov_cpp(X, beta)
-    else:
-        if use_cpp:
-            raise ImportError('Requires tcov_module which is not available. For help building the module, see '
-                              '`icspylab/tcov/README.md`. Proceeding with `use_cpp=False`.')
-        warnings.warn('Use the C++ implementation for faster computations (`use_cpp=True`).')
-        tcov_X = _tcov_py(X, beta)         
+    # Initialize b and the inverse covariance
+    b = -beta / 2.0
+    cov_inv = np.linalg.inv(np.cov(X, rowvar=False))
+
+    tcov_X = _tcov_numba(X, cov_inv, b)
 
     return Scatter(location=None, scatter=tcov_X, label="Tcov")
 
