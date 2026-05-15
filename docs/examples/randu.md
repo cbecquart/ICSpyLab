@@ -10,14 +10,14 @@ The example highlights how ICS is able to identify informative directions associ
 these dependencies, in contrast to variance-based approaches such as PCA.
 
 ```python
-import numpy as np
-import matplotlib.pyplot as plt
 from icspylab import ICS, plot_ics
 from icspylab.distributions import generate_randu
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
 ```
 
-The dataset is generated using the `generate_randu()` function.
+The dataset is generated using the {func}`icspylab.distributions.generate_randu` function.
 
 ```python
 X = generate_randu()
@@ -49,9 +49,9 @@ Applying ICS yields the following invariant components, which clearly exhibit th
 on the last component. 
 
 ```python
-ics = ICS(S1='cov', S2='tcovAxis', algorithm='standard')
-ics.fit_transform(X)
-ics.plot()
+ics = ICS(S1="cov", S2="tcovAxis", algorithm="standard")
+X_ics = ics.fit_transform(X)
+plot_ics(X_ics)
 ```
 
 ```{image} ../_static/randu_ics.png
@@ -64,8 +64,11 @@ On the contrary, the underlying structure of RANDU is not visible on the first p
 
 ```python
 # Compute the principal components
+scaler = StandardScaler().set_output(transform="pandas")
+X_scaled = scaler.fit_transform(X)
+
 pca = PCA(n_components=2)
-X_pca = pca.fit_transform(X)
+X_pca = pca.fit_transform(X_scaled)
 
 # Plot the principal components
 plt.figure(figsize=(5, 5))
