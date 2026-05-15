@@ -80,7 +80,7 @@ class ICS(TransformerMixin, BaseEstimator):
     References:
         - Tyler, D.E., Critchley, F., Dumbgen, L. and Oja, H. (2009) Invariant Co-ordinate Selection. Journal of the Royal Statistical Society, Series B, 71(3), 549–592. doi:10.1111/j.14679868.2009.00706.x.
         - Nordhausen, K., Oja, H., & Tyler, D. E. (2008). Tools for exploring multivariate data: The package ICS. Journal of Statistical Software, 28, 1-31.
-        - For algorithm=='QR', refer to Archimbaud, A., Drmac, Z., Nordhausen, K., Radojcic, U. and Ruiz-Gazen, A. (2023) Numerical Considerations and a New Implementation for Invariant Coordinate Selection. SIAM Journal on Mathematics of Data Science, 5(1), 97–121. doi:10.1137/22M1498759.
+        - For algorithm = 'QR', refer to Archimbaud, A., Drmac, Z., Nordhausen, K., Radojcic, U. and Ruiz-Gazen, A. (2023) Numerical Considerations and a New Implementation for Invariant Coordinate Selection. SIAM Journal on Mathematics of Data Science, 5(1), 97–121. doi:10.1137/22M1498759.
 
     Example:
         >>> from sklearn.datasets import load_iris
@@ -169,9 +169,9 @@ class ICS(TransformerMixin, BaseEstimator):
                 self.algorithm = "standard"
 
         if hasattr(X, "columns"):
-            self.feature_names_in_ = np.array(X.columns)
+            feature_names_in = np.array(X.columns)
         else:
-            self.feature_names_in_ = None
+            feature_names_in = None
 
         X = validate_data(
             self,
@@ -184,6 +184,7 @@ class ICS(TransformerMixin, BaseEstimator):
             copy=False,
         )
 
+        self.feature_names_in_ = feature_names_in
         self.n_features_in_ = X.shape[1]
 
         # ICS method
@@ -335,7 +336,7 @@ class ICS(TransformerMixin, BaseEstimator):
         else:
             feature_names = self.feature_names_in_
 
-        print("\nICS based on two scatter matrices")
+        print("\nICS based on two scatter matrices:")
         print(f"S1: {self.S1_.__name__}")
         print(f"S1_args: {self.S1_args}")
         print(f"S2: {self.S2_.__name__}")

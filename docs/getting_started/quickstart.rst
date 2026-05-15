@@ -38,14 +38,14 @@ The output can be summarized using the `.describe()` method.
 
 .. code-block:: text
 
-    ICS based on two scatter matrices
+    ICS based on two scatter matrices:
     S1: cov
     S1_args: None
     S2: cov4
     S2_args: None
 
     Information on the algorithm:
-    algorithm: whiten
+    algorithm: eigh
     center: False
     fix_signs: scores
 
