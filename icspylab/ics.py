@@ -42,7 +42,7 @@ class ICS(TransformerMixin, BaseEstimator):
     Parameters:
         S1 (callable or str, default='cov'): First scatter estimator. If a string is provided, it must be one of the predefined scatter estimators (see the "Available scatter estimators" section below). Otherwise, it must be a callable returning a Scatter object.
         S2 (callable or str, default='cov4'): Second scatter estimator. If a string is provided, it must be one of the predefined scatter estimators (see the "Available scatter estimators" section below). Otherwise, it must be a callable returning a Scatter object.
-        algorithm ({'standard', 'whiten', 'QR'}, default='whiten'): The algorithm used for transformation.
+        algorithm ({'eigh', 'standard', 'whiten', 'QR'}, default='eigh'): The algorithm used for computing the invariant coordinates.
         center (bool, default=False): A logical indicating whether the invariant coordinates should be centered with respect to the first locattion or not. Centering is only applicable if the first scatter object contains a location component, otherwise this is set to False. Note that this only affects the scores of the invariant components (attribute `self.scores_`), but not the generalized kurtosis values (attribute `self.kurtosis_`).
         fix_signs({'scores', 'W'}, default='scores') How to fix the signs of the invariant coordinates. Possible values are 'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs based on the coefficient matrix of the linear transformation.
         S1_args (dict or None, default=None): Additional arguments for S1.
@@ -72,9 +72,10 @@ class ICS(TransformerMixin, BaseEstimator):
         - ``'tcovAxis'``: one-step pairwise M-estimator with the same weights as covAxis
 
     Supported algorithms:
-        1. standard: performs the spectral decomposition of the symmetric matrix :math:`S_1(X)^{-1/2}S_2(X)S_1(X)^{-1/2}`
-        2. whiten: whitens the data with respect to the first scatter matrix before computing the second scatter matrix.
-        3. QR: numerically stable algorithm based on the QR algorithm for a common family of scatter pairs: if S1 is cov(), and if S2 is one of cov4, covW, or covAxis. See Archimbaud et al. (2023) for details.
+        1. eigh: performs directly the simultaneous diagonalization of the two scatter matrices using scipy.linalg's function eigh(:math:`S_2(X)`, :math:`S_1(X)`)
+        2. standard: performs the spectral decomposition of the symmetric matrix :math:`S_1(X)^{-1/2}S_2(X)S_1(X)^{-1/2}`
+        3. whiten: whitens the data with respect to the first scatter matrix before computing the second scatter matrix.
+        4. QR: numerically stable algorithm based on the QR algorithm for a common family of scatter pairs: if S1 is cov(), and if S2 is one of cov4, covW, or covAxis. See Archimbaud et al. (2023) for details.
 
     References:
         - Tyler, D.E., Critchley, F., Dumbgen, L. and Oja, H. (2009) Invariant Co-ordinate Selection. Journal of the Royal Statistical Society, Series B, 71(3), 549–592. doi:10.1111/j.14679868.2009.00706.x.
@@ -95,7 +96,7 @@ class ICS(TransformerMixin, BaseEstimator):
     _parameter_constraints = {
         "S1": [StrOptions(set(_SCATTER_MAP.keys())), callable],
         "S2": [StrOptions(set(_SCATTER_MAP.keys())), callable],
-        "algorithm": [StrOptions({"whiten", "standard", "QR", "eigh"})],
+        "algorithm": [StrOptions({"eigh", "standard", "whiten", "QR"})],
         "center": ["boolean"],
         "fix_signs": [StrOptions({"scores", "W"})],
         "S1_args": [dict, None],
@@ -108,9 +109,9 @@ class ICS(TransformerMixin, BaseEstimator):
             self,
             S1="cov",
             S2="cov4",
-            algorithm='whiten',
+            algorithm="eigh",
             center=False,
-            fix_signs='scores',
+            fix_signs="scores",
             S1_args=None,
             S2_args=None,
             method_select=None,
@@ -391,7 +392,7 @@ class ICS(TransformerMixin, BaseEstimator):
             tuple: The first scatter matrix applied to the data, and its inverse square root
 
         Algorithms:
-            standard, whiten, QR
+            eigh, standard, whiten, QR
         """
 
         S1_args = {} if self.S1_args is None else self.S1_args
@@ -404,7 +405,7 @@ class ICS(TransformerMixin, BaseEstimator):
 
     def _compute_second_scatter(self, X):
         """
-        Apply the second scatter matrix either directly on the data (standard algorithm) or on the whitened data
+        Apply the second scatter matrix either directly on the data (eigh and standard algorithm) or on the whitened data
         (whiten algorithm).
 
         Parameters:
@@ -414,7 +415,7 @@ class ICS(TransformerMixin, BaseEstimator):
             Scatter: The second scatter matrix applied to the passed data.
 
         Algorithm:
-            standard, whiten
+            eigh, standard, whiten
         """
         S2_args = {} if self.S2_args is None else self.S2_args
         S2_X = self.S2_(X, **S2_args)
@@ -549,7 +550,7 @@ class ICS(TransformerMixin, BaseEstimator):
             ndarray: The centered data matrix
 
         Algorithm:
-            standard, whiten, QR
+            eig, standard, whiten, QR
         """
         T1_X = S1_X.location
         if T1_X is None:
@@ -571,7 +572,7 @@ class ICS(TransformerMixin, BaseEstimator):
             tuple: The final transformation matrix and skewness values.
 
         Algorithm:
-            standard, whiten, QR
+            eigh, standard, whiten, QR
         """
         if self.fix_signs == "scores":
             Z = np.dot(X, W.T)
@@ -600,7 +601,7 @@ class ICS(TransformerMixin, BaseEstimator):
             ndarray: Transformed matrix in which columns contain the scores of the selected invariant coordinates.
 
         Algorithm:
-            standard, whiten, QR
+            eigh, standard, whiten, QR
         """
 
         select_args = {} if self.select_args is None else self.select_args
