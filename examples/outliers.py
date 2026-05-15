@@ -136,7 +136,7 @@ plot_roc(ax=axes[1],
          y_test=y_test)
 
 plt.tight_layout()
-plt.savefig("../docs/_static/outliers_ROC2.png", dpi=200, bbox_inches="tight")
+plt.savefig("../docs/_static/outliers_ROC.png", dpi=200, bbox_inches="tight")
 plt.close()
 
 
@@ -157,7 +157,7 @@ plot_confusion(ax=axes[0, 1], y_pred_bin=y_pred_if_ics_bin, title="ICS + IF", cm
 plot_confusion(ax=axes[1, 1], y_pred_bin=y_pred_if_plain_bin, title="IF only", cmap=plt.cm.Oranges)
 
 plt.tight_layout()
-plt.savefig("../docs/_static/outliers_CM2.png", dpi=200, bbox_inches="tight")
+plt.savefig("../docs/_static/outliers_CM.png", dpi=200, bbox_inches="tight")
 plt.close()
 
 

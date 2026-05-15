@@ -305,9 +305,9 @@ print(f"F1 score ICS + IF: {f1_if_ics:.3f}")
 
 ```text
 F1 score LOF only: 0.010
-F1 score ICS + LOF: 0.157
+F1 score ICS + LOF: 0.160
 F1 score IF only: 0.050
-F1 score ICS + IF: 0.315
+F1 score ICS + IF: 0.458
 ```
 
 Adding ICS as a pre-processing step improves the area under the curve (AUC) for both LOF and Isolation 
