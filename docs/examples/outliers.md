@@ -1,27 +1,32 @@
 # Outlier detection
 
-This example illustrates how ICS can be a relevant preprocessing step for an 
-outlier detection problem. Indeed, ICS concentrates non-Gaussian structure into a reduced set of invariant 
-coordinates, which can then be exploited by standard outlier detection algorithms.
-This example also shows how easy it is to integrate ICS in a
-scikit learn pipeline. 
+This example illustrates how ICS can serve as an effective preprocessing step for outlier detection. 
+ICS constructs a new coordinate system in which anomalous observations become more separated from 
+the bulk of the data. By concentrating non-Gaussian structures into specific invariant coordinates, 
+ICS can make anomalies more visible and therefore easier to detect using standard outlier detection 
+algorithms. In some cases, removing invariant coordinates associated mainly with noise can further 
+improve outlier detection performance.
 
-The outlier detection algorithms we will analyse are [Local Outlier Factor](https://scikit-learn.org/stable/modules/outlier_detection.html#local-outlier-factor) 
-(LOF) and [Isolation Forest](https://scikit-learn.org/stable/modules/outlier_detection.html#isolation-forest)
-(IForest), both implemented in scikit-learn. 
-
-The problem we consider comes from the scikit-learn's [Evaluation of outlier detection estimators](https://scikit-learn.org/stable/auto_examples/miscellaneous/plot_outlier_detection_bench.html#forest-covertypes-dataset) 
-example.
+The problem we consider comes from scikit-learn’s [Evaluation of outlier detection estimators](https://scikit-learn.org/stable/auto_examples/miscellaneous/plot_outlier_detection_bench.html#forest-covertypes-dataset) 
+example. 
 The dataset is the [Forest covertypes](https://scikit-learn.org/stable/datasets/real_world.html#covtype-dataset) 
-dataset. It contains patches of forest and the target is the dominant species of tree in the patch.
-There are 54 features whose description is available online. 
-The prediction of the target variable is a multiclass classification problem, as there are 7
-covertypes. 
-However, following scikit-learn's [Evaluation of outlier detection estimators](https://scikit-learn.org/stable/auto_examples/miscellaneous/plot_outlier_detection_bench.html#forest-covertypes-dataset) 
-example, we will adapt the dataset to make it an outlier detection problem. 
-To do so, we consider the samples with label 2 to be the inliers, and the sample with label 4 to be the outliers.
-This setup creates a highly imbalanced problem with a clear distinction between a dominant class and rare anomalies, 
-which is well suited to evaluate outlier detection methods.
+dataset, which contains observations describing forest patches 
+together with the dominant tree species for each patch. It includes 54 features whose description is 
+available online. Originally, predicting the target variable is a multiclass classification problem 
+with 7 covertypes.
+
+Following the methodology of scikit-learn’s example, we adapt the dataset into an outlier detection 
+problem by considering observations with label 2 as inliers and observations with label 4 as outliers. 
+This setup creates a highly imbalanced problem with a clear distinction between a dominant class and 
+rare anomalies, which is well suited to evaluate outlier detection methods. The outlier detection 
+algorithms considered here are [Local Outlier Factor](https://scikit-learn.org/stable/modules/outlier_detection.html#local-outlier-factor) (LOF) 
+and [Isolation Forest](https://scikit-learn.org/stable/modules/outlier_detection.html#isolation-forest) (IForest).
+
+In this tutorial, we reproduce the scikit-learn example and extend it by introducing an ICS preprocessing 
+step before applying LOF and Isolation Forest. The goal is to assess whether expressing the data in ICS coordinates, 
+and optionally removing invariant coordinates associated mainly with noise, improves the detectability of outliers 
+compared with the original feature space.
+This example also demonstrates how easily ICS can be integrated into a standard machine learning pipeline.
 
 First, let us import the dataset, separate the features ``X`` and the target ``y`` and 
 encode the inliers (``y=0``) and outliers (``y=1``) to follow scikit-learn's evaluation conventions.
