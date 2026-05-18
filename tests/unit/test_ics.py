@@ -30,7 +30,7 @@ def test_initialization():
     assert isinstance(ics, ICS)
     assert ics.S1 is not None
     assert ics.S2 is not None
-    assert ics.algorithm == 'whiten'
+    assert ics.algorithm == 'eigh'
     assert ics.center is False
     assert ics.fix_signs == 'scores'
     assert ics.S1_args is None

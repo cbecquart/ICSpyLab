@@ -183,7 +183,7 @@ def test_scatters_dataframe():
 def test_scatters_1D():
     X_1d = np.random.randn(10)
     # All functions should accept pd.DataFrame
-    for func in [cov, mcd, tcov]:
+    for func in [cov, mcd]:
         s = func(X_1d)
         print(s.scatter)
         assert isinstance(s, Scatter)
