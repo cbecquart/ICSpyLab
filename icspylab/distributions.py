@@ -186,6 +186,9 @@ def generate_student_mixture(eps, mu, sigma, df, n, p):
     # Number of clusters k
     k = len(eps)
 
+    if isinstance(df, int):
+        df = [df for _ in range(k)]
+
     # Validate inputs
     assert np.isclose(sum(eps), 1.0), "The elements of eps must sum to 1."
     assert len(eps) > 0, "Proportions (eps) must contain at least one group."
