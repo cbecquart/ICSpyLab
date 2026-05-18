@@ -5,17 +5,21 @@ import matplotlib.pyplot as plt
 from sklearn.utils.validation import check_array
 
 
-def plot_ics(scores, col_names=None, **kwargs):
+def plot_ics(scores, y=None, col_names=None, **kwargs):
     """
-    Plots a scatterplot matrix of the component scores of an invariant coordinate system obtained via an ICS
-    transformation.
-    It plots the full scatterplot matrix of the components only if there are less than seven components. Otherwise, the
-    three first and three last components will be plotted. This is because the components with extreme kurtosis are the
-    most interesting ones.
+    Plots a scatterplot matrix of the component scores of an invariant
+    coordinate system obtained via an ICS transformation.
+
+    It plots the full scatterplot matrix of the components only if there
+    are less than seven components. Otherwise, the three first and three
+    last components will be plotted. This is because the components with
+    extreme kurtosis are the most interesting ones.
 
     Parameters:
-        scores (ndarray): results from an ICS transformation.
-        col_names (list): names of columns to plot.
+        scores (ndarray): Results from an ICS transformation.
+        y (array-like, optional): Labels used to color the points.
+        col_names (list, optional): Names of columns to plot.
+        **kwargs: Additional keyword arguments passed to sns.pairplot.
 
     Example:
         >>> from sklearn.datasets import load_iris
@@ -49,16 +53,49 @@ def plot_ics(scores, col_names=None, **kwargs):
                 f"'col_names' must contain exactly {X.shape[1]} elements."
             )
         col_names_ = col_names.copy()
+
     scores_df = pd.DataFrame(X, columns=col_names_)
 
-    p = scores_df.shape[1]
+    # Add labels for coloring
+    hue = None
+    palette = None
+    if y is not None:
+        y = np.asarray(y)
 
-    # Determine which components to plot (3 fist and 3 last components)
+        if len(y) != X.shape[0]:
+            raise ValueError(
+                f"'y' must contain exactly {X.shape[0]} elements."
+            )
+
+        scores_df["label"] = y
+        hue = "label"
+        palette = "deep"
+
+    p = scores_df.shape[1] - (1 if hue else 0)
+
+    # Determine which components to plot
     if p <= 6:
-        sns.pairplot(scores_df, **kwargs)
+        sns.pairplot(
+            scores_df,
+            hue=hue,
+            palette=palette,
+            **kwargs
+        )
     else:
-        cols = list(range(3)) + list(range(p-3, p))
-        sns.pairplot(scores_df.iloc[:, cols], **kwargs)
+        cols = (
+            [scores_df.columns[i] for i in range(3)] +
+            [scores_df.columns[i] for i in range(p - 3, p)]
+        )
+
+        if hue:
+            cols.append("label")
+
+        sns.pairplot(
+            scores_df[cols],
+            hue=hue,
+            palette=palette,
+            **kwargs
+        )
 
     plt.show()
 
