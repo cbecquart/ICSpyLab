@@ -8,12 +8,16 @@
 name: Upload Python Package
 
 on:
-  release:
-    types: [published]
+  pull_request:
+    branches:
+      - main
+      - master
   push:
     branches:
       - main
       - master
+  release:
+    types: [published]
 
 permissions:
   contents: read
