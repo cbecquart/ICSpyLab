@@ -5,18 +5,19 @@ import matplotlib.pyplot as plt
 from sklearn.utils.validation import check_array
 
 
-def plot_ics(scores, y=None, col_names=None, **kwargs):
+def plot_ics(scores, components="first_last", y=None, col_names=None, **kwargs):
     """
     Plots a scatterplot matrix of the component scores of an invariant
     coordinate system obtained via an ICS transformation.
 
     It plots the full scatterplot matrix of the components only if there
     are less than seven components. Otherwise, the three first and three
-    last components will be plotted. This is because the components with
+    last components will be plotted by default. This is because the components with
     extreme kurtosis are the most interesting ones.
 
     Parameters:
         scores (ndarray): Results from an ICS transformation.
+        components ({"first_last", "first"}, default: "first_last"): If p>6, plot either the 3 first and 3 last components (default) or the first 6 components ("first").
         y (array-like, optional): Labels used to color the points.
         col_names (list, optional): Names of columns to plot.
         **kwargs: Additional keyword arguments passed to sns.pairplot.
@@ -40,6 +41,14 @@ def plot_ics(scores, y=None, col_names=None, **kwargs):
         ensure_min_features=2,
         copy=False,
     )
+
+    valid_components = {"first_last", "first"}
+
+    if components not in valid_components:
+        raise ValueError(
+            f"Invalid value for `components`: {components}. "
+            f"Expected one of {valid_components}."
+        )
 
     if col_names is None:
         col_names_ = [f"IC_{i+1}" for i in range(X.shape[1])]
@@ -82,10 +91,13 @@ def plot_ics(scores, y=None, col_names=None, **kwargs):
             **kwargs
         )
     else:
-        cols = (
-            [scores_df.columns[i] for i in range(3)] +
-            [scores_df.columns[i] for i in range(p - 3, p)]
-        )
+        if components == "first_last":
+            cols = (
+                [scores_df.columns[i] for i in range(3)] +
+                [scores_df.columns[i] for i in range(p - 3, p)]
+            )
+        else:
+            cols = [scores_df.columns[i] for i in range(6)]
 
         if hue:
             cols.append("label")
