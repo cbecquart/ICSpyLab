@@ -8,8 +8,6 @@ from icspylab.scatter import cov, cov4
 from icspylab.ics import ICS
 
 
-path = "2_viz_output/"
-
 def create_ellipse_points(loc, cov):
     """
     Creates points to draw the ellipse of a distribution.
