@@ -1,12 +1,12 @@
 # Circular structure example
 
 This example is adapted from Caussinus et al. (2023), which is itself 
-similar to example 4.3 from Caussinus and Ruiz (1995).  
+similar to Example 4.3 from Caussinus and Ruiz (1995).  
 
 In the plane of the first two coordinates, points are generated according 
-to a uniform distribution on the circle with centre 0 and radius sqrt(2). 
-Noise is then added, following a normal distribution with p independent 
-coordinates, variance σ² on the first two components and 1 + σ² on the others.
+to a uniform distribution on the circle with centre $0$ and radius $sqrt(2)$. 
+Noise is then added, following a normal distribution with $p$ independent 
+coordinates, variance $σ^2$ on the first two components and $1 + σ^2$ on the others.
 
 ```python
 import numpy as np
@@ -16,7 +16,7 @@ from sklearn.preprocessing import StandardScaler
 from icspylab import ICS, cov, tcov
 ```
 
-The example specifies p = 4, σ = 0.2 and n = 500 points. 
+The example specifies $p = 4$, $σ = 0.2$ and $n = 500$ points. 
 
 ```python
 p = 4
@@ -67,7 +67,7 @@ plt.show()
 ```
 
 Given the way the data is simulated, the covariance matrix is of the form 
-(1 + σ²)I, so PCA results in arbitrary projections, as shown in the 
+$(1 + σ^2)I$, so PCA results in arbitrary projections, as shown in the 
 figure below.  
 
 ```python

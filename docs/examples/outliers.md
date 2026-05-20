@@ -130,8 +130,10 @@ scores_lof_plain, y_pred_plain_bin = fit_predict_scores(lof_plain, X_train, X_te
 ```
 
 The second pipeline includes another preprocessing step before the standardization. It calls
-ICS to compute the invariant components and reduce the dimension with the ``median_crit`` criterion:
-it selects invariant components associated with extreme generalized kurtosis values.
+ICS to compute the invariant components and reduce the dimension with the 
+{py:func}`icspylab.comp_select.median_crit` criterion:
+it selects invariant components associated with extreme generalized kurtosis values. The default 
+{py:func}`icspylab.comp_select.median_crit` criterion keeps $p-1$ components. 
 ICS is affine invariant, but we still apply scaling afterward to ensure that the downstream LOF 
 algorithm operates on standardized invariant coordinates.
 
@@ -147,6 +149,12 @@ lof_ics = Pipeline([
 
 scores_lof_ics, y_pred_ics_bin = fit_predict_scores(lof_ics, X_train, X_test)
 ```
+
+## Hyperparameter optimization
+
+The code chunk below illustrates how to perform hyperparameter optimization of the pipeline using 
+``GridSearchCV`` and ``StratifiedKFold``. The implementation of ``ICS`` is fully compatible with these tools, 
+making it possible to jointly optimize the hyperparameters of both ICS and LOF within a single pipeline.
 
 Although hyperparameter tuning can be performed using cross-validation, we do not rely on it in this example.
 The dataset exhibits a very low contamination rate (≈1%), which makes cross-validation unstable: some folds may 
@@ -170,7 +178,8 @@ test set.
 #     return f1_score(y, y_pred_bin)
 #
 # param_grid = {
-#     "ics__select_args": [{"nb_select": 5}, {"nb_select": 10}, {"nb_select": 20}, {"nb_select": n_features - 1}]
+#     "ics__select_args": [{"nb_select": 5}, {"nb_select": 10}, {"nb_select": 20}, {"nb_select": n_features - 1}],
+#     "lof__n_neighbors": [20, 50, 100, 150],
 # }
 #
 # lof_ics_grid = GridSearchCV(
@@ -313,7 +322,7 @@ F1 score ICS + IF: 0.458
 Adding ICS as a pre-processing step improves the area under the curve (AUC) for both LOF and Isolation 
 Forest analysis. However, due to the strong class imbalance, ROC curves may provide an overly optimistic 
 view of performance. Precision-recall-oriented metrics such as the F1 score are more informative in this setting.
-It rises from 0.010 to 0.157 for LOF and from 0.050 to 0.315 for Isolation Forest. 
+It rises from 0.010 to 0.160 for LOF and from 0.050 to 0.458 for Isolation Forest. 
 The confusion matrices further demonstrate that ICS helps to detect many more anomalies while only moderately 
 increasing the number of false positives, particularly in the case of Isolation Forest. 
 

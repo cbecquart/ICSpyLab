@@ -11,7 +11,7 @@ the invariant components. As we will see, the ``method_select`` parameter allows
 selection strategy directly into the ICS fitting procedure.
 
 We start start with some data exploration, we apply ICS with the scatter pair COV-COV4 on the Iris dataset.
-By default, ``method_select``=None and all invariant components are kept.
+By default, ``method_select = None`` and all invariant components are kept.
 
 .. code-block:: python
 
@@ -49,26 +49,26 @@ If you just need a one-shot usage you can simply apply the selection method on t
     Shape after ICS and manual component selection: (150,)
 
 
-While manual slicing of ``X_ics`` is sufficient for exploratory analysis, integrating the selection step into the :class:`icspylab.ICS`
+While manual slicing of ``X_ics`` is sufficient for exploratory analysis, integrating the selection step into the :class:`~icspylab.ics.ICS`
 estimator is recommended when building pipelines or performing model selection. To do so, recall that the ``method_select``
-parameter of an :class:`icspylab.ics.ICS` instance is
-(if not None) a callable returning a :class:`icspylab.comp_select.ComponentSelect` object.
-The :class:`ComponentSelect` object acts as a container describing which invariant components are retained and how they map
-back to the original feature space. Each :class:`ComponentSelect` has the
-following attributes: :attr:`icspylab.comp_select.ComponentSelect.label`,
-:attr:`icspylab.comp_select.ComponentSelect.components`,
-:attr:`icspylab.comp_select.ComponentSelect.n_components`,
-:attr:`icspylab.comp_select.ComponentSelect.component_names`,
-:attr:`icspylab.comp_select.ComponentSelect.info`.
+parameter of an ``ICS`` instance is
+(if not ``None``) a callable returning a :class:`~icspylab.comp_select.ComponentSelect` object.
+The ``ComponentSelect`` object acts as a container describing which invariant components are retained and how they map
+back to the original feature space. Each ``ComponentSelect`` has the
+following attributes: :attr:`~icspylab.comp_select.ComponentSelect.label`,
+:attr:`~icspylab.comp_select.ComponentSelect.components`,
+:attr:`~icspylab.comp_select.ComponentSelect.n_components`,
+:attr:`~icspylab.comp_select.ComponentSelect.component_names`,
+:attr:`~icspylab.comp_select.ComponentSelect.info`.
 
-After the component computation, during the component selection step of the ICS :meth:`icspylab.ics.ICS.fit` method,
+After the component computation, during the component selection step of the ICS :meth:`~icspylab.ics.ICS.fit` method,
 ``method_select`` is called with the following parameters:
 
 - ``X`` (ndarray): Data to fit the ICS model, where rows are samples and columns are features.
 - ``W`` (ndarray): Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
 - ``kurtosis`` (ndarray): Generalized kurtosis values.
 - ``skewness`` (ndarray): Skewness values.
-- ``**select_args``: Other arguments from the parameter ``select_args`` of the :class:`ICS` object.
+- ``**select_args``: Other arguments from the parameter ``select_args`` of the ``ICS`` object.
 
 The method to select the last component is then:
 

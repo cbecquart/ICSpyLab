@@ -9,7 +9,7 @@ Example 1: Fit and transform ICS
 --------------------------------
 
 This first example shows how to instantiate an ICS object to compute the invariant components.
-The output can be summarized using the `.describe()` method.
+The output can be summarized using the :meth:`icspylab.ics.ICS.describe` method.
 
 .. code-block:: python
 
@@ -71,8 +71,9 @@ The output can be summarized using the `.describe()` method.
 Example 2: Plotting functionalities
 -----------------------------------
 
-This example illustrates how to plot the transformed data (invariant components) and the kurtosis of the invariant
-components, which correspond to the eigenvalues of the joint diagonalization problem.
+This example illustrates how to plot the transformed data (invariant components) using :func:`icspylab.plot.plot_ics`,
+and the kurtosis of the invariant components (corresponding to the eigenvalues of the joint diagonalization problem)
+using :meth:`~icspylab.ics.ICS.plot_kurtosis`.
 
 .. code-block:: python
 

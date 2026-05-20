@@ -72,7 +72,8 @@ scores_lof_ics, y_pred_ics_bin = fit_predict_scores(lof_ics, X_train, X_test)
 #     return f1_score(y, y_pred_bin)
 #
 # param_grid = {
-#     "ics__select_args": [{"nb_select": 5}, {"nb_select": 10}, {"nb_select": 20}, {"nb_select": n_features - 1}]
+#     "ics__select_args": [{"nb_select": 5}, {"nb_select": 10}, {"nb_select": 20}, {"nb_select": n_features - 1}],
+#     "lof__n_neighbors": [20, 50, 100, 150],
 # }
 #
 # lof_ics_grid = GridSearchCV(

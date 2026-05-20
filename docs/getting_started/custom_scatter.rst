@@ -4,7 +4,7 @@ Custom Scatter
 ==============
 
 This section provides an example showing how to define and use a custom scatter
-operator with ICS, using the :class:`icspylab.scatter.Scatter` class.
+operator with ICS, using the :class:`~icspylab.scatter.Scatter` class.
 
 Suppose you want to apply ICS with the Minimum Covariance Determinant (MCD)
 scatter, and you did not realize that it is already implemented in ``ICSpyLab``.
@@ -39,11 +39,11 @@ below illustrates how to compute the MCD scatter on the Iris dataset.
 
 
 We can now use this scatter to apply ICS. Recall that the scatter parameters of an
-:class:`icspylab.ics.ICS` instance (``S1`` and ``S2``) must be callables returning a
-:class:`icspylab.scatter.Scatter` object. Each :class:`Scatter` object provides three attributes:
-:attr:`icspylab.scatter.Scatter.location`,
-:attr:`icspylab.scatter.Scatter.scatter`, and
-:attr:`icspylab.scatter.Scatter.label`.
+:class:`~icspylab.ics.ICS` instance (``S1`` and ``S2``) must be callables returning a
+:class:`~icspylab.scatter.Scatter` object. Each ``Scatter`` object provides three attributes:
+:attr:`~icspylab.scatter.Scatter.location`,
+:attr:`~icspylab.scatter.Scatter.scatter`, and
+:attr:`~icspylab.scatter.Scatter.label`.
 
 Below, we define a function computing the MCD scatter, which we will use as
 ``S1``:
