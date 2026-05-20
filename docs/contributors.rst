@@ -3,20 +3,19 @@ Contributors
 
 The following individuals have contributed to the development of the ICSpyLab package:
 
-Python Package Authors
----------------------------
-
+Python Package Author
+---------------------
 - `Colombe Becquart <https://orcid.org/0009-0003-0790-3720>`_ [aut, cre]
-- Abdallah Abdelsameia [aut]
+
+Python Package Maintainer
+-------------------------
+- Colombe Becquart
 
 Python Package Contributors
 ---------------------------
+- Abdallah Abdelsameia
 - `Aurore Archimbaud <https://orcid.org/0000-0002-6511-9091>`_
 - `Anne M. Ruiz <https://orcid.org/0000-0001-8970-8061>`_
-
-Python Package Maintainer
----------------------------
-- Colombe Becquart
 
 Original R Package Authors
 ---------------------------
@@ -28,6 +27,5 @@ Original R Package Authors
 - David E. Tyler [aut]
 
 Contact Information
-===================
-
-For questions or feedback, please contact Colombe Becquart or open an issue on `Github <https://github.com/cbecquart/ICSpyLab>`_.
+-------------------
+For questions or feedback, please contact Colombe Becquart or open an issue on `Github <https://github.com/cbecquart/ICSpyLab/issues>`_.

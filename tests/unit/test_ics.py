@@ -1,10 +1,21 @@
 """
 Unit tests for the ICS class in the ICSpyLab package.
 """
-import numpy as np
 
-from . import *
+import logging
+import pytest
+import numpy as np
+from sklearn.exceptions import NotFittedError
+from sklearn.utils.estimator_checks import check_estimator
+from icspylab import ICS, cov, covW, covAxis, cov4, normal_crit, median_crit, unimodal_crit
+from tests.fixtures import run_py_ics
+from tests.settings import algorithm, center, fix_signs
+
 logger = logging.getLogger(__name__)
+
+
+def test_ics_sklearn_compatible():
+    check_estimator(ICS())
 
 
 # Section: Initialization Tests
@@ -19,65 +30,85 @@ def test_initialization():
     assert isinstance(ics, ICS)
     assert ics.S1 is not None
     assert ics.S2 is not None
-    assert ics.algorithm == 'whiten'
+    assert ics.algorithm == 'eigh'
     assert ics.center is False
     assert ics.fix_signs == 'scores'
-    assert ics.S1_args == {}
-    assert ics.S2_args == {}
-    assert ics.W_ is None
-    assert ics.scores_ is None
-    assert ics.kurtosis_ is None
-    assert ics.skewness_ is None
-    assert ics.feature_names_in_ is None
-    assert ics.S1_X_ is None
+    assert ics.S1_args is None
+    assert ics.S2_args is None
+    assert ics.method_select is None
+    assert ics.select_args is None
 
 
 def test_S1_as_matrix():
     """
     Test the type of S1 argument.
 
-    The test verifies that an error is raised if S1 a numpy array.
+    The test verifies that a TypeError is raised if S1 a numpy array.
 
     """
     X = np.random.randn(100, 5)
-    cov_matrix = np.cov(X.T)
-    with pytest.raises(AssertionError, match="S1 must be a function returning a Scatter object."):
-        ICS(S1=cov_matrix)
+    cov_matrix = np.cov(X, rowvar=False)
+    ics = ICS(S1=cov_matrix)
+
+    with pytest.raises(TypeError):
+        ics.fit(X)
 
 
 def test_S1_as_string():
     """
     Test the type of S1 argument.
 
-    The test verifies that an error is raised if S1 a character string.
+    The test verifies that a TypeError is raised if S1 an unknown character string.
 
     """
-    with pytest.raises(AssertionError, match="S1 must be a function returning a Scatter object."):
-        ICS(S1="cov")
+    X = np.random.randn(10, 3)
+    ics = ICS(S1="coconut")
+
+    with pytest.raises(ValueError):
+        ics.fit(X)
 
 
 def test_S2_as_matrix():
     """
     Test the type of S2 argument.
 
-    The test verifies that an error is raised if S2 a numpy array.
+    The test verifies that a TypeError is raised if S2 a numpy array.
 
     """
     X = np.random.randn(100, 5)
-    cov_matrix = np.cov(X.T)
-    with pytest.raises(AssertionError, match="S2 must be a function returning a Scatter object."):
-        ICS(S2=cov_matrix)
+    cov_matrix = np.cov(X, rowvar=False)
+    ics = ICS(S2=cov_matrix)
+
+    with pytest.raises(TypeError):
+        ics.fit(X)
 
 
 def test_S2_as_string():
     """
     Test the type of S2 argument.
 
-    The test verifies that an error is raised if S2 a character string.
+    The test verifies that a TypeError is raised if S2 an unknown character string.
 
     """
-    with pytest.raises(AssertionError, match="S2 must be a function returning a Scatter object."):
-        ICS(S2="cov")
+    X = np.random.randn(10, 3)
+    ics = ICS(S2="coconut")
+
+    with pytest.raises(ValueError):
+        ics.fit(X)
+
+
+def test_method_select_as_string():
+    """
+    Test the type of method_select argument.
+
+    The test verifies that a TypeError is raised if method_select an unknown character string.
+
+    """
+    X = np.random.randn(10, 3)
+    ics = ICS(method_select="coconut")
+
+    with pytest.raises(ValueError):
+        ics.fit(X)
 
 
 def test_invalid_scatters_for_QR():
@@ -87,8 +118,10 @@ def test_invalid_scatters_for_QR():
     This test verifies that ICS initialization raises a warning when the algorithm is "QR" and the scatter matrices are
     invalid for "QR", then is checks that the code continues with algorithm = "standard".
     """
+    X = np.random.randn(100, 5)
+    ics = ICS(S1=covW, S2=cov, algorithm="QR")
     with pytest.warns(UserWarning, match="QR algorithm is not applicable; proceeding with the standard algorithm"):
-        ics = ICS(S1=covW, S2=cov, algorithm="QR")
+        ics.fit(X)
     assert ics.algorithm == 'standard'
 
 def test_invalid_algorithm_error():
@@ -97,11 +130,11 @@ def test_invalid_algorithm_error():
 
     This test verifies that the ICS initialization raises a ValueError when an invalid algorithm name is provided.
     """
-    invalid_algorithm = ''.join(random.choices(string.ascii_letters + string.digits, k=np.random.randint(1, 10)))
-    while invalid_algorithm in ['whiten', 'standard', 'QR']:  # ensure the random string is not a valid algorithm name
-        invalid_algorithm = ''.join(random.choices(string.ascii_letters + string.digits, k=np.random.randint(1, 10)))
-    with pytest.raises(AssertionError, match="algorithm must be one of \['whiten', 'standard', 'QR'\]"):
-        ICS(algorithm=invalid_algorithm)
+    X = np.random.randn(10, 3)
+    ics = ICS(algorithm="coconut")
+
+    with pytest.raises(ValueError, match="must be a str among"):
+        ics.fit(X)
 
 
 def test_invalid_fix_signs_error():
@@ -110,11 +143,11 @@ def test_invalid_fix_signs_error():
 
     This test verifies that the ICS initialization raises a ValueError when an invalid fix_signs value is provided.
     """
-    invalid_fix_signs = ''.join(random.choices(string.ascii_letters + string.digits, k=np.random.randint(1, 5)))
-    while invalid_fix_signs in ['scores', 'W']:  # ensure the random string is not a valid fix_signs name
-        invalid_fix_signs = ''.join(random.choices(string.ascii_letters + string.digits, k=np.random.randint(1, 10)))
-    with pytest.raises(AssertionError, match="fix_signs must be one of \['scores', 'W'\]"):
-        ICS(fix_signs=invalid_fix_signs)
+    X = np.random.randn(10, 3)
+    ics = ICS(fix_signs="coconut")
+
+    with pytest.raises(ValueError, match="must be a str among"):
+        ics.fit(X)
 
 
 # Section: Fit Method Tests
@@ -123,15 +156,145 @@ def test_fit_method():
     Test the fit method of the ICS class.
 
     This test verifies that the fit method processes the input data correctly,
-    and sets the transformation matrix W, and kurtosis attributes, but not the scores.
+    and sets the transformation matrix W, and kurtosis attributes.
     """
     ics = ICS()
     X = np.random.randn(100, 5)
     ics.fit(X)
     assert isinstance(ics, ICS)
-    assert ics.W_ is not None
+    assert ics.components_ is not None
+    assert ics.n_components_ is not None
+    assert ics.component_names_ is not None
     assert ics.kurtosis_ is not None
-    assert ics.scores_ is None
+
+    # Compare fit results with method_select = None
+    ics2 = ICS()
+    ics2.fit(X)
+    assert isinstance(ics2, ICS)
+    np.testing.assert_array_equal(ics.components_, ics2.components_)
+    assert ics.n_components_ == ics2.n_components_
+    assert ics.component_names_ == ics2.component_names_
+    np.testing.assert_array_equal(ics.kurtosis_, ics2.kurtosis_)
+
+
+def test_fit_method_normal_crit_str():
+    """
+    Test the fit method of the ICS class with method_select = "normal".
+
+    This test verifies that the fit method processes the input data correctly,
+    and sets the transformation matrix W, and kurtosis attributes.
+    """
+    ics = ICS(method_select="normal")
+    X = np.random.randn(100, 5)
+    ics.fit(X)
+    assert isinstance(ics, ICS)
+    assert ics.components_ is not None
+    assert ics.n_components_ is not None
+    assert ics.component_names_ is not None
+    assert ics.kurtosis_ is not None
+    assert ics.n_components_ <= X.shape[1]
+    assert ics.n_components_ == ics.components_.shape[0]
+    assert ics.criteria_out_ is not None
+
+
+def test_fit_method_normal_crit():
+    """
+    Test the fit method of the ICS class with method_select = normal_crit.
+
+    This test verifies that the fit method processes the input data correctly,
+    and sets the transformation matrix W, and kurtosis attributes.
+    """
+    ics = ICS(method_select=normal_crit)
+    X = np.random.randn(100, 5)
+    ics.fit(X)
+    assert isinstance(ics, ICS)
+    assert ics.components_ is not None
+    assert ics.n_components_ is not None
+    assert ics.component_names_ is not None
+    assert ics.kurtosis_ is not None
+    assert ics.n_components_ <= X.shape[1]
+    assert ics.n_components_ == ics.components_.shape[0]
+    assert ics.criteria_out_ is not None
+
+
+def test_fit_method_unimodal_crit_str():
+    """
+    Test the fit method of the ICS class with method_select = "unimodal".
+
+    This test verifies that the fit method processes the input data correctly,
+    and sets the transformation matrix W, and kurtosis attributes.
+    """
+    ics = ICS(method_select="unimodal")
+    X = np.random.randn(100, 5)
+    ics.fit(X)
+    assert isinstance(ics, ICS)
+    assert ics.components_ is not None
+    assert ics.n_components_ is not None
+    assert ics.component_names_ is not None
+    assert ics.kurtosis_ is not None
+    assert ics.n_components_ <= X.shape[1]
+    assert ics.n_components_ == ics.components_.shape[0]
+    assert ics.criteria_out_ is not None
+
+
+def test_fit_method_unimodal_crit():
+    """
+    Test the fit method of the ICS class with method_select = unimodal_crit.
+
+    This test verifies that the fit method processes the input data correctly,
+    and sets the transformation matrix W, and kurtosis attributes.
+    """
+    ics = ICS(method_select=unimodal_crit)
+    X = np.random.randn(100, 5)
+    ics.fit(X)
+    assert isinstance(ics, ICS)
+    assert ics.components_ is not None
+    assert ics.n_components_ is not None
+    assert ics.component_names_ is not None
+    assert ics.kurtosis_ is not None
+    assert ics.n_components_ <= X.shape[1]
+    assert ics.n_components_ == ics.components_.shape[0]
+    assert ics.criteria_out_ is not None
+
+
+def test_fit_method_median_crit_str():
+    """
+    Test the fit method of the ICS class with method_select = "median".
+
+    This test verifies that the fit method processes the input data correctly,
+    and sets the transformation matrix W, and kurtosis attributes.
+    """
+    ics = ICS(method_select="median")
+    X = np.random.randn(100, 5)
+    ics.fit(X)
+    assert isinstance(ics, ICS)
+    assert ics.components_ is not None
+    assert ics.n_components_ is not None
+    assert ics.component_names_ is not None
+    assert ics.kurtosis_ is not None
+    assert ics.n_components_ < X.shape[1]
+    assert ics.n_components_ == ics.components_.shape[0]
+    assert ics.criteria_out_ is not None
+
+
+def test_fit_method_median_crit():
+    """
+    Test the fit method of the ICS class with method_select = median_crit.
+
+    This test verifies that the fit method processes the input data correctly,
+    and sets the transformation matrix W, and kurtosis attributes.
+    """
+    ics = ICS(method_select=median_crit)
+    X = np.random.randn(100, 5)
+    ics.fit(X)
+    assert isinstance(ics, ICS)
+    assert ics.components_ is not None
+    assert ics.n_components_ is not None
+    assert ics.component_names_ is not None
+    assert ics.kurtosis_ is not None
+    assert ics.n_components_ < X.shape[1]
+    assert ics.n_components_ == ics.components_.shape[0]
+    assert ics.criteria_out_ is not None
 
 
 # Section: Transform Method Tests
@@ -148,7 +311,7 @@ def test_transform_method():
     transformed_data = ics.transform(X)
     assert isinstance(ics, ICS)
     assert transformed_data.shape == X.shape
-    with pytest.raises(ValueError):
+    with pytest.raises(NotFittedError):
         ics_unfitted = ICS()
         ics_unfitted.transform(X)
 
@@ -168,38 +331,16 @@ def test_fit_transform_method():
     assert transformed_data.shape == X.shape
 
 
-# Section: Describe Method Tests
-# def test_describe_method(capsys):
-#     """
-#     Test the describe method of the ICS class.
-#
-#     This test verifies that the describe method correctly prints a summary of the ICS model,
-#     including the algorithm, centering option, sign fixing method, generalized kurtosis,
-#     transformation matrix, transformed data, and skewness.
-#     """
-#     ics = ICS()
-#     X = np.random.randn(100, 5)
-#     ics.fit_transform(X)
-#     ics.describe()
-#     captured = capsys.readouterr()
-#     assert "ICS Summary" in captured.out
-#     assert "Algorithm" in captured.out
-#     assert "Generalized Kurtosis" in captured.out
-#     assert "Transformation Matrix (W_)" in captured.out
-#     assert "Transformed Data (Scores)" in captured.out
+def test_empty_dataset():
+    """
+    Test the fit method with an empty dataset.
 
-
-# Section: Edge Case Tests
-# def test_empty_dataset():
-#     """
-#     Test the fit method with an empty dataset.
-#
-#     This test verifies that the fit method raises a ValueError when the input data is empty.
-#     """
-#     ics = ICS()
-#     X = np.array([]).reshape(0, 5)
-#     with pytest.raises(ValueError):
-#         ics.fit(X)
+    This test verifies that the fit method raises a ValueError when the input data is empty.
+    """
+    ics = ICS()
+    X = np.array([]).reshape(0, 5)
+    with pytest.raises(ValueError):
+        ics.fit(X)
 
 
 def test_large_dataset():
@@ -210,9 +351,9 @@ def test_large_dataset():
     """
     ics = ICS()
     X = np.random.randn(10000, 10)
-    ics.fit_transform(X)
-    assert ics.W_ is not None
-    assert ics.scores_ is not None
+    X_new = ics.fit_transform(X)
+    assert ics.components_ is not None
+    assert X_new is not None
     assert ics.kurtosis_ is not None
 
 
@@ -228,7 +369,7 @@ def test_single_variable_error(run_py_ics, algorithm, center, fix_signs):
     """
     X_single_var = np.random.randn(100, 1)  # 100 samples, 1 feature
     params = {}
-    with pytest.raises(ValueError, match="X must be at least bi-variate"):
+    with pytest.raises(ValueError, match="minimum of 2"):
         run_py_ics(X=X_single_var, algorithm=algorithm, center=center, fix_signs=fix_signs, **params)
 
 
@@ -244,7 +385,7 @@ def test_missing_values_error(run_py_ics, algorithm, center, fix_signs):
     X_missing_values = np.random.randn(100, 5)
     X_missing_values[0, 0] = np.nan
     params = {}
-    with pytest.raises(ValueError, match="Missing values are not allowed in X"):
+    with pytest.raises(ValueError, match="NaN"):
         run_py_ics(X=X_missing_values, algorithm=algorithm, center=center, fix_signs=fix_signs, **params)
 
 

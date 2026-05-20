@@ -1,32 +1,37 @@
-"""
-Module containing the main Invariant Coordinate Selection (ICS) Class and associated methods.
-
-The ICS class provides methods to fit the ICS model from the data, transform data using the model,
-and provide a detailed summary of the results. This module relies on scatter matrices
-(defined in the Scatter page). The ICS class supports three different
-algorithms for applying ICS to data: ('standard', 'whiten', and 'QR'), which can be specified
-as parameters during instantiation. Additional options such as the choice of scatter matrices,
-centering the data, and fixing the signs can also be defined.
-
-This implementation is based on the function ICS-S3 from the R package `ICS <https://cran.r-project.org/web/packages/ICS/index.html>`_.
-For more details about the supported algorithms and 'fix_signs' argument, see the R package
-`documentation <https://cran.r-project.org/web/packages/ICS/ICS.pdf>`_ (function ICS-S3).
-"""
-
-
 import numpy as np
-import pandas as pd
 import warnings
-from scipy.linalg import qr
+from scipy.linalg import qr, eigh
 from numpy.linalg import multi_dot
 
-from .scatter import Scatter, cov, covW, covAxis, cov4
+from .scatter import Scatter, cov, covW, covAxis, cov4, mcd, tM, tcov, tcovAxis
+from .comp_select import ComponentSelect, normal_crit, unimodal_crit, median_crit
 from .utils import sort_eigenvalues_eigenvectors, sqrt_symmetric_matrix, _sign_max, _check_gen_kurtosis
-from .plot import plot_scores, _plot_kurtosis
+from .plot import _plot_kurtosis
+
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.utils.validation import check_is_fitted, validate_data, check_array
+from sklearn.utils._param_validation import StrOptions
 
 
+_SCATTER_MAP = {
+    "cov": cov,
+    "cov4": cov4,
+    "covAxis": covAxis,
+    "covW": covW,
+    "mcd": mcd,
+    "tM": tM,
+    "tcov": tcov,
+    "tcovAxis": tcovAxis,
+}
 
-class ICS:
+_SELECT_MAP = {
+    "normal": normal_crit,
+    "unimodal": unimodal_crit,
+    "median": median_crit,
+}
+
+
+class ICS(TransformerMixin, BaseEstimator):
     """
     Invariant Coordinate Selection (ICS) Class and associated methods.
 
@@ -35,82 +40,83 @@ class ICS:
     It supports various scatter matrix calculations and offers multiple algorithms for applying ICS.
 
     Parameters:
-        S1 (function returning a scatter object): (default: cov) Function to compute the first scatter matrix.
-        S2 (function returning a scatter object): (default: covW) Function to compute the second scatter matrix.
-        algorithm (str): (default: 'whiten') The algorithm used for transformation ('standard', 'whiten', 'QR').
-        center (bool): (default: False): a logical indicating whether the invariant coordinates should be centered with respect to the first locattion or not. Centering is only applicable if the first scatter object contains a location component, otherwise this is set to False. Note that this only affects the scores of the invariant components (attribute scores_), but not the generalized kurtosis values (attribute kurtosis_).
-        fix_signs(str): (default: 'scores') How to fix the signs of the invariant coordinates. Possible values are 'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs based on the coefficient matrix of the linear transformation.
-        S1_args (dict): Additional arguments for S1.
-        S2_args (dict): Additional arguments for S2.
+        S1 (callable or str, default='cov'): First scatter estimator. If a string is provided, it must be one of the predefined scatter estimators (see the "Available scatter estimators" section below). Otherwise, it must be a callable returning a Scatter object.
+        S2 (callable or str, default='cov4'): Second scatter estimator. If a string is provided, it must be one of the predefined scatter estimators (see the "Available scatter estimators" section below). Otherwise, it must be a callable returning a Scatter object.
+        algorithm ({'eigh', 'standard', 'whiten', 'QR'}, default='eigh'): The algorithm used for computing the invariant coordinates.
+        center (bool, default=False): A logical indicating whether the invariant coordinates should be centered with respect to the first locattion or not. Centering is only applicable if the first scatter object contains a location component, otherwise this is set to False. Note that this only affects the scores of the invariant components (attribute `self.scores_`), but not the generalized kurtosis values (attribute `self.kurtosis_`).
+        fix_signs({'scores', 'W'}, default='scores') How to fix the signs of the invariant coordinates. Possible values are 'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs based on the coefficient matrix of the linear transformation.
+        S1_args (dict or None, default=None): Additional arguments for S1.
+        S2_args (dict or None, default=None): Additional arguments for S2.
+        method_select ({'median', 'normal', 'unimodal'} or callable or None, default=None): The criteria to select the invariant components. If None (default), all components are kept. If a string is provided, it must be either "median" to use the median eigenvalue criterion, "normal" to apply normality tests to the components, or "unimodal" to apply unimodality tests to the components. If callable, it must return a ComponentSelect object. For more information, refer to :mod:`icspylab.comp_select`.
+        select_args (dict or None, default=None): Additional arguments for method_select.
 
     Attributes:
-        W_ (np.ndarray): Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
-        scores_ (np.ndarray): Transformed matrix in which each column contains the scores of the corresponding invariant coordinate.
-        kurtosis_ (np.ndarray): Generalized kurtosis values.
-        skewness_ (np.ndarray): Skewness values.
-        feature_names_in_ (np.ndarray): Names of features seen during fit. Defined only when X has feature names that are all strings.
-        S1_X_ (np.ndarray): Fitted scatter S1. Defined only when center=True.
+        components_ (ndarray):  Invariant axes in feature space: the transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate. The components are sorted by decreasing kurtosis.
+        n_components_ (int): Number of components kept.
+        component_names_ (list): Names of components kept.
+        kurtosis_ (ndarray): Generalized kurtosis values.
+        skewness_ (ndarray): Skewness values.
+        n_features_in_ (int): Number of features seen during fit.
+        feature_names_in_ (ndarray): Names of features seen during fit. Defined only when X has feature names that are all strings.
+        S1_X_ (ndarray): Fitted scatter S1. Defined only when center=True.
+        criteria_out_ (dict or None): Summary of the component selection step. Defined only when method_select is not None.
+
+    Available scatter estimators are (see :mod:`icspylab.scatter` for a full description of the available scatters):
+        - ``'cov'``: classical covariance matrix and mean
+        - ``'cov4'``: fourth-moment estimator
+        - ``'covAxis'``: one-step Tyler shape estimator
+        - ``'covW'``: one-step M-estimator using mean and covariance matrix as starting point
+        - ``'mcd'``: Minimum Covariance Determinant
+        - ``'tM'``: location and scatter for a multivariate t-distribution
+        - ``'tcov'``: one-step pairwise M-estimator
+        - ``'tcovAxis'``: one-step pairwise M-estimator with the same weights as covAxis
 
     Supported algorithms:
-        1. standard: performs the spectral decomposition of the symmetric matrix :math:`S_1(X)^{-1/2}S_2(X)S_1(X)^{-1/2}`
-        2. whiten: whitens the data with respect to the first scatter matrix before computing the second scatter matrix.
-        3. QR: numerically stable algorithm based on the QR algorithm for a common family of scatter pairs: if S1 is cov(), and if S2 is one of cov4, covW, or covAxis. See Archimbaud et al. (2023) for details.
+        1. eigh: performs directly the simultaneous diagonalization of the two scatter matrices using scipy.linalg's function eigh(:math:`S_2(X)`, :math:`S_1(X)`)
+        2. standard: performs the spectral decomposition of the symmetric matrix :math:`S_1(X)^{-1/2}S_2(X)S_1(X)^{-1/2}`
+        3. whiten: whitens the data with respect to the first scatter matrix before computing the second scatter matrix.
+        4. QR: numerically stable algorithm based on the QR algorithm for a common family of scatter pairs: if S1 is cov(), and if S2 is one of cov4, covW, or covAxis. See Archimbaud et al. (2023) for details.
 
-    Examples:
+    References:
+        - Tyler, D.E., Critchley, F., Dumbgen, L. and Oja, H. (2009) Invariant Co-ordinate Selection. Journal of the Royal Statistical Society, Series B, 71(3), 549–592. doi:10.1111/j.14679868.2009.00706.x.
+        - Nordhausen, K., Oja, H., & Tyler, D. E. (2008). Tools for exploring multivariate data: The package ICS. Journal of Statistical Software, 28, 1-31.
+        - For algorithm = 'QR', refer to Archimbaud, A., Drmac, Z., Nordhausen, K., Radojcic, U. and Ruiz-Gazen, A. (2023) Numerical Considerations and a New Implementation for Invariant Coordinate Selection. SIAM Journal on Mathematics of Data Science, 5(1), 97–121. doi:10.1137/22M1498759.
+
+    Example:
         >>> from sklearn.datasets import load_iris
         >>> from icspylab import ICS
         >>> iris = load_iris()
         >>> X = iris.data
-        >>> ICS = ICS()
-        >>> ICS.fit(X)
+        >>> ics = ICS()
+        >>> ics.fit(X)
+        >>> print(ics.kurtosis_)
+        [1.20739878 1.0269412  0.9292235  0.74046722]
     """
 
-    def __init__(self, S1=cov, S2=covW, algorithm='whiten', center=False, fix_signs='scores', S1_args={}, S2_args={}):
-        """
-        Initialize the ICS object with specified parameters.
+    _parameter_constraints = {
+        "S1": [StrOptions(set(_SCATTER_MAP.keys())), callable],
+        "S2": [StrOptions(set(_SCATTER_MAP.keys())), callable],
+        "algorithm": [StrOptions({"eigh", "standard", "whiten", "QR"})],
+        "center": ["boolean"],
+        "fix_signs": [StrOptions({"scores", "W"})],
+        "S1_args": [dict, None],
+        "S2_args": [dict, None],
+        "method_select": [StrOptions(set(_SELECT_MAP.keys())), callable, None],
+        "select_args": [dict, None],
+    }
 
-        Parameters:
-            S1 (function returning a scatter object): (default: cov) Function to compute the first scatter matrix.
-            S2 (function returning a scatter object): (default: covW) Function to compute the second scatter matrix.
-            algorithm (str): (default: 'whiten') The algorithm used for transformation ('standard', 'whiten', 'QR').
-            center (bool): (default: False): a logical indicating whether the invariant coordinates should be centered with
-            respect to the first locattion or not. Centering is only applicable if the first scatter object contains a
-            location component, otherwise this is set to False. Note that this only affects the scores of the invariant
-            components (attribute scores_), but not the generalized kurtosis values (attribute kurtosis_).
-            fix_signs(str): (default: 'scores') How to fix the signs of the invariant coordinates. Possible values are
-            'scores' to fix the signs based on (generalized) skewness values of the coordinates, or 'W' to fix the signs
-            based on the coefficient matrix of the linear transformation.
-            S1_args (dict): Additional arguments for S1.
-            S2_args (dict): Additional arguments for S2.
-
-        Examples:
-            >>> ICS = ICS(S1 = cov,
-            >>>           S2 = covW,
-            >>>           algorithm = 'standard',
-            >>>           center = False,
-            >>>           fix_signs = 'scores',
-            >>>           S1_args = {},
-            >>>           S2_args = {})
-            >>>
-        """
-        assert callable(S1), "S1 must be a function returning a Scatter object."
-        assert callable(S2), "S2 must be a function returning a Scatter object."
-        assert isinstance(center, bool), "center must be boolean."
-
-        # Check for valid algorithm string
-        valid_algo = ['whiten', 'standard', 'QR']
-        assert algorithm in valid_algo, f"algorithm must be one of {valid_algo}"
-
-        # Check for valid fix_signs string
-        valid_fix_signs = ['scores', 'W']
-        assert fix_signs in valid_fix_signs, f"fix_signs must be one of {valid_fix_signs}"
-
-        # Check if the QR algorithm is applicable
-        if algorithm == "QR":
-            if not (S1 == cov and (S2 == covW or S2 == covAxis or S2 == cov4)):
-                warnings.warn("QR algorithm is not applicable; proceeding with the standard algorithm")
-                algorithm = "standard"
-
+    def __init__(
+            self,
+            S1="cov",
+            S2="cov4",
+            algorithm="eigh",
+            center=False,
+            fix_signs="scores",
+            S1_args=None,
+            S2_args=None,
+            method_select=None,
+            select_args=None
+    ):
         self.S1 = S1
         self.S2 = S2
         self.algorithm = algorithm
@@ -118,37 +124,71 @@ class ICS:
         self.fix_signs = fix_signs
         self.S1_args = S1_args
         self.S2_args = S2_args
-        self.W_ = None
-        self.scores_ = None
-        self.kurtosis_ = None
-        self.skewness_ = None
-        self.feature_names_in_ = None
-        self.S1_X_ = None
+        self.method_select = method_select
+        self.select_args = select_args
 
-    def fit(self, X):
+
+    def fit(self, X, y=None):
         """
         Fit the ICS model to the data.
 
-        This function relies on several helper methods to perform the ICS transformation:
-        _validate_input, _compute_first_scatter, _compute_second_scatter,
-        _transform_second_scatter, _compute_transformation, _compute_transformation_qr,
-        _center_data, _fix_component_signs.
+        This function relies on several helper methods to perform the ICS fit:
+        _compute_first_scatter, _compute_second_scatter, _transform_second_scatter,
+        _compute_transformation, _compute_transformation_qr, _fix_component_signs.
 
         Parameters:
             X (array-like): Data to fit the ICS model, where rows are samples and columns are features.
+            y (Ignored): Not used, present for API consistency by convention.
 
         Returns:
             self:The fitted ICS object.
         """
-        if isinstance(X, pd.DataFrame):
-            column_names = X.columns
-            X = X.values
-        else:
-            column_names = [f'Feature_{i}' for i in range(X.shape[1])]
-        self.feature_names_in_ = column_names
 
-        X = np.asarray(X)
-        self._validate_input(X)
+        # Check inputs
+
+        self._validate_params()
+
+        if isinstance(self.S1, str):
+            self.S1_ = _SCATTER_MAP[self.S1]
+        else:
+            self.S1_ = self.S1
+
+        if isinstance(self.S2, str):
+            self.S2_ = _SCATTER_MAP[self.S2]
+        else:
+            self.S2_ = self.S2
+
+        if isinstance(self.method_select, str):
+            self.method_select_ = _SELECT_MAP[self.method_select]
+        else:
+            self.method_select_ = self.method_select
+
+        if self.algorithm == "QR":
+            if not (self.S1_ == cov and self.S2_ in (covW, covAxis, cov4)):
+                warnings.warn("QR algorithm is not applicable; proceeding with the standard algorithm")
+                self.algorithm = "standard"
+
+        if hasattr(X, "columns"):
+            feature_names_in = np.array(X.columns)
+        else:
+            feature_names_in = None
+
+        X = validate_data(
+            self,
+            X,
+            reset=True,
+            ensure_all_finite=True,
+            ensure_2d=True,
+            ensure_min_features=2,
+            ensure_min_samples=2,
+            copy=False,
+        )
+
+        self.feature_names_in_ = feature_names_in
+        self.n_features_in_ = X.shape[1]
+
+        # ICS method
+
         S1_X, S1_X_inv_sqrt = self._compute_first_scatter(X)
 
         if self.algorithm == "whiten":
@@ -159,78 +199,126 @@ class ICS:
         elif self.algorithm == "QR":
             # Use the QR decomposition for transformation
             W, gen_kurtosis = self._compute_transformation_qr(X,  S1_X)
-        else:
+        elif self.algorithm == "standard":
             # Use the standard algorithm
             S2_X = self._compute_second_scatter(X)
             S2_Y = self._transform_second_scatter(S1_X_inv_sqrt, S2_X)
             W, gen_kurtosis = self._compute_transformation(S1_X_inv_sqrt, S2_Y)
+        else:
+            S2_X = self._compute_second_scatter(X)
+            evals, evecs = eigh(S2_X.scatter, S1_X.scatter)
+            evals, evecs = sort_eigenvalues_eigenvectors(evals, evecs)
+            gen_kurtosis = evals
+            W = evecs.T
 
         W_final, gen_skewness = self._fix_component_signs(X, W)
 
         if self.center:
             self.S1_X_ = S1_X
 
-        self.W_ = W_final
         self.kurtosis_ = gen_kurtosis
         self.skewness_ = gen_skewness
 
+        # Component selection
+
+        if self.method_select_ is None:
+            self.components_ = W_final
+            self.n_components_ = self.components_.shape[0]
+            self.component_names_ = [f"IC_{i + 1}" for i in range(self.n_components_)]
+            self.criteria_out_ = None
+
+        else:
+            selection_res = self._component_selection(X, W_final)
+            self.components_ = selection_res.components
+            self.n_components_ = selection_res.n_components
+            self.component_names_ = selection_res.component_names
+            self.criteria_out_ = selection_res.info
+
         return self
 
-    def transform(self, X):
+
+    def transform(self, X, y=None):
         """
         Transform the data using the fitted ICS model.
 
+        This function relies on the helper method _center_data.
+
         Parameters:
             X (array-like): Data to transform.
+            y (Ignored): Not used, present for API consistency by convention.
 
         Returns:
-            np.ndarray: Transformed matrix in which each column contains the scores of the corresponding invariant
-            coordinate.
+            ndarray: Transformed matrix in which columns contain the scores of the selected invariant coordinates.
         """
-        if self.W_ is None:
-            raise ValueError("The ICS model must be fitted before transforming data.")
 
-        if isinstance(X, pd.DataFrame):
-            X = X.values
-        X = np.asarray(X)
+        check_is_fitted(self, "components_")
 
-        assert self.W_.shape[0] == X.shape[1], f"The fitted model expects {self.W_.shape[0]} features in X."
+        X = validate_data(
+            self,
+            X,
+            reset=False,
+            ensure_all_finite=True,
+            ensure_2d=True,
+            copy=False,
+        )
+
+        assert self.components_.shape[1] == X.shape[1], f"The fitted model expects {self.components_.shape[0]} features in X."
 
         if self.center:
             # Center the data if required
             X = self._center_data(X, self.S1_X_)
 
         # Compute the final transformed data
-        Z_final = X @ self.W_.T
-        self.scores_ = Z_final
+        X_new = X @ self.components_.T
 
-        return Z_final
+        return X_new
 
-    def fit_transform(self, X):
+
+    def fit_transform(self, X, y=None):
         """
         Fit the ICS model and transform the data using the fitted ICS model.
 
         Parameters:
             X (array-like): Data to fit and transform.
+            y (Ignored): Not used, present for API consistency by convention.
 
         Returns:
-            np.ndarray: Transformed matrix in which each column contains the scores of the corresponding invariant
-            coordinate.
+            ndarray: Transformed matrix in which columns contain the scores of the selected invariant coordinates.
         """
         self.fit(X)
         return self.transform(X)
 
-    def plot(self, **kwargs):
-        """Plot the transformed data using the fitted ICS model."""
-        if self.scores_ is None:
-            raise ValueError("No transformed data available. Fit the model first.")
-        plot_scores(self.scores_, **kwargs)
+
+    def inverse_transform(self, X):
+        """Transform data back to its original space.
+
+        In other words, return an `X_original` whose transform would be X.
+
+        Parameters:
+            X (array-like): Transformed data,  where `n_samples` is the number of samples and `n_components` is the number of components.
+
+        Returns:
+            ndarray: Original data, where `n_samples` is the number of samples and `n_features` is the number of features.
+        """
+
+        check_is_fitted(self, "components_")
+
+        X = check_array(X, input_name="X", dtype=[np.float64, np.float32])
+
+        if self.center:
+            return X @ self.components_ + self.S1_X_.location
+        else:
+            return X @ self.components_
+
+
+    def get_feature_names_out(self, input_features=None):
+        check_is_fitted(self, "feature_names_in_")
+        return self.feature_names_in_
 
 
     def plot_kurtosis(self, **kwargs):
         """Plot the generated kurtosis."""
-        if self.kurtosis_ is None:
-            raise ValueError("No generated kurtosis available. Fit the model first.")
+        check_is_fitted(self, "components_")
         _plot_kurtosis(self.kurtosis_, **kwargs)
 
 
@@ -242,12 +330,16 @@ class ICS:
         and displays the generalized kurtosis, transformation matrix, transformed data, and
         the skewness of the data.
         """
-        feature_names = self.feature_names_in_
 
-        print("\nICS based on two scatter matrices")
-        print(f"S1: {self.S1.__name__}")
+        if self.feature_names_in_ is None:
+            feature_names = np.array([f'Feature_{i+1}' for i in range(self.n_features_in_)])
+        else:
+            feature_names = self.feature_names_in_
+
+        print("\nICS based on two scatter matrices:")
+        print(f"S1: {self.S1_.__name__}")
         print(f"S1_args: {self.S1_args}")
-        print(f"S2: {self.S2.__name__}")
+        print(f"S2: {self.S2_.__name__}")
         print(f"S2_args: {self.S2_args}")
 
         print("\nInformation on the algorithm:")
@@ -263,40 +355,30 @@ class ICS:
         else:
             print("None")
 
+        # Print component selection information
+        print("\nInformation on the component selection:")
+        print(f"method_select: {self.method_select_}")
+        print(f"select_args: {self.select_args}")
+        if self.criteria_out_ is not None:
+            print(f"component selection info: {self.criteria_out_}")
+        if self.n_components_ < 2:
+            print(f"{self.n_components_} component is kept: {self.component_names_}")
+        elif self.n_components_ < self.n_features_in_:
+            print(f"{self.n_components_} components are kept: {self.component_names_}")
+        else:
+            print(f"All components are kept: {self.component_names_}")
+
         # Print the coefficient matrix
         print("\nThe coefficient matrix of the linear transformation is:")
-        if self.W_ is not None:
+        if self.components_ is not None:
             header = "     " + " ".join(f"{name:>12}" for name in feature_names)
             print(header)
-            for idx, row in enumerate(self.W_, start=1):
+            for idx, row in enumerate(self.components_, start=1):
                 row_str = " ".join(f"{val:>12.5f}" for val in row)
                 print(f"IC_{idx:<3} {row_str}")
         else:
             print("None")
 
-    def _validate_input(self, X):
-        """
-        Validate the input data matrix.
-
-        This step ensures there are no missing values, the data is at least bi-variate,
-        the algorithm name is valid, and the fix-signs string is correct. If the 'QR' algorithm
-        is chosen, it also verifies the applicability of the specified scatter matrices.
-
-        Parameters:
-            X (np.ndarray): Data to validate.
-
-        Raises:
-            ValueError: If the input data doesn't meet any of the requirements.
-
-        Algorithm:
-            standard, whiten, QR
-        """
-        # Check for missing values
-        p = X.shape[1]
-        if pd.isnull(X).any():
-            raise ValueError("Missing values are not allowed in X")
-        if p <= 1:
-            raise ValueError("X must be at least bi-variate")
 
     def _compute_first_scatter(self, X):
         """
@@ -305,15 +387,17 @@ class ICS:
         This step is the first step of computing ICS and is common across all 3 algorithms.
 
         Parameters:
-            X (np.ndarray): The data matrix
+            X (ndarray): The data matrix
 
         Returns:
             tuple: The first scatter matrix applied to the data, and its inverse square root
 
         Algorithms:
-            standard, whiten, QR
+            eigh, standard, whiten, QR
         """
-        S1_X = self.S1(X, **self.S1_args)
+
+        S1_args = {} if self.S1_args is None else self.S1_args
+        S1_X = self.S1_(X, **S1_args)
         if not isinstance(S1_X, Scatter):
             raise ValueError("S1 must return a Scatter object")
 
@@ -322,21 +406,22 @@ class ICS:
 
     def _compute_second_scatter(self, X):
         """
-        Apply the second scatter matrix either directly on the data (standard algorithm) or on the whitened data
+        Apply the second scatter matrix either directly on the data (eigh and standard algorithm) or on the whitened data
         (whiten algorithm).
 
         Parameters:
-            X (np.ndarray): The data matrix or whitened data.
+            X (ndarray): The data matrix or whitened data.
 
         Returns:
             Scatter: The second scatter matrix applied to the passed data.
 
         Algorithm:
-            standard, whiten
+            eigh, standard, whiten
         """
-        S2_X = self.S2(X, **self.S2_args)
+        S2_args = {} if self.S2_args is None else self.S2_args
+        S2_X = self.S2_(X, **S2_args)
         if not isinstance(S2_X, Scatter):
-            raise ValueError("S2 must return an Scatter object")
+            raise ValueError("S2 must return a Scatter object")
         return S2_X
 
     def _transform_second_scatter(self, S1_X_inv_sqrt, S2_X):
@@ -344,7 +429,7 @@ class ICS:
         Transform the second scatter matrix using the inverse square root of the first scatter matrix
 
         Parameters:
-            S1_X_inv_sqrt (np.ndarray): The inverse square root of the first scatter matrix
+            S1_X_inv_sqrt (ndarray): The inverse square root of the first scatter matrix
             S2_X (Scatter): The second scatter matrix
 
         Returns:
@@ -369,7 +454,7 @@ class ICS:
         the transpose of the eigenvector matrix with the inverse square root of the first scatter matrix (S1_X_inv_sqrt).
 
         Parameters:
-            S1_X_inv_sqrt (np.ndarray): The inverse square root of the first scatter matrix.
+            S1_X_inv_sqrt (ndarray): The inverse square root of the first scatter matrix.
             S2_Y (Scatter): The second scatter matrix transformed (standard algorithm) or applied to the whitened data.
 
         Returns:
@@ -378,7 +463,7 @@ class ICS:
         Algorithms:
             standard, whiten
         """
-        S2_Y_eigenval, S2_Y_eigenvect = np.linalg.eig(S2_Y.scatter)
+        S2_Y_eigenval, S2_Y_eigenvect = np.linalg.eigh(S2_Y.scatter)
         S2_Y_eigenval, S2_Y_eigenvect = sort_eigenvalues_eigenvectors(S2_Y_eigenval, S2_Y_eigenvect)
         gen_kurtosis = S2_Y_eigenval
         W = np.dot(S2_Y_eigenvect.T, S1_X_inv_sqrt)
@@ -399,7 +484,7 @@ class ICS:
         8. Reorder W according to the original pivoting order.
 
         Parameters:
-            X (np.ndarray): The data matrix.
+            X (ndarray): The data matrix.
             S1_X (Scatter): The first scatter matrix.
 
         Algorithm:
@@ -429,13 +514,13 @@ class ICS:
         d = (n - 1) * np.sum(Q ** 2, axis=1)
 
         # Determine alpha and cf values based on the second scatter matrix function
-        if self.S2 == cov4:
+        if self.S2_ == cov4:
             alpha = 1
             cf = 1 / (p + 2)
-        elif self.S2 == covAxis:
+        elif self.S2_ == covAxis:
             alpha = -1
             cf = p
-        elif self.S2 == covW:
+        elif self.S2_ == covW:
             alpha = self.S2_args.get('alpha', 1)
             cf = self.S2_args.get('cf', 1)
 
@@ -444,7 +529,7 @@ class ICS:
         S2_Y = cf * (n - 1) / n * (Q * (d ** alpha)).T @ Q
 
         # Perform eigenvalue decomposition on S2_Y
-        eigenvalues, eigenvectors = np.linalg.eig(S2_Y)
+        eigenvalues, eigenvectors = np.linalg.eigh(S2_Y)
         _check_gen_kurtosis(eigenvalues)
         eigenvalues, eigenvectors = sort_eigenvalues_eigenvectors(eigenvalues, eigenvectors)
 
@@ -459,14 +544,14 @@ class ICS:
         Center the data matrix using the location component of the first scatter matrix.
 
         Parameters:
-            X (np.ndarray): The data matrix
+            X (ndarray): The data matrix
             S1_X (Scatter): The first scatter matrix
 
         Returns:
-            np.ndarray: The centered data matrix
+            ndarray: The centered data matrix
 
         Algorithm:
-            standard, whiten, QR
+            eig, standard, whiten, QR
         """
         T1_X = S1_X.location
         if T1_X is None:
@@ -481,14 +566,14 @@ class ICS:
         Fix the signs of the components based on the specified method.
 
         Parameters:
-            X (np.ndarray): The data matrix.
-            W (np.ndarray): The transformation matrix.
+            X (ndarray): The data matrix.
+            W (ndarray): The transformation matrix.
 
         Returns:
             tuple: The final transformation matrix and skewness values.
 
         Algorithm:
-            standard, whiten, QR
+            eigh, standard, whiten, QR
         """
         if self.fix_signs == "scores":
             Z = np.dot(X, W.T)
@@ -504,3 +589,33 @@ class ICS:
             gen_skewness = None
 
         return W_final, gen_skewness
+
+    def _component_selection(self, X, W_final):
+        """
+        Implement the component selection step based on the specified method.
+
+        Parameters:
+            X (ndarray): Data to fit the ICS model, where rows are samples and columns are features.
+            W_final (ndarray): The transformation matrix.
+
+        Returns:
+            ndarray: Transformed matrix in which columns contain the scores of the selected invariant coordinates.
+
+        Algorithm:
+            eigh, standard, whiten, QR
+        """
+
+        select_args = {} if self.select_args is None else self.select_args
+
+        selection_res = self.method_select_(
+            X=X,
+            W = W_final,
+            kurtosis=self.kurtosis_,
+            skewness=self.skewness_,
+            **select_args)
+
+        if not isinstance(selection_res, ComponentSelect):
+            raise ValueError("method_select must return a ComponentSelect object")
+
+        return selection_res
+

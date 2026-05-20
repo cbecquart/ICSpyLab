@@ -2,7 +2,12 @@
 Comparison tests for running ICSpyLab multiple times on the same dataset to make sure we get consistent results.
 """
 
-from . import *
+import logging
+import pytest
+import numpy as np
+from tests.fixtures import load_data, run_py_ics
+from tests.settings import datasets, params_sets, decimal_precisions, algorithm, center, fix_signs
+
 
 logger = logging.getLogger(__name__)
 @pytest.mark.parametrize("dataset_name", datasets)

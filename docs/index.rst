@@ -7,7 +7,7 @@ Welcome to ICSpyLab documentation!
 ==========================================================
 
 Overview
-========
+--------
 Invariant Coordinate Selection (ICS) is a data transformation method. It transforms the data, via the simultaneous
 diagonalization of two scatter matrices, into an invariant coordinate system or independent components,
 depending on the underlying assumptions.
@@ -28,28 +28,23 @@ You can find the source code for this project on our `GitHub Repository`_.
 Key Features
 ------------
 - Implementation of the ICS model
-- Detailed summary of the results
-- Plotting capabilities for transformed data (coming soon)
-- Scatter Matrices
+- Large catalogue of scatter matrices
+- Methods for component selection
+- Plotting capabilities for transformed data
 
-Installation
-------------
-For installation instructions, see the :doc:`installation` page.
+Getting Started
+---------------
+For installation instructions and a quick start guide, see the :doc:`getting_started/index` section.
+Some details about ICS and guidelines to use the package are also available.
 
-Usage
------
-For examples and usage, see the :doc:`usage` page.
+Examples
+--------
+For more detailed examples, refer to the :doc:`examples/index` section.
 
 API Documentation
 -----------------
-The ICSpyLab package provides several modules to work with invariant coordinate selection. For detailed information on each module, including available functions and their usage, see the following sections:
-
-- :doc:`ics`: Core functions and classes for performing invariant coordinate selection.
-- :doc:`plot`: Functions for visualizing the results of ICS analysis.
-- :doc:`scatter`: Tools for generating scatter plots and other visualizations.
-- :doc:`utils`: Utility functions to support the main functionalities.
-
-Each section includes detailed descriptions, parameter information, return types, and usage examples to help you effectively use the package.
+The ICSpyLab package provides several modules to work with invariant coordinate selection.
+Each module is documented in the :doc:`api/index` section.
 
 Testing
 -------
@@ -59,6 +54,18 @@ Contributors
 ------------
 For a list of contributors and their contact information, see the :doc:`contributors` page.
 
+Contribute
+----------
+
+We welcome contributions of all kinds, including bug fixes, new features, and documentation improvements.
+
+To get started, please check out our `CONTRIBUTING <https://github.com/cbecquart/ICSpyLab/tree/main?tab=contributing-ov-file>`_ guide.
+
+Citation
+--------
+
+If you use this package in academic work, please check out our :doc:`citation` page.
+
 References
 ----------
 For references, see the :doc:`references` page.
@@ -67,18 +74,15 @@ For references, see the :doc:`references` page.
    :hidden:
    :maxdepth: 2
 
-   installation
-   usage
-   ics
-   plot
-   scatter
-   utils
+   getting_started/index
+   examples/index
+   api/index
    test
    contributors
+   citation
    references
 
-Indices and tables
-==================
+Indices
+-------
 
 * :ref:`genindex`
-* :ref:`modindex`
