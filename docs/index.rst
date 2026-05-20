@@ -61,6 +61,11 @@ We welcome contributions of all kinds, including bug fixes, new features, and do
 
 To get started, please check out our `CONTRIBUTING <https://github.com/cbecquart/ICSpyLab/tree/main?tab=contributing-ov-file>`_ guide.
 
+Citation
+--------
+
+If you use this package in academic work, please check out our :doc:`citation` page.
+
 References
 ----------
 For references, see the :doc:`references` page.
@@ -74,10 +79,10 @@ For references, see the :doc:`references` page.
    api/index
    test
    contributors
+   citation
    references
 
-Indices and tables
-------------------
+Indices
+-------
 
 * :ref:`genindex`
-* :ref:`modindex`
