@@ -6,7 +6,7 @@ def main():
     HERE = pathlib.Path(__file__).parent
 
     # The text of the README file
-    README = (HERE / "README.md").read_text()
+    README = (HERE / "README.md").read_text(encoding="utf-8")
 
     # Read dependencies from requirements.txt
     with open(HERE / "requirements.txt") as f:
