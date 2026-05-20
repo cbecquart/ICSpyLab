@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+title: ICSpyLab
+message: "If you use this software, please cite it."
+type: software
+
+authors:
+  - family-names: Becquart
+    given-names: Colombe
+    orcid: "https://orcid.org/0009-0003-0790-3720"
+
+version: 1.0.0
+
+doi: 10.5281/zenodo.20306634
+
+date-released: 2026-05-20
+
+repository-code: "https://github.com/cbecquart/ICSpyLab"
+
+license: MIT

@@ -50,3 +50,20 @@ ics.describe()
 We welcome contributions of all kinds, including bug fixes, new features, and documentation improvements.
 
 To get started, please check out our [CONTRIBUTING.md](CONTRIBUTING.md) guide.
+
+## Citation
+
+If you use this software, please cite:
+
+Becquart, C. (2026). ICSpyLab (Version 1.0.0)
+https://doi.org/10.5281/zenodo.20306634
+
+```bibtex
+@software{becquart2026,
+ author = {Becquart, Colombe},
+ title = {ICSpyLab},
+ year = {2026},
+ version = {1.0.0},
+ doi = {10.5281/zenodo.20306634}
+}
+```
