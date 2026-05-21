@@ -84,7 +84,7 @@ using :meth:`~icspylab.ics.ICS.plot_kurtosis`.
 
 **Example plot:**
 
-.. image:: ../_static/quickstart_ic.png
+.. image:: ../_static/quickstart_ic.PNG
    :alt: Transformed Data Plot
    :align: center
 
@@ -95,7 +95,7 @@ using :meth:`~icspylab.ics.ICS.plot_kurtosis`.
 
 **Example plot:**
 
-.. image:: ../_static/quickstart_kurtosis.png
+.. image:: ../_static/quickstart_kurtosis.PNG
    :alt: Kurtosis
    :align: center
 

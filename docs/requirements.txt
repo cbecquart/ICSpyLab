@@ -4,9 +4,11 @@ sphinx
 sphinx-autodoc-typehints
 sphinx_rtd_theme
 myst_parser
+pytest
 numpy
 pandas
 scikit-learn
 scipy
+numba
 seaborn
 matplotlib
