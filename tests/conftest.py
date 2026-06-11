@@ -8,8 +8,9 @@ import logging
 import os
 from datetime import datetime
 from tests.fixtures.fixtures import load_data as load_data_fixture
-# from tests.fixtures.fixtures import run_r_ics as run_r_ics_fixture, run_py_ics as run_py_ics_fixture
+from tests.fixtures.fixtures import run_r_ics as run_r_ics_fixture, run_py_ics as run_py_ics_fixture
 
+logging.getLogger("rpy2").setLevel(logging.ERROR)
 # Create a logs directory if it doesn't exist
 if not os.path.exists('logs'):
     os.makedirs('logs')
@@ -51,16 +52,18 @@ def load_data():
     """
     return load_data()
 
-# @pytest.fixture(scope="module")
-# def run_r_ics():
-#     """
-#     Fixture to run ICS in R for testing.
-#     """
-#     return run_r_ics()
-#
-# @pytest.fixture(scope="module")
-# def run_py_ics():
-#     """
-#     Fixture to run ICS in Python for testing.
-#     """
-#     return run_py_ics()
+@pytest.mark.r_validation
+@pytest.fixture(scope="module")
+def run_r_ics():
+    """
+    Fixture to run ICS in R for testing.
+    """
+    return run_r_ics()
+
+@pytest.mark.r_validation
+@pytest.fixture(scope="module")
+def run_py_ics():
+    """
+    Fixture to run ICS in Python for testing.
+    """
+    return run_py_ics()

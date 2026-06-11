@@ -19,8 +19,8 @@ Check out the [documentation](https://icspylab.readthedocs.io/en/latest/) for mo
 
 ## Installation
 
+Install the package using pip:
 ```bash
-pip install numpy pandas scipy scikit-learn seaborn matplotlib 
 pip install icspylab
 ```
 
@@ -45,11 +45,23 @@ ics.fit_transform(X)
 ics.describe()
 ```
 
+## Examples
+
+All examples and figures shown in the documentation are reproducible and available as standalone Python 
+scripts in the `examples/` directory.
+
+
 ## 🤝 Contributing
 
 We welcome contributions of all kinds, including bug fixes, new features, and documentation improvements.
 
 To get started, please check out our [CONTRIBUTING.md](CONTRIBUTING.md) guide.
+
+
+## Testing
+
+Optional R-based comparisons are excluded from the default CI workflow due to external dependencies.
+
 
 ## Citation
 

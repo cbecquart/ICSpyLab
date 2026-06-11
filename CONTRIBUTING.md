@@ -82,13 +82,19 @@ pip install -r requirements-dev.txt
 ### Tests
 
 New features and bug fixes should include appropriate tests, using pytest. 
+
 To run the tests locally:
 ```bash
-pytest
+pytest tests
+```
+
+To run tests without R dependencies:
+```bash
+pytest tests -m "not r_validation"
 ```
 
 All tests must be part of the ``tests/`` folder and follow the existing structure. 
-Please ensure that all tests pass before submitting a pull request.
+Please ensure that all tests (including R dependencies) pass before submitting a pull request.
 
 
 ### Documentation
