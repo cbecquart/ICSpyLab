@@ -59,7 +59,6 @@ def load_data():
     return _load_data
 
 
-@pytest.mark.r_validation
 @pytest.fixture(scope="module")
 def run_r_ics():
     """
