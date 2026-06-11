@@ -7,8 +7,3 @@ To install the package, use pip:
 
     pip install icspylab
 
-Also, make sure that requirements are satisfied with:
-
-.. code-block:: bash
-
-    pip install numpy pandas scipy scikit-learn numba seaborn matplotlib

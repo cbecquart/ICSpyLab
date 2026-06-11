@@ -357,6 +357,20 @@ def test_large_dataset():
     assert ics.kurtosis_ is not None
 
 
+def test_affine_invariance():
+    """
+    Test the affine invariance property of ICS.
+    """
+    X = np.random.randn(200, 5)
+    A = np.linalg.qr(np.random.randn(5,5))[0]
+    X2 = X @ A
+
+    Z1 = ICS().fit_transform(X)
+    Z2 = ICS().fit_transform(X2)
+
+    assert np.abs(np.corrcoef(Z1.ravel(), Z2.ravel())[0,1]) > 0.99
+
+
 # Section: Error Handling Tests
 @pytest.mark.parametrize("algorithm", algorithm)
 @pytest.mark.parametrize("center", center)

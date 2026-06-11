@@ -10,12 +10,6 @@ from tests.utils import calculate_similarity_percentage
 from icspylab import ICS
 from sklearn.datasets import load_iris
 from tests.fixtures import load_data, run_py_ics
-# from tests.fixtures import run_r_ics
+from tests.fixtures import run_r_ics
 from tests.settings import datasets, params_sets, params_sets2, decimal_precisions_for_r, decimal_precisions, algorithm, center, fix_signs
 
-__all__ = [
-    'logging', 'pytest', 'np', 'calculate_similarity_percentage', 'ICS', 'load_iris',
-    'load_data', 'run_py_ics', #'run_r_ics',
-    'datasets', 'params_sets', 'params_sets2',
-    'decimal_precisions_for_r', 'decimal_precisions', 'algorithm', 'center', 'fix_signs'
-]
