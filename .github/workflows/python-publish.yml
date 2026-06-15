@@ -61,18 +61,6 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: python -m pip install rpy2
 
-    # Debug step to list all files in the working directory
-    - name: Debug - List files in working directory
-      run: ls -la
-
-    # Debug step to show the contents of requirements.txt
-    - name: Debug - Show requirements.txt contents
-      run: cat requirements.txt
-
-    # Debug step to check installed packages
-    - name: Check installed packages
-      run: pip list
-
     - name: Run full test suite (Linux only)
       if: matrix.os == 'ubuntu-latest'
       run: pytest tests
