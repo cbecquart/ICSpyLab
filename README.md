@@ -67,7 +67,7 @@ Optional R-based comparisons are excluded from the default CI workflow due to ex
 
 If you use this software, please cite:
 
-Becquart, C. and Abdelsameia, A. (2026). ICSpyLab (Version 1.0.0)
+Becquart, C. and Abdelsameia, A. (2026). ICSpyLab (Version 1.0.1)
 https://doi.org/10.5281/zenodo.20310665
 
 ```bibtex
@@ -75,7 +75,7 @@ https://doi.org/10.5281/zenodo.20310665
  author = {Becquart, Colombe and Abdelsameia, Abdallah},
  title = {ICSpyLab},
  year = {2026},
- version = {1.0.0},
+ version = {1.0.1},
  doi = {10.5281/zenodo.20310665}
 }
 ```
