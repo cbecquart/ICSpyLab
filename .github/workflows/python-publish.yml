@@ -40,6 +40,15 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Set up R
+      uses: r-lib/actions/setup-r@v2
+      with:
+        r-version: '4.4.2'
+
+    - name: Install R dependencies
+      run: |
+        Rscript -e 'install.packages(c("survey", "ICS"), repos="https://cloud.r-project.org/")'
+
     # Debug step to list all files in the working directory
     - name: Debug - List files in working directory
       run: ls -la
@@ -53,6 +62,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install pytest build
         python -m pip install -r requirements.txt
+        python -m pip install rpy2
 
     # Debug step to check installed packages
     - name: Check installed packages
