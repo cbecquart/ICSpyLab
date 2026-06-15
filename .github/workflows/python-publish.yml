@@ -58,8 +58,8 @@ jobs:
     - name: Check installed packages
       run: pip list
 
-    - name: Run tests (no R)
-      run: pytest tests -m "not r_validation"
+    - name: Run tests
+      run: pytest tests
 
     - name: Build package
       if: success()
