@@ -60,8 +60,10 @@ To get started, please check out our [CONTRIBUTING.md](CONTRIBUTING.md) guide.
 
 ## Testing
 
-Optional R-based comparisons are excluded from the default CI workflow due to external dependencies.
+The default CI workflow executes the full testing suite on Linux and macOS, including validation against the reference R implementation.
 
+On Windows, the CI workflow runs the Python test suite only, without the R-based comparison tests, due to 
+platform-specific constraints in the testing environment.
 
 ## Citation
 

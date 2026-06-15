@@ -30,7 +30,7 @@ The results with algorithms 'standard' and 'whiten' from the Python implementati
 - Transformed data
 
 Comparisons are performed using numerical tolerance thresholds to account for floating-point implementation differences
-between R and Python. The method is `numpy.testing.assert_almost_equal` with 8 decimals.
+between R and Python. The method is `numpy.testing.assert_almost_equal` with 7 decimals.
 This ensures that icspylab reproduces the behavior of the reference implementation with a high level of consistency.
 
 
