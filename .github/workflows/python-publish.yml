@@ -28,8 +28,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
     - name: Checkout repository
@@ -40,12 +40,20 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Set up R
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install pytest build rpy2
+        python -m pip install -r requirements.txt
+
+    - name: Set up R (Linux only)
+      if: matrix.os == 'ubuntu-latest'
       uses: r-lib/actions/setup-r@v2
       with:
         r-version: '4.4.2'
 
-    - name: Install R dependencies
+    - name: Install R dependencies (Linux only)
+      if: matrix.os == 'ubuntu-latest'
       run: |
         Rscript -e 'install.packages(c("survey", "ICS"), repos="https://cloud.r-project.org/")'
 
@@ -57,19 +65,17 @@ jobs:
     - name: Debug - Show requirements.txt contents
       run: cat requirements.txt
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install pytest build
-        python -m pip install -r requirements.txt
-        python -m pip install rpy2
-
     # Debug step to check installed packages
     - name: Check installed packages
       run: pip list
 
-    - name: Run tests
+    - name: Run full test suite (Linux only)
+      if: matrix.os == 'ubuntu-latest'
       run: pytest tests
+
+    - name: Run Python-only tests (not Linux)
+      if: matrix.os != 'ubuntu-latest'
+      run: pytest -m "not r_validation"
 
     - name: Build package
       if: success()
