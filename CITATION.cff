@@ -10,11 +10,11 @@ authors:
   - family-names: Abdelsameia
     given-names: Abdallah
 
-version: 1.0.0
+version: 1.0.1
 
 doi: 10.5281/zenodo.20310665
 
-date-released: 2026-05-20
+date-released: 2026-06-15
 
 repository-code: "https://github.com/cbecquart/ICSpyLab"
 

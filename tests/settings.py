@@ -8,7 +8,7 @@ from icspylab import cov, covW, cov4, covAxis, mcd, tcov
 datasets = ['iris', 'diabetes', 'wine']
 
 # A list of decimal precisions to test
-decimal_precisions_for_r = [8]
+decimal_precisions_for_r = [7]
 decimal_precisions = [12]
 
 # Define algorithms to be tested

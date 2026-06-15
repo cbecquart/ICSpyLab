@@ -60,14 +60,16 @@ To get started, please check out our [CONTRIBUTING.md](CONTRIBUTING.md) guide.
 
 ## Testing
 
-Optional R-based comparisons are excluded from the default CI workflow due to external dependencies.
+The default CI workflow executes the full testing suite on Linux and macOS, including validation against the reference R implementation.
 
+On Windows, the CI workflow runs the Python test suite only, without the R-based comparison tests, due to 
+platform-specific constraints in the testing environment.
 
 ## Citation
 
 If you use this software, please cite:
 
-Becquart, C. and Abdelsameia, A. (2026). ICSpyLab (Version 1.0.0)
+Becquart, C. and Abdelsameia, A. (2026). ICSpyLab (Version 1.0.1)
 https://doi.org/10.5281/zenodo.20310665
 
 ```bibtex
@@ -75,7 +77,7 @@ https://doi.org/10.5281/zenodo.20310665
  author = {Becquart, Colombe and Abdelsameia, Abdallah},
  title = {ICSpyLab},
  year = {2026},
- version = {1.0.0},
+ version = {1.0.1},
  doi = {10.5281/zenodo.20310665}
 }
 ```
