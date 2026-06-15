@@ -7,7 +7,7 @@ If you use this package in academic work, please cite:
 
    Becquart, C. and Abdelsameia, A. (2026).
    ICSpyLab (Version 1.0.1).
-   https://doi.org/10.5281/zenodo.20310665
+   https://doi.org/10.5281/zenodo.20707572
 
 BibTeX
 -------
@@ -19,6 +19,6 @@ BibTeX
      title = {ICSpyLab},
      year = {2026},
      version = {1.0.1},
-     doi = {10.5281/zenodo.20310665}
+     doi = {10.5281/zenodo.20707572}
    }
 
