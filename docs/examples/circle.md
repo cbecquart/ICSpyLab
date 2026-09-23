@@ -1,6 +1,6 @@
 # Circular structure example
 
-This example is adapted from Caussinus et al. (2023), which is itself 
+This example is adapted from Caussinus et al. (2003), which is itself 
 similar to Example 4.3 from Caussinus and Ruiz (1995).  
 
 In the plane of the first two coordinates, points are generated according 
