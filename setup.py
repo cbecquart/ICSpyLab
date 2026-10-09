@@ -14,7 +14,7 @@ def main():
 
     setup(
         name='icspylab',
-        version='1.0.1',
+        version='1.0.2',
         author='Colombe Becquart, Abdallah Abdelsameia',
         author_email='colombe.becquart@tse-fr.eu, aabdelsameia1@gmail.com',
         maintainer="Colombe Becquart",

@@ -6,7 +6,7 @@ If you use this package in academic work, please cite:
 .. code-block:: text
 
    Becquart, C. and Abdelsameia, A. (2026).
-   ICSpyLab (Version 1.0.1).
+   ICSpyLab (Version 1.0.2).
    https://doi.org/10.5281/zenodo.20707572
 
 BibTeX
@@ -18,7 +18,7 @@ BibTeX
      author = {Becquart, Colombe and Abdelsameia, Abdallah},
      title = {ICSpyLab},
      year = {2026},
-     version = {1.0.1},
+     version = {1.0.2},
      doi = {10.5281/zenodo.20707572}
    }
 
