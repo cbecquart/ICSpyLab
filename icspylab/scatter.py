@@ -6,10 +6,6 @@ from sklearn.covariance import MinCovDet
 from sklearn.utils.validation import check_array
 from numba import njit
 import warnings
-try:
-    from icspylab.tcov import tcov_module
-except ImportError:
-    tcov_module = None
 
 
 class Scatter:
