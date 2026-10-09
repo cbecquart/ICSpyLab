@@ -99,36 +99,41 @@ def multivariate_powerexp(n, scatter, location=None, beta=1):
 
 # --- Elliptical mixtures ---
 
-def generate_gaussian_mixture(eps, mu, sigma, n, p):
+def generate_gaussian_mixture(eps, mu, sigma, n):
     """
     Generates a Gaussian Mixture Model (GMM) with the given parameters.
 
     Parameters:
-        eps (list of float): Proportions of points assigned to each cluster (must sum to 1).
-        mu (list of np.ndarray): List of mean vectors (centroids) for each cluster (size k).
-        sigma (list of np.ndarray): List of covariance matrices (size k).
+        eps (list of float): List of k mixing proportions. Must sum to 1.
+        mu (list of np.ndarray): List of location vectors of shape (p,) for each cluster (size k).
+        sigma (list of np.ndarray): List of covariance matrices of shape (p, p) for each cluster (size k). Must be symmetric positive semidefinite matrices.
         n (int): Total number of data points to generate.
-        p (int): Dimension of the data, including noise.
 
     Returns:
         tuple: A tuple containing:
-            data_with_noise (ndarray): Matrix (n, p) of generated data points.
+            data (ndarray): Matrix (n, p) of generated data points.
             labels (ndarray): Array of cluster labels (size n).
 
     Example:
         >>> eps = [0.5, 0.5]
         >>> mu = [np.ones(2), np.ones(2)*10]
         >>> sigma = [np.eye(2) for _ in range(2)]
-        >>> X, labels = generate_gaussian_mixture(eps, mu, sigma, n=1000, p=6)
+        >>> X, labels = generate_gaussian_mixture(eps, mu, sigma, n=1000)
     """
     # Validate inputs
-    assert np.isclose(sum(eps), 1.0), "The elements of eps must sum to 1."
     assert len(eps) > 0, "Proportions (eps) must contain at least one group."
+    assert np.isclose(sum(eps), 1.0), "The elements of eps must sum to 1."
+    assert np.all(np.asarray(eps) >= 0), "The elements of eps must be non-negative."
     assert len(eps) == len(sigma), "Proportions (eps) and sigma must have the same length."
     assert len(eps) == len(mu), "Proportions (eps) and mu must have the same length."
+    assert isinstance(n, (int, np.integer)) and n > 0, "n must be a strictly positive integer."
 
-    # Number of clusters k
     k = len(eps)
+    p = len(mu[0])
+
+    for i in range(k):
+        assert np.asarray(mu[i]).shape == (p,)
+        assert np.asarray(sigma[i]).shape == (p, p)
 
     # Determine the number of points for each group based on eps
     points_per_group = (np.array(eps) * n).astype(int)
@@ -137,64 +142,63 @@ def generate_gaussian_mixture(eps, mu, sigma, n, p):
 
     # Generate data
     data = []
+    labels = []
+
+    rng = np.random.default_rng()
 
     for i in range(k):
         # Generate points from a multivariate normal distribution
-        group_points = np.random.default_rng().multivariate_normal(mu[i], sigma[i], points_per_group[i])
+        group_points = rng.multivariate_normal(
+            mean=mu[i],
+            cov=sigma[i],
+            size=points_per_group[i]
+        )
         data.append(group_points)
+        labels.extend([f"Group_{i + 1}"] * points_per_group[i])
 
-    # Combine data points into a single array (n x r)
-    data = np.vstack(data)
-
-    # Add noise
-    p_noise = p - data.shape[1]
-    noise = np.random.normal(loc=0, scale=1, size=(n, p_noise))
-    data_with_noise = np.hstack((data, noise))
-
-    # Save group label for each point
-    group_labels = ["Group_" + str(i + 1) for i in range(k)]
-    labels = [val for val, count in zip(group_labels, points_per_group) for _ in range(count)]
-    labels = np.array(labels)
-
-    return data_with_noise, labels
+    return np.vstack(data), np.asarray(labels)
 
 
-def generate_student_mixture(eps, mu, sigma, df, n, p):
+def generate_student_mixture(eps, mu, sigma, df, n):
     """
     Generates a Student-t Mixture Model (SMM) with the given parameters.
 
     Parameters:
-        eps (list of float): Proportions of points assigned to each cluster (must sum to 1).
-        mu (list of ndarray): List of mean vectors (centroids) for each cluster (size k).
-        sigma (list of ndarray): List of covariance matrices (size k).
-        df (int or list of int): Degrees of freedom (size k if list). Must be strictly positive integers.
+        eps (list of float): List of k mixing proportions. Must sum to 1.
+        mu (list of np.ndarray): List of location vectors of shape (p,) for each cluster (size k).
+        sigma (list of np.ndarray): List of shape matrices of shape (p, p) for each cluster (size k). Must be symmetric positive semidefinite matrices.
+        df (float or list of float): Degrees of freedom (size k if list). Must be strictly positive.
         n (int): Total number of data points to generate.
-        p (int): Dimension of the data, including noise.
 
     Returns:
         tuple: A tuple containing:
-            data_with_noise (ndarray): Matrix (n, p) of generated data points.
+            data (ndarray): Matrix (n, p) of generated data points.
             labels (ndarray): Array of cluster labels (size n).
 
     Example:
         >>> eps = [0.5, 0.5]
         >>> mu = [np.ones(2), np.ones(2)*10]
         >>> sigma = [np.eye(2) for _ in range(2)]
-        >>> X, labels = generate_student_mixture(eps, mu, sigma, df=2, n=1000, p=6)
+        >>> X, labels = generate_student_mixture(eps, mu, sigma, df=2, n=1000)
     """
+    # Validate inputs
+    assert len(eps) > 0, "Proportions (eps) must contain at least one group."
+    assert len(eps) == len(mu) == len(sigma), "Proportions (eps) and mu and sigma must have the same length."
+    assert np.all(np.asarray(eps) >= 0), "The elements of eps must be non-negative."
+    assert np.isclose(sum(eps), 1.0), "The elements of eps must sum to 1."
 
-    # Number of clusters k
     k = len(eps)
+    p = len(mu[0])
 
-    if isinstance(df, int):
+    if np.isscalar(df):
         df = [df for _ in range(k)]
 
-    # Validate inputs
-    assert np.isclose(sum(eps), 1.0), "The elements of eps must sum to 1."
-    assert len(eps) > 0, "Proportions (eps) must contain at least one group."
-    assert len(eps) == len(sigma), "Proportions (eps) and sigma must have the same length."
-    assert len(eps) == len(mu), "Proportions (eps) and mu must have the same length."
     assert len(eps) == len(df), "Proportions (eps) and df must have the same length."
+    assert isinstance(n, (int, np.integer)) and n > 0, "n must be a strictly positive integer."
+
+    for i in range(k):
+        assert np.asarray(mu[i]).shape == (p,)
+        assert np.asarray(sigma[i]).shape == (p, p)
 
     # Determine the number of points for each group based on eps
     points_per_group = (np.array(eps) * n).astype(int)
@@ -203,64 +207,62 @@ def generate_student_mixture(eps, mu, sigma, df, n, p):
 
     # Generate data
     data = []
+    labels = []
 
     for i in range(k):
         # Generate points from a multivariate Student-t distribution
-        group_points = multivariate_t.rvs(loc=mu[i], shape=sigma[i], df=df[i], size=points_per_group[i])
+        group_points = multivariate_t.rvs(
+            loc=mu[i],
+            shape=sigma[i],
+            df=df[i],
+            size=points_per_group[i]
+        )
         data.append(group_points)
+        labels.extend([f"Group_{i + 1}"] * points_per_group[i])
 
-    # Combine data points into a single array (n x r)
-    data = np.vstack(data)
-
-    # Add noise
-    p_noise = p - data.shape[1]
-    noise = np.random.normal(loc=0, scale=1, size=(n, p_noise))
-    data_with_noise = np.hstack((data, noise))
-
-    # Save group label for each point
-    group_labels = ["Group_" + str(i + 1) for i in range(k)]
-    labels = [val for val, count in zip(group_labels, points_per_group) for _ in range(count)]
-    labels = np.array(labels)
-
-    return data_with_noise, labels
+    return np.vstack(data), np.asarray(labels)
 
 
-def generate_powerexp_mixture(eps, mu, sigma, beta, n, p):
+def generate_powerexp_mixture(eps, mu, sigma, beta, n):
     """
     Generates a mixture of multivariate power exponential distribution (PEM) with the given parameters.
 
     Parameters:
-        eps (list of float): Proportions of points assigned to each cluster (must sum to 1).
-        mu (list of np.ndarray): List of mean vectors (centroids) for each cluster (size k).
-        sigma (list of np.ndarray): List of covariance matrices (size k).
-        beta (float or list of float): Shape parameters (size k if list).
+        eps (list of float): List of k mixing proportions. Must sum to 1.
+        mu (list of np.ndarray): List of location vectors of shape (p,) for each cluster (size k).
+        sigma (list of np.ndarray): List of scatter matrices of shape (p, p) for each cluster (size k). Must be symmetric positive definite matrices.
+        beta (float or list of float): Shape parameters (size k if list). Must be positive.
         n (int): Total number of data points to generate.
-        p (int): Dimension of the data, including noise.
 
     Returns:
         tuple: A tuple containing:
-            data_with_noise (ndarray): Matrix (n, p) of generated data points.
+            data (ndarray): Matrix (n, p) of generated data points.
             labels (ndarray): Array of cluster labels (size n).
 
     Example:
         >>> eps = [0.5, 0.5]
         >>> mu = [np.ones(2), np.ones(2)*10]
         >>> sigma = [np.eye(2) for _ in range(2)]
-        >>> X, labels = generate_powerexp_mixture(eps, mu, sigma, beta=0.8, n=1000, p=6)
+        >>> X, labels = generate_powerexp_mixture(eps, mu, sigma, beta=0.8, n=1000)
     """
+    # Validate inputs
+    assert len(eps) > 0, "Proportions (eps) must contain at least one group."
+    assert len(eps) == len(mu) == len(sigma), "Proportions (eps) and mu and sigma must have the same length."
+    assert np.all(np.asarray(eps) >= 0), "The elements of eps must be non-negative."
+    assert np.isclose(sum(eps), 1.0), "The elements of eps must sum to 1."
 
-    # Number of clusters k
     k = len(eps)
+    p = len(mu[0])
 
-    if isinstance(beta, float):
+    if np.isscalar(beta):
         beta = [beta for _ in range(k)]
 
-    # Validate inputs
-    assert np.isclose(sum(eps), 1.0), "The elements of eps must sum to 1."
-    assert len(eps) > 0, "Proportions (eps) must contain at least one group."
-    assert len(eps) == len(sigma), "Proportions (eps) and sigma must have the same length."
-    assert len(eps) == len(mu), "Proportions (eps) and mu must have the same length."
     assert len(eps) == len(beta), "Proportions (eps) and beta must have the same length."
+    assert isinstance(n, (int, np.integer)) and n > 0, "n must be a strictly positive integer."
+
+    for i in range(k):
+        assert np.asarray(mu[i]).shape == (p,)
+        assert np.asarray(sigma[i]).shape == (p, p)
 
     # Determine the number of points for each group based on eps
     points_per_group = (np.array(eps) * n).astype(int)
@@ -269,26 +271,19 @@ def generate_powerexp_mixture(eps, mu, sigma, beta, n, p):
 
     # Generate data
     data = []
+    labels = []
 
     for i in range(k):
-        # Generate points from a multivariate normal distribution
-        group_points = multivariate_powerexp(n=points_per_group[i], location=mu[i], scatter=sigma[i], beta=beta[i])
+        # Generate points from a multivariate power exponential distribution
+        group_points = multivariate_powerexp(
+            n=points_per_group[i],
+            location=mu[i],
+            scatter=sigma[i],
+            beta=beta[i])
         data.append(group_points)
+        labels.extend([f"Group_{i + 1}"] * points_per_group[i])
 
-    # Combine data points into a single array (n x r)
-    data = np.vstack(data)
-
-    # Add noise
-    p_noise = p - data.shape[1]
-    noise = np.random.normal(loc=0, scale=1, size=(n, p_noise))
-    data_with_noise = np.hstack((data, noise))
-
-    # Save group label for each point
-    group_labels = ["Group_" + str(i + 1) for i in range(k)]
-    labels = [val for val, count in zip(group_labels, points_per_group) for _ in range(count)]
-    labels = np.array(labels)
-
-    return data_with_noise, labels
+    return np.vstack(data), np.asarray(labels)
 
 
 # --- RANDU ---
