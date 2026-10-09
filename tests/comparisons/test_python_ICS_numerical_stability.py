@@ -5,7 +5,7 @@ Comparison tests for running ICSpyLab multiple times on the same dataset to make
 import logging
 import pytest
 import numpy as np
-from tests.fixtures import load_data, run_py_ics
+from tests.fixtures.fixtures import load_data, run_py_ics
 from tests.settings import datasets, params_sets, decimal_precisions, algorithm, center, fix_signs
 
 

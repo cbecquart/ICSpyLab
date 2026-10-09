@@ -74,9 +74,10 @@ def _basic_params():
 
 def test_generate_gaussian_mixture_basic():
     eps, mu, sigma = _basic_params()
-    n, p = 10, 4
+    p = len(mu[0])
+    n = 10
 
-    x, labels = generate_gaussian_mixture(eps, mu, sigma, n, p)
+    x, labels = generate_gaussian_mixture(eps, mu, sigma, n)
 
     assert x.shape == (n, p)
     assert isinstance(labels, np.ndarray)
@@ -85,9 +86,10 @@ def test_generate_gaussian_mixture_basic():
 
 def test_generate_student_mixture_basic():
     eps, mu, sigma = _basic_params()
-    n, p = 10, 4
+    p = len(mu[0])
+    n = 10
 
-    x, labels = generate_student_mixture(eps, mu, sigma, df=5, n=n, p=p)
+    x, labels = generate_student_mixture(eps, mu, sigma, df=5, n=n)
 
     assert x.shape == (n, p)
     assert isinstance(labels, np.ndarray)
@@ -96,9 +98,10 @@ def test_generate_student_mixture_basic():
 
 def test_generate_powerexp_mixture_basic():
     eps, mu, sigma = _basic_params()
-    n, p = 10, 4
+    p = len(mu[0])
+    n = 10
 
-    x, labels = generate_powerexp_mixture(eps, mu, sigma, beta=1.0, n=n, p=p)
+    x, labels = generate_powerexp_mixture(eps, mu, sigma, beta=1.0, n=n)
 
     assert x.shape == (n, p)
     assert isinstance(labels, np.ndarray)
@@ -107,9 +110,9 @@ def test_generate_powerexp_mixture_basic():
 
 def test_labels_content():
     eps, mu, sigma = _basic_params()
-    n, p = 10, 2
+    n = 10
 
-    _, labels = generate_gaussian_mixture(eps, mu, sigma, n, p)
+    _, labels = generate_gaussian_mixture(eps, mu, sigma, n)
 
     assert np.all(np.isin(labels, ["Group_1", "Group_2"]))
 
@@ -120,4 +123,4 @@ def test_invalid_eps_sum():
     sigma = [np.eye(2), np.eye(2)]
 
     with pytest.raises(AssertionError):
-        generate_gaussian_mixture(eps, mu, sigma, n=10, p=2)
+        generate_gaussian_mixture(eps, mu, sigma, n=10)

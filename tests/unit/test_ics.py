@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.exceptions import NotFittedError
 from sklearn.utils.estimator_checks import check_estimator
 from icspylab import ICS, cov, covW, covAxis, cov4, normal_crit, median_crit, unimodal_crit
-from tests.fixtures import run_py_ics
+from tests.fixtures.fixtures import run_py_ics
 from tests.settings import algorithm, center, fix_signs
 
 logger = logging.getLogger(__name__)

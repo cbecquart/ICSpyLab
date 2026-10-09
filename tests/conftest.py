@@ -7,8 +7,6 @@ import pytest
 import logging
 import os
 from datetime import datetime
-from tests.fixtures.fixtures import load_data as load_data_fixture
-from tests.fixtures.fixtures import run_r_ics as run_r_ics_fixture, run_py_ics as run_py_ics_fixture
 
 logging.getLogger("rpy2").setLevel(logging.ERROR)
 # Create a logs directory if it doesn't exist
@@ -50,18 +48,21 @@ def load_data():
     """
     Fixture to load datasets for testing.
     """
-    return load_data()
+    from tests.fixtures.fixtures import load_data as load_data_fixture
+    return load_data_fixture()
 
 @pytest.fixture(scope="module")
 def run_r_ics():
     """
     Fixture to run ICS in R for testing.
     """
-    return run_r_ics()
+    from tests.fixtures.fixtures import run_r_ics as run_r_ics_fixture
+    return run_r_ics_fixture()
 
 @pytest.fixture(scope="module")
 def run_py_ics():
     """
     Fixture to run ICS in Python for testing.
     """
-    return run_py_ics()
+    from tests.fixtures.fixtures import run_py_ics as run_py_ics_fixture
+    return run_py_ics_fixture()

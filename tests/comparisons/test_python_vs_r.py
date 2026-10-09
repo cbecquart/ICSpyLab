@@ -5,7 +5,7 @@ Comparison tests for Python and R implementations of ICS.
 import logging
 import pytest
 import numpy as np
-from tests.fixtures import load_data, run_r_ics, run_py_ics
+from tests.fixtures.fixtures import load_data, run_r_ics, run_py_ics
 from tests.settings import datasets, params_sets, decimal_precisions_for_r, algorithm, center, fix_signs
 
 logger = logging.getLogger(__name__)

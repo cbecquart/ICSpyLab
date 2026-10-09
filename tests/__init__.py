@@ -1,3 +1,3 @@
 """
-Initialization file for the tests modul of ICSpyLab
+Initialization file for the tests module of ICSpyLab
 """
