@@ -1,10 +1,3 @@
-import pytest
-import warnings
-import numpy as np
-import random
-import logging
-import string
-from icspylab import ICS, Scatter, cov, covW, covAxis, cov4, mcd, tcov, tcovAxis, tM
-from tests.fixtures import load_data, run_py_ics
-from tests.fixtures import run_r_ics
-from tests.settings import datasets, params_sets, decimal_precisions, algorithm, center, fix_signs
+"""
+Initialization file for the unit tests module of ICSpyLab
+"""
